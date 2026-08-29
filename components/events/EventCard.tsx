@@ -13,21 +13,21 @@ export default function EventCard({ event }: { event: Event }) {
   const badgeVariant = event.status === 'active' ? 'success' : event.status === 'cancelled' ? 'danger' : 'muted'
 
   return (
-    <Link href={`/events/${event.id}`} className="group block border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[0_14px_35px_rgba(16,37,45,.05)] transition-all duration-200 hover:-translate-y-1 hover:border-[var(--accent-strong)] hover:shadow-[8px_10px_0_var(--accent)]">
+    <Link href={`/events/${event.id}`} className="group block min-w-0 border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[0_14px_35px_rgba(16,37,45,.05)] transition-[color,background-color,border-color,opacity,transform,box-shadow] duration-200 hover:-translate-y-1 hover:border-[var(--accent-strong)] hover:shadow-[8px_10px_0_var(--accent)]">
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center bg-[var(--ink)] text-sm font-black text-[var(--lime)]">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid h-10 w-10 shrink-0 place-items-center bg-[var(--ink)] text-sm font-black text-[var(--lime)]">
             {event.name.slice(0, 1).toUpperCase()}
           </span>
           <span className="eyebrow text-[var(--muted-soft)]">{event.event_date}</span>
         </div>
-        <Badge variant={badgeVariant}>{statusLabels[event.status] || event.status}</Badge>
+        <span className="shrink-0"><Badge variant={badgeVariant}>{statusLabels[event.status] || event.status}</Badge></span>
       </div>
       <h3 className="mt-8 truncate text-xl font-black tracking-[-.04em] group-hover:text-[var(--accent-strong)]">{event.name}</h3>
       {event.description && <p className="mt-2 line-clamp-2 text-sm leading-6 text-[var(--muted)]">{event.description}</p>}
       <div className="mt-6 flex items-center justify-between border-t border-[var(--border)] pt-4 text-xs font-semibold text-[var(--muted)]">
-        <span>{event.start_time}{event.end_time ? ` — ${event.end_time}` : ''}</span>
-        <span>{event.location || 'Lokasi belum diisi'} <span className="ml-1 text-[var(--accent-strong)]">↗</span></span>
+        <span className="shrink-0">{event.start_time}{event.end_time ? ` — ${event.end_time}` : ''}</span>
+        <span className="min-w-0 truncate text-right">{event.location || 'Lokasi belum diisi'} <span className="ml-1 text-[var(--accent-strong)]">↗</span></span>
       </div>
     </Link>
   )

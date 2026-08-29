@@ -17,10 +17,19 @@ export default async function AttendanceHistoryPage() {
   const supabase = await createClient()
   const { data } = await supabase
     .from('attendances')
-    .select('id, status, method, check_in_at, profiles(full_name, nim), events(name)')
+    .select('id, user_id, status, method, check_in_at, events(name)')
     .order('check_in_at', { ascending: false })
     .limit(100)
-  const attendances = (data ?? []) as unknown as AttendanceRecord[]
+  const attendanceRows = data ?? []
+  const userIds = [...new Set(attendanceRows.map((attendance) => attendance.user_id))]
+  const { data: profiles } = userIds.length > 0
+    ? await supabase.from('profiles').select('id, full_name, nim').in('id', userIds)
+    : { data: [] }
+  const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]))
+  const attendances = attendanceRows.map((attendance) => ({
+    ...attendance,
+    profiles: profilesById.get(attendance.user_id) ?? null,
+  })) as unknown as AttendanceRecord[]
   const byEvent: Record<string, AttendanceRecord[]> = {}
 
   attendances.forEach((attendance) => {
@@ -35,7 +44,7 @@ export default async function AttendanceHistoryPage() {
     <div className="space-y-8">
       <section className="border-b border-[var(--border)] pb-8">
         <p className="eyebrow text-[var(--accent-strong)]">rekap absensi / arsip FILKOM</p>
-        <h1 className="display-type mt-3 text-5xl leading-none tracking-[-.07em]">Jejak<br /><em>kehadiranmu.</em></h1>
+        <h1 className="display-type mt-3 text-4xl leading-none tracking-[-.07em] sm:text-5xl">Jejak<br /><em>kehadiranmu.</em></h1>
         <p className="mt-4 max-w-md text-sm leading-6 text-[var(--muted)]">Semua scan QR tersusun berdasarkan acara organisasi. Rekap rapi, tanpa kertas dan tanpa spreadsheet berantakan.</p>
       </section>
 
@@ -45,7 +54,7 @@ export default async function AttendanceHistoryPage() {
             <div><p className="eyebrow text-[var(--accent-strong)]">rekap per acara</p><h2 className="mt-2 text-lg font-black">{name}</h2></div>
             <span className="font-mono text-xs text-[var(--muted)]">{records.length} check-in</span>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overscroll-x-contain"><p className="mb-2 px-5 text-[10px] font-bold uppercase tracking-[.1em] text-[var(--muted-soft)] sm:hidden">Geser tabel ke samping untuk melihat semua kolom.</p>
             <table className="w-full min-w-[680px] text-sm">
               <thead className="bg-[var(--surface-muted)] text-left text-[10px] font-black uppercase tracking-[.1em] text-[var(--muted)]"><tr><th className="px-5 py-3">Nama</th><th className="px-5 py-3">NIM/NIP</th><th className="px-5 py-3">Status</th><th className="px-5 py-3">Metode</th><th className="px-5 py-3">Waktu</th></tr></thead>
               <tbody className="divide-y divide-[var(--border)]">

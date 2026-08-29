@@ -22,8 +22,9 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { overflow-x: hidden; scroll-behavior: smooth; }
 body {
+  overflow-x: hidden;
   background: var(--background);
   color: var(--foreground);
   font-family: "Avenir Next", Avenir, "Segoe UI", Arial, sans-serif;
@@ -32,10 +33,28 @@ body {
 
 ::selection { background: var(--lime); color: var(--ink); }
 button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
+button, a { touch-action: manipulation; }
 button, a { transition-property: color, background-color, border-color, opacity, transform, box-shadow; }
 
 .display-type { font-family: Georgia, "Times New Roman", serif; }
 .eyebrow { letter-spacing: .18em; text-transform: uppercase; font-size: .68rem; font-weight: 800; }
+.qr-camera-shell > video {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  object-fit: cover;
+}
+
+.qr-camera-shell > canvas {
+  display: none !important;
+}
+
+.qr-camera-shell > #qr-shaded-region {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 .paper-grid {
   background-image: linear-gradient(rgba(16, 37, 45, .045) 1px, transparent 1px), linear-gradient(90deg, rgba(16, 37, 45, .045) 1px, transparent 1px);
   background-size: 28px 28px;

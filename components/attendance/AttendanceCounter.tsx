@@ -12,12 +12,20 @@ export default function AttendanceCounter({ sessionId, eventId, initialCount }: 
   useEffect(() => {
     supabase
       .from('attendances')
-      .select('*, profiles(*)')
+      .select('*')
       .eq('session_id', sessionId)
       .order('check_in_at', { ascending: false })
       .limit(5)
-      .then(({ data }) => {
-        if (data) setRecent(data as Attendance[])
+      .then(async ({ data }) => {
+        if (!data || data.length === 0) return
+
+        const userIds = [...new Set(data.map((attendance) => attendance.user_id))]
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('*')
+          .in('id', userIds)
+        const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]))
+        setRecent(data.map((attendance) => ({ ...attendance, profiles: profilesById.get(attendance.user_id) })))
       })
 
     const channel = supabase
@@ -44,7 +52,7 @@ export default function AttendanceCounter({ sessionId, eventId, initialCount }: 
           <div className="mt-3 space-y-3">
             {recent.map((attendance) => (
               <div key={attendance.id} className="flex items-center justify-between gap-3 text-sm">
-                <span className="truncate font-semibold">{attendance.profiles?.full_name || 'Peserta'}</span>
+                <span className="min-w-0 truncate font-semibold">{attendance.profiles?.full_name || 'Peserta'}</span>
                 <span className="shrink-0 font-mono text-xs text-white/40">{new Date(attendance.check_in_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
               </div>
             ))}
