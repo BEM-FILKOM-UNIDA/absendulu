@@ -32,13 +32,13 @@ export default function Header({ isAdmin = false }: { isAdmin?: boolean }) {
         <div><p className="eyebrow text-[var(--accent-strong)] lg:hidden">absendulu/</p><h1 className="mt-1 text-2xl font-black tracking-[-.06em]">{title}</h1></div>
         <div className="flex items-center gap-3 sm:gap-4">
           <Link href="/profile" className="flex items-center gap-2 text-right" aria-label="Lihat profil akun">
-            <span className="grid h-10 w-10 place-items-center bg-[var(--ink)] text-sm font-black text-[var(--lime)]">A</span>
-            <span className="hidden sm:block"><p className="text-sm font-black">Akun saya</p><p className="eyebrow mt-1 text-[var(--muted-soft)]">lihat profil</p></span>
+            <span><p className="text-sm font-black">Akun saya</p><p className="eyebrow mt-1 text-[var(--muted-soft)]">lihat profil</p></span>
           </Link>
-          <button type="button" onClick={signOut} className="flex flex-col items-center gap-0.5 border-l border-[var(--border)] pl-3 text-[var(--ink)] hover:text-[var(--accent-strong)]" aria-label="Keluar">
-            <span className="eyebrow text-[var(--muted-soft)]">KELUAR</span>
-            <span className="text-lg font-black leading-none" aria-hidden="true">↗</span>
+          <button type="button" onClick={signOut} className="flex items-center gap-1 border-l border-[var(--border)] pl-3 text-xs font-black uppercase tracking-[.1em] text-[var(--ink)] hover:text-[var(--accent-strong)]" aria-label="Keluar">
+            <span>KELUAR</span>
+            <span className="text-lg leading-none" aria-hidden="true">↗</span>
           </button>
+          <Link href="/profile" className="grid h-10 w-10 place-items-center bg-[var(--ink)] text-sm font-black text-[var(--lime)]" aria-label="Lihat profil akun">A</Link>
         </div>
       </header>
       <nav className="fixed inset-x-0 bottom-0 z-30 grid border-t border-[var(--ink)] bg-[var(--ink)] px-2 pb-[max(env(safe-area-inset-bottom),.5rem)] lg:hidden" style={{ gridTemplateColumns: `repeat(${navItems.length}, minmax(0, 1fr))` }} aria-label="Navigasi mobile">
