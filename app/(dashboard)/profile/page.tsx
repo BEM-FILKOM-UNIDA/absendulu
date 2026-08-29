@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/supabase/server'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import ProfileActions from '@/components/profile/ProfileActions'
+import ProfileEditor from '@/components/profile/ProfileEditor'
 
 const typeLabels: Record<string, string> = {
   mahasiswa: 'Mahasiswa',
@@ -14,7 +15,7 @@ export default async function ProfilePage() {
   const { supabase, user } = await getCurrentUser()
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name, nim, user_type, division, account_status')
+    .select('full_name, nim, user_type, division, phone, account_status')
     .eq('id', user?.id)
     .maybeSingle()
 
@@ -48,6 +49,14 @@ export default async function ProfilePage() {
           <div className="bg-[var(--surface)] p-5"><dt className="eyebrow text-[var(--muted-soft)]">Status akun</dt><dd className="mt-3"><Badge variant={profile?.account_status === 'active' ? 'success' : profile?.account_status === 'disabled' ? 'danger' : 'muted'}>{profile?.account_status || 'Belum diketahui'}</Badge></dd></div>
         </dl>
       </Card>
+
+      <ProfileEditor
+        email={user?.email || ''}
+        fullName={profile?.full_name || ''}
+        nim={profile?.nim || ''}
+        division={profile?.division || ''}
+        phone={profile?.phone || ''}
+      />
     </div>
   )
 }
