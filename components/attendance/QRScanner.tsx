@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 export default function QRScanner({ onScan }: { onScan: (token: string) => void }) {
   const [scanning, setScanning] = useState(false)
   const [error, setError] = useState('')
+  const processingRef = useRef(false)
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -16,13 +17,21 @@ export default function QRScanner({ onScan }: { onScan: (token: string) => void 
     if (!containerRef.current) return
     setScanning(true)
     setError('')
+    processingRef.current = false
     const scanner = new Html5Qrcode('qr-reader')
     scannerRef.current = scanner
     try {
-      await scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 250, height: 250 } }, (decodedText) => { scanner.stop().catch(() => {}); setScanning(false); onScan(decodedText) }, () => {})
+      await scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 250, height: 250 } }, (decodedText) => {
+        if (processingRef.current) return
+        processingRef.current = true
+        scanner.stop().catch(() => {})
+        setScanning(false)
+        onScan(decodedText)
+      }, () => {})
     } catch {
       setError('Kamera tidak tersedia. Periksa izin kamera lalu coba lagi.')
       setScanning(false)
+      processingRef.current = false
     }
   }
 

@@ -28,10 +28,10 @@ export async function getUserRole(request: NextRequest): Promise<string | null> 
   if (!user) return null
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*')
+    .select('role, account_status, is_active')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
   const access = normalizeProfileAccess(profile)
-  if (!access || access.account_status === 'disabled' || !access.is_active) return null
+  if (!access || access.account_status !== 'active' || !access.is_active) return null
   return access.role ?? null
 }

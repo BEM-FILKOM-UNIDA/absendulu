@@ -1,115 +1,119 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { createServerClient } from '@supabase/ssr'
 import { normalizeProfileAccess } from '@/lib/auth/profile-access'
+import { isSameOrigin } from '@/lib/http/request-security'
 
-export async function POST(request: NextRequest) {
-  // Use Supabase SSR client to properly read auth cookies
-  const supabase = createServerClient(
+function getAuthenticatedClient(request: NextRequest) {
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll() {
-          // No-op: we don't need to set cookies in API routes
-        },
+        getAll: () => request.cookies.getAll(),
+        setAll: () => {},
       },
-    }
+    },
   )
+}
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+function toComparableMinutes(date: string, time: string) {
+  const [year, month, day] = date.split('-').map(Number)
+  const [hour, minute] = time.slice(0, 5).split(':').map(Number)
+  return Date.UTC(year, month - 1, day, hour, minute) / 60000
+}
 
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+function getJakartaDateTime(now = new Date()) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Jakarta',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(now)
+  const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]))
+  return { date: `${values.year}-${values.month}-${values.day}`, time: `${values.hour}:${values.minute}` }
+}
+
+export async function POST(request: NextRequest) {
+  if (!isSameOrigin(request)) {
+    return NextResponse.json({ error: 'Origin request tidak valid.' }, { status: 403 })
   }
+  const supabase = getAuthenticatedClient(request)
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { qrToken } = await request.json()
-  if (!qrToken) {
-    return NextResponse.json(
-      { error: 'QR token diperlukan' },
-      { status: 400 }
-    )
-  }
-
-  // Find session by QR token (use service role for read)
-  const { createClient } = await import('@supabase/supabase-js')
-  const adminSupabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
-  const { data: session } = await adminSupabase
-    .from('attendance_sessions')
-    .select('*, events(*)')
-    .eq('qr_token', qrToken)
-    .eq('is_open', true)
-    .single()
-
-  if (!session) {
-    return NextResponse.json(
-      { error: 'QR Code tidak valid atau sesi sudah ditutup' },
-      { status: 400 }
-    )
-  }
-
-  const { data: profile } = await adminSupabase
+  const admin = createAdminClient()
+  const { data: profile, error: profileError } = await admin
     .from('profiles')
-    .select('*')
+    .select('account_status, is_active')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
   const access = normalizeProfileAccess(profile)
 
-  if (!access || access.account_status !== 'active' || !access.is_active) {
-    return NextResponse.json(
-      { error: 'Akun belum aktif atau sudah dinonaktifkan.' },
-      { status: 403 }
-    )
+  if (profileError || !access || access.account_status !== 'active' || !access.is_active) {
+    return NextResponse.json({ error: 'Akun belum aktif atau sudah dinonaktifkan.' }, { status: 403 })
   }
 
-  // Check if already checked in
-  const { data: existing } = await adminSupabase
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Body request tidak valid.' }, { status: 400 })
+  }
+
+  const qrToken = body && typeof body === 'object' && 'qrToken' in body
+    ? (body as { qrToken?: unknown }).qrToken
+    : null
+  if (typeof qrToken !== 'string' || qrToken.length < 16 || qrToken.length > 128) {
+    return NextResponse.json({ error: 'QR token tidak valid.' }, { status: 400 })
+  }
+
+  const { data: session, error: sessionError } = await admin
+    .from('attendance_sessions')
+    .select('id, event_id, is_open, events!inner(name, event_date, start_time, status)')
+    .eq('qr_token', qrToken)
+    .eq('is_open', true)
+    .maybeSingle()
+
+  if (sessionError || !session) {
+    return NextResponse.json({ error: 'QR Code tidak valid atau sesi sudah ditutup.' }, { status: 400 })
+  }
+
+  const event = Array.isArray(session.events) ? session.events[0] : session.events
+  if (!event || event.status !== 'active') {
+    return NextResponse.json({ error: 'Acara tidak sedang aktif.' }, { status: 400 })
+  }
+
+  const { data: existing } = await admin
     .from('attendances')
     .select('id')
     .eq('session_id', session.id)
     .eq('user_id', user.id)
-    .single()
+    .maybeSingle()
 
-  if (existing) {
-    return NextResponse.json(
-      { error: 'Sudah melakukan absensi' },
-      { status: 400 }
-    )
-  }
+  if (existing) return NextResponse.json({ error: 'Sudah melakukan absensi.' }, { status: 409 })
 
-  // Determine status: HADIR or TERLAMBAT (>15 min after start_time)
-  const event = session.events
-  const now = new Date()
-  const [startH, startM] = event.start_time.split(':').map(Number)
-  const eventStart = new Date()
-  eventStart.setHours(startH, startM, 0, 0)
-  const diffMinutes = (now.getTime() - eventStart.getTime()) / (1000 * 60)
-  const status = diffMinutes > 15 ? 'terlambat' : 'hadir'
+  const jakartaNow = getJakartaDateTime()
+  const startMinutes = toComparableMinutes(event.event_date, event.start_time)
+  const nowMinutes = toComparableMinutes(jakartaNow.date, jakartaNow.time)
+  const status = nowMinutes - startMinutes > 15 ? 'terlambat' : 'hadir'
 
-  const { error } = await adminSupabase.from('attendances').insert({
+  const { error } = await admin.from('attendances').insert({
     session_id: session.id,
     event_id: session.event_id,
     user_id: user.id,
     status,
     method: 'QR_CODE',
-    check_in_at: now.toISOString(),
+    check_in_at: new Date().toISOString(),
   })
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error.code === '23505') return NextResponse.json({ error: 'Sudah melakukan absensi.' }, { status: 409 })
+    return NextResponse.json({ error: 'Gagal mencatat kehadiran.' }, { status: 500 })
   }
 
-  return NextResponse.json({
-    success: true,
-    status,
-    eventName: event.name,
-  })
+  return NextResponse.json({ success: true, status, eventName: event.name })
 }

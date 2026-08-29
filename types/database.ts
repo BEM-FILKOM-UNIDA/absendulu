@@ -25,8 +25,6 @@ export interface Event {
   end_time: string | null
   location: string | null
   status: 'draft' | 'active' | 'completed' | 'cancelled'
-  created_by: string
-  created_at: string
 }
 
 export interface AttendanceSession {

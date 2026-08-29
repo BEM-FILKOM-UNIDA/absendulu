@@ -15,7 +15,11 @@ const statusLabels: Record<string, string> = { hadir: 'Hadir', terlambat: 'Terla
 
 export default async function AttendanceHistoryPage() {
   const supabase = await createClient()
-  const { data } = await supabase.from('attendances').select('*, profiles(*), events(*)').order('check_in_at', { ascending: false }).limit(100)
+  const { data } = await supabase
+    .from('attendances')
+    .select('id, status, method, check_in_at, profiles(full_name, nim), events(name)')
+    .order('check_in_at', { ascending: false })
+    .limit(100)
   const attendances = (data ?? []) as unknown as AttendanceRecord[]
   const byEvent: Record<string, AttendanceRecord[]> = {}
 
@@ -30,15 +34,15 @@ export default async function AttendanceHistoryPage() {
   return (
     <div className="space-y-8">
       <section className="border-b border-[var(--border)] pb-8">
-        <p className="eyebrow text-[var(--accent-strong)]">attendance ledger / archive</p>
-        <h1 className="display-type mt-3 text-5xl leading-none tracking-[-.07em]">Jejak<br /><em>kehadiran.</em></h1>
-        <p className="mt-4 max-w-md text-sm leading-6 text-[var(--muted)]">Semua check-in, tersusun berdasarkan acara. Tidak ada nama yang hilang di antara spreadsheet.</p>
+        <p className="eyebrow text-[var(--accent-strong)]">rekap absensi / arsip FILKOM</p>
+        <h1 className="display-type mt-3 text-5xl leading-none tracking-[-.07em]">Jejak<br /><em>kehadiranmu.</em></h1>
+        <p className="mt-4 max-w-md text-sm leading-6 text-[var(--muted)]">Semua scan QR tersusun berdasarkan acara organisasi. Rekap rapi, tanpa kertas dan tanpa spreadsheet berantakan.</p>
       </section>
 
       {eventEntries.length > 0 ? eventEntries.map(([name, records]) => (
         <Card key={name} className="overflow-hidden">
           <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-5 sm:px-6">
-            <div><p className="eyebrow text-[var(--accent-strong)]">event log</p><h2 className="mt-2 text-lg font-black">{name}</h2></div>
+            <div><p className="eyebrow text-[var(--accent-strong)]">rekap per acara</p><h2 className="mt-2 text-lg font-black">{name}</h2></div>
             <span className="font-mono text-xs text-[var(--muted)]">{records.length} check-in</span>
           </div>
           <div className="overflow-x-auto">
@@ -53,7 +57,7 @@ export default async function AttendanceHistoryPage() {
             </table>
           </div>
         </Card>
-      )) : <div className="border border-dashed border-[var(--border)] bg-[var(--surface)] px-6 py-20 text-center"><p className="eyebrow text-[var(--accent-strong)]">empty ledger</p><h2 className="display-type mt-4 text-3xl">Belum ada jejak.</h2><p className="mt-3 text-sm text-[var(--muted)]">Riwayat akan muncul setelah peserta melakukan check-in.</p></div>}
+      )) : <div className="border border-dashed border-[var(--border)] bg-[var(--surface)] px-6 py-20 text-center"><p className="eyebrow text-[var(--accent-strong)]">belum ada riwayat</p><h2 className="display-type mt-4 text-3xl">Belum ada jejak.</h2><p className="mt-3 text-sm text-[var(--muted)]">Riwayat akan muncul setelah mahasiswa melakukan scan QR.</p></div>}
     </div>
   )
 }
