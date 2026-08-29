@@ -1,30 +1,45 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import Image from 'next/image'
+import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
 
 export default function QRDisplay({ token, eventName }: { token: string; eventName: string }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!canvasRef.current || !token) return
+    let cancelled = false
 
-    QRCode.toCanvas(canvasRef.current, token, {
+    if (!token) return
+
+    QRCode.toDataURL(token, {
       width: 380,
       margin: 2,
       color: { dark: '#10252d', light: '#f3f0e9' },
+    }).then((dataUrl) => {
+      if (!cancelled) setQrDataUrl(dataUrl)
+    }).catch(() => {
+      if (!cancelled) setQrDataUrl(null)
     })
+
+    return () => {
+      cancelled = true
+    }
   }, [token])
 
   return (
-    <div className="flex min-w-0 w-full flex-col items-center text-center">
+    <div className="flex w-full min-w-0 flex-col items-center text-center">
       <p className="eyebrow text-[var(--accent-strong)]">QR absensi</p>
       <h2 className="mt-3 max-w-md break-words text-xl font-black tracking-[-.05em] sm:text-2xl">{eventName}</h2>
       <p className="mt-2 max-w-sm text-sm leading-6 text-[var(--muted)]">Scan QR ini untuk mencatat kehadiran acara FILKOM.</p>
-      <div className="mx-auto mt-6 w-full max-w-[min(280px,calc(100% - 1rem))] border-4 border-[var(--ink)] bg-[var(--paper)] p-2 shadow-[3px_4px_0_var(--accent)] sm:mt-8 sm:max-w-[380px] sm:p-4 sm:shadow-[8px_8px_0_var(--accent)]">
-        <canvas ref={canvasRef} className="mx-auto block aspect-square h-auto w-full" />
+      <div className="mx-auto mt-6 flex aspect-square w-[74vw] max-w-[280px] items-center justify-center border-4 border-[var(--ink)] bg-[var(--paper)] p-2 sm:mt-8 sm:w-full sm:max-w-[380px] sm:p-4">
+        {qrDataUrl ? (
+          <Image src={qrDataUrl} alt={`QR absensi ${eventName}`} className="block h-auto w-full max-w-full" width={380} height={380} unoptimized />
+        ) : (
+          <span className="text-center text-xs font-bold uppercase tracking-[.12em] text-[var(--muted)]">Menyiapkan QR…</span>
+        )}
       </div>
-      <div className="mt-6 flex max-w-full items-center gap-3 break-all text-left text-xs font-bold text-[var(--muted)] sm:mt-7">
+      <div className="mt-6 flex w-full max-w-[380px] items-center gap-3 break-all text-left text-xs font-bold text-[var(--muted)] sm:mt-7">
         <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--accent)]" />
         <span>QR aktif · token {token.substring(0, 8)}…</span>
       </div>
