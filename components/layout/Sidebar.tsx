@@ -48,7 +48,7 @@ export default function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
   }
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-[268px] shrink-0 flex-col border-r border-white/10 bg-[var(--ink)] text-[#f7f4ed] lg:flex">
+    <aside className="hidden h-[100dvh] w-[268px] shrink-0 flex-col border-r border-white/10 bg-[var(--ink)] text-[#f7f4ed] lg:flex">
       <Link href="/dashboard" className="flex h-24 shrink-0 items-center gap-3 border-b border-white/10 px-7 transition-colors hover:bg-white/[.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lime)] focus-visible:ring-inset">
         <span className="grid h-10 w-10 shrink-0 place-items-center bg-[var(--accent)] text-sm font-black text-[var(--ink)]">A</span>
         <span className="min-w-0">
