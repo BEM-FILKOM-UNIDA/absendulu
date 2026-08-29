@@ -1,10 +1,12 @@
 name: Deploy production
 
 on:
-  push:
-    branches:
-      - develop
   workflow_dispatch:
+    inputs:
+      confirm:
+        description: Type DEPLOY to deploy the selected develop commit to production
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -21,7 +23,7 @@ concurrency:
 jobs:
   deploy:
     name: Deploy to Vercel
-    if: ${{ github.ref == 'refs/heads/develop' }}
+    if: ${{ inputs.confirm == 'DEPLOY' && github.ref == 'refs/heads/develop' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment:
@@ -48,6 +50,9 @@ jobs:
       - name: Pull Vercel production environment
         run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
 
+      - name: Verify Vercel project context
+        run: test -s .vercel/project.json
+
       - name: Run application checks
         run: npm run check
 
@@ -61,6 +66,20 @@ jobs:
         env:
           PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
         run: |
+          set -eu
           test -n "$PRODUCTION_URL"
-          curl --fail --silent --show-error --location --max-time 30 "$PRODUCTION_URL/" >/dev/null
+
+          headers="$(curl --fail --silent --show-error --location --dump-header - --max-time 30 "$PRODUCTION_URL/")"
+          printf '%s\n' "$headers" | grep -qi '^x-content-type-options: nosniff'
+          printf '%s\n' "$headers" | grep -qi '^x-frame-options: DENY'
+          printf '%s\n' "$headers" | grep -qi '^referrer-policy: strict-origin-when-cross-origin'
+          printf '%s\n' "$headers" | grep -qi '^permissions-policy: camera=(self), microphone=()'
+          ! printf '%s\n' "$headers" | grep -qi '^x-powered-by:'
+
+          protected_status="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' --max-time 30 "$PRODUCTION_URL/dashboard")"
+          test "$protected_status" = "307" || test "$protected_status" = "308"
+
+          profile_status="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' --max-time 30 -X PATCH "$PRODUCTION_URL/api/profile" -H "Origin: $PRODUCTION_URL" -H 'Content-Type: application/json' --data '{}')"
+          test "$profile_status" = "401"
+
           curl --fail --silent --show-error --location --max-time 30 "$PRODUCTION_URL/login" >/dev/null

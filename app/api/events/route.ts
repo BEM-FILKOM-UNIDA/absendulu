@@ -19,6 +19,19 @@ type EventInput = {
   status: 'draft' | 'active' | 'completed' | 'cancelled'
 }
 
+function isValidDate(value: string): boolean {
+  if (!DATE_PATTERN.test(value)) return false
+  const [year, month, day] = value.split('-').map(Number)
+  const date = new Date(Date.UTC(year, month - 1, day))
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+}
+
+function isValidTime(value: string): boolean {
+  if (!TIME_PATTERN.test(value)) return false
+  const [hour, minute] = value.split(':').map(Number)
+  return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59
+}
+
 function parseEventInput(value: unknown): EventInput | null {
   if (!value || typeof value !== 'object') return null
   const body = value as Record<string, unknown>
@@ -33,8 +46,8 @@ function parseEventInput(value: unknown): EventInput | null {
     : 'active'
 
   if (!name || name.length > 160 || (description && description.length > 5000) || (location && location.length > 200)) return null
-  if (!DATE_PATTERN.test(event_date) || !TIME_PATTERN.test(start_time)) return null
-  if (end_time && !TIME_PATTERN.test(end_time)) return null
+  if (!isValidDate(event_date) || !isValidTime(start_time)) return null
+  if (end_time && !isValidTime(end_time)) return null
   if (end_time && end_time <= start_time) return null
 
   return { name, description, event_date, start_time, end_time, location, status }

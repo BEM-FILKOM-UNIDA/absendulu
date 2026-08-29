@@ -237,7 +237,7 @@ export default function LoginPage() {
 
         <div className="mt-7 border-t border-[var(--border)] pt-5">
           <p className="text-center text-xs leading-5 text-[var(--muted)]">
-            Bisa pakai email apa saja.
+            Gunakan email yang sudah didaftarkan panitia.
           </p>
         </div>
       </CardContent>

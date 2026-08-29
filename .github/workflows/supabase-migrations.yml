@@ -28,6 +28,13 @@ jobs:
         with:
           version: 2.33.9
 
+      - name: Preview pending migrations
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          test -n "$SUPABASE_DB_URL"
+          supabase db push --db-url "$SUPABASE_DB_URL" --dry-run
+
       - name: Apply migrations
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
 
   const { data: session, error: sessionError } = await admin
     .from('attendance_sessions')
-    .select('id, event_id, is_open, events!inner(name, event_date, start_time, status)')
+    .select('id, event_id, is_open, events!inner(name, event_date, start_time, end_time, status)')
     .eq('qr_token', qrToken)
     .eq('is_open', true)
     .maybeSingle()
@@ -97,8 +97,18 @@ export async function POST(request: NextRequest) {
   if (existing) return NextResponse.json({ error: 'Sudah melakukan absensi.' }, { status: 409 })
 
   const jakartaNow = getJakartaDateTime()
+  if (jakartaNow.date !== event.event_date) {
+    return NextResponse.json({ error: 'Waktu absensi acara sudah berakhir.' }, { status: 400 })
+  }
   const startMinutes = toComparableMinutes(event.event_date, event.start_time)
   const nowMinutes = toComparableMinutes(jakartaNow.date, jakartaNow.time)
+  const endMinutes = event.end_time ? toComparableMinutes(event.event_date, event.end_time) : null
+  if (nowMinutes < startMinutes) {
+    return NextResponse.json({ error: 'Absensi belum dibuka. Tunggu sampai waktu acara dimulai.' }, { status: 400 })
+  }
+  if (endMinutes !== null && nowMinutes > endMinutes) {
+    return NextResponse.json({ error: 'Waktu absensi acara sudah berakhir.' }, { status: 400 })
+  }
   const status = nowMinutes - startMinutes > 15 ? 'terlambat' : 'hadir'
 
   const { error } = await admin.from('attendances').insert({

@@ -1,4 +1,3 @@
-import { createAdminClient } from '@/lib/supabase/admin'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -44,48 +43,15 @@ export async function GET(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return redirectWithSession('/login?error=invalid')
 
-  const { data: initialProfile, error: profileError } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('account_status, is_active')
     .eq('id', user.id)
     .maybeSingle()
-  let profile = initialProfile
 
   if (profileError) return redirectWithSession('/login?error=profile')
 
-  if (!profile) {
-    const admin = createAdminClient()
-    const fullName = typeof user.user_metadata?.full_name === 'string' && user.user_metadata.full_name.trim()
-      ? user.user_metadata.full_name.trim()
-      : user.email || 'Pengguna'
-    const nim = `AUTH-${user.id.replaceAll('-', '')}`
-    const { error: provisionError } = await admin.from('profiles').insert({
-      id: user.id,
-      full_name: fullName,
-      nim,
-      email: user.email ?? null,
-      user_type: 'mahasiswa',
-      account_status: 'active',
-      is_active: true,
-      role: 'user',
-    })
-
-    if (provisionError && provisionError.code !== '23505') {
-      return redirectWithSession('/login?error=profile')
-    }
-
-    const refreshedProfile = await admin
-      .from('profiles')
-      .select('account_status, is_active')
-      .eq('id', user.id)
-      .maybeSingle()
-    if (refreshedProfile.error || !refreshedProfile.data) {
-      return redirectWithSession('/login?error=profile')
-    }
-    profile = refreshedProfile.data
-  }
-
-  if (profile.account_status === 'disabled' || !profile.is_active) {
+  if (!profile || profile.account_status === 'disabled' || !profile.is_active) {
     await supabase.auth.signOut()
     return redirectWithSession('/login?disabled=1')
   }

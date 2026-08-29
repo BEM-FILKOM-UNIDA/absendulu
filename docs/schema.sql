@@ -174,7 +174,7 @@ BEGIN
     fallback_nim,
     NEW.email,
     COALESCE(NULLIF(BTRIM(NEW.raw_user_meta_data->>'user_type'), ''), 'mahasiswa'),
-    'active',
+    'invited',
     'user'
   )
   ON CONFLICT (id) DO UPDATE SET
