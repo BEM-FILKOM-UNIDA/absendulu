@@ -2,6 +2,10 @@
 
 Absensi acara organisasi FILKOM UNIDA berbasis Next.js dan Supabase. Mahasiswa masuk dengan Magic Link atau Google OAuth, lalu melakukan check-in melalui QR code acara.
 
+## CI/CD
+
+The repository uses GitHub Actions for PR validation, controlled Vercel production deploys, and manually approved Supabase migrations. See [`docs/ci-cd.md`](docs/ci-cd.md) for the required secrets and release flow.
+
 ## Local development
 
 Requirements: Node.js 22+ and npm.
