@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Absen — ruang kerja kehadiran',
-  description: 'Kelola acara, buka sesi, dan catat kehadiran dengan QR code.',
+  title: 'Absendulu — Absensi Acara FILKOM UNIDA',
+  description: 'Absensi digital untuk acara organisasi mahasiswa Fakultas Ilmu Komputer Universitas Djuanda.'
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

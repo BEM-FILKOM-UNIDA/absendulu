@@ -1,57 +1,60 @@
-import { createClient } from '@supabase/supabase-js'
-import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { NextRequest, NextResponse } from 'next/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getUser, getUserRole } from '@/lib/supabase/request'
+import { isSameOrigin } from '@/lib/http/request-security'
 import { isAdminRole } from '@/lib/auth/roles'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await params
-
+  if (!isSameOrigin(request)) {
+    return NextResponse.json({ error: 'Origin request tidak valid.' }, { status: 403 })
+  }
   if (!isAdminRole(await getUserRole(request))) {
     return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 })
   }
 
-  const { user } = await getUser(request)
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
+  const { id } = await params
   const target = request.nextUrl.clone()
   target.pathname = `/events/${id}/qr`
+  const admin = createAdminClient()
+  const { user } = await getUser(request)
 
-  // If a session is already open, just show it
-  const { data: existing } = await supabase
+  const { data: event, error: eventError } = await admin
+    .from('events')
+    .select('id, status')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (eventError) return NextResponse.json({ error: 'Gagal memeriksa acara.' }, { status: 500 })
+  if (!event) return NextResponse.json({ error: 'Acara tidak ditemukan.' }, { status: 404 })
+  if (event.status !== 'active') {
+    return NextResponse.json({ error: 'Hanya acara aktif yang dapat membuka absensi.' }, { status: 400 })
+  }
+
+  const { data: existing, error: existingError } = await admin
     .from('attendance_sessions')
     .select('id')
     .eq('event_id', id)
     .eq('is_open', true)
-    .single()
+    .maybeSingle()
 
-  if (existing) {
-    return NextResponse.redirect(target)
-  }
+  if (existingError) return NextResponse.json({ error: 'Gagal memeriksa sesi absensi.' }, { status: 500 })
+  if (existing) return NextResponse.redirect(target, 303)
 
-  // Generate secure QR token (64 char hex)
-  const qrToken = crypto.randomBytes(32).toString('hex')
-
-  const { error } = await supabase
-    .from('attendance_sessions')
-    .insert({
-      event_id: id,
-      qr_token: qrToken,
-      opened_by: user?.id ?? null,
-    })
-    .select()
-    .single()
+  const { error } = await admin.from('attendance_sessions').insert({
+    event_id: id,
+    qr_token: crypto.randomBytes(32).toString('hex'),
+    opened_by: user?.id ?? null,
+    is_open: true,
+  })
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error.code === '23505') return NextResponse.redirect(target, 303)
+    return NextResponse.json({ error: 'Gagal membuka sesi absensi.' }, { status: 500 })
   }
 
-  return NextResponse.redirect(target)
+  return NextResponse.redirect(target, 303)
 }

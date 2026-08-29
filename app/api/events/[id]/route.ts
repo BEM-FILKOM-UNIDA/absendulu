@@ -13,10 +13,11 @@ export async function GET(
 
   const { data, error } = await supabase
     .from('events')
-    .select('*')
+    .select('id, name, description, event_date, start_time, end_time, location, status')
     .eq('id', id)
-    .single()
+    .maybeSingle()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 404 })
+  if (error) return NextResponse.json({ error: 'Gagal memuat acara.' }, { status: 500 })
+  if (!data) return NextResponse.json({ error: 'Acara tidak ditemukan.' }, { status: 404 })
   return NextResponse.json(data)
 }

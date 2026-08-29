@@ -35,12 +35,12 @@ export default function AttendanceCounter({ sessionId, eventId, initialCount }: 
 
   return (
     <div className="border border-white/10 bg-white/5 p-6 text-[#f7f4ed]">
-      <p className="eyebrow text-[var(--accent)]">live count</p>
+      <p className="eyebrow text-[var(--accent)]">total hadir</p>
       <p className="mt-2 text-6xl font-black tracking-[-.1em] text-[var(--lime)]">{count}</p>
-      <p className="mt-1 text-sm text-white/45">peserta hadir sekarang</p>
+      <p className="mt-1 text-sm text-white/45">mahasiswa hadir saat ini</p>
       {recent.length > 0 && (
         <div className="mt-7 border-t border-white/10 pt-5">
-          <p className="eyebrow text-white/35">last scans</p>
+          <p className="eyebrow text-white/35">scan terbaru</p>
           <div className="mt-3 space-y-3">
             {recent.map((attendance) => (
               <div key={attendance.id} className="flex items-center justify-between gap-3 text-sm">

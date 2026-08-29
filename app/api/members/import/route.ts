@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import type { User, SupabaseClient } from '@supabase/supabase-js'
 import { getUserRole } from '@/lib/supabase/request'
+import { isSameOrigin } from '@/lib/http/request-security'
 import { isAdminRole } from '@/lib/auth/roles'
 
 type ImportRow = {
@@ -41,6 +43,8 @@ function parseCsv(csv: string): Record<string, string>[] {
       cell += character
     }
   }
+
+  if (quoted) throw new Error('CSV memiliki tanda kutip yang tidak tertutup.')
   row.push(cell.trim())
   if (row.some(Boolean)) rows.push(row)
 
@@ -69,7 +73,24 @@ function normalizeRow(row: Record<string, string>, index: number): ImportRow {
   }
 }
 
+async function listAllAuthUsers(admin: SupabaseClient): Promise<User[]> {
+  const users: User[] = []
+  const perPage = 1000
+  let page = 1
+
+  while (true) {
+    const result = await admin.auth.admin.listUsers({ page, perPage })
+    if (result.error) throw result.error
+    users.push(...result.data.users)
+    if (result.data.users.length < perPage) return users
+    page += 1
+  }
+}
+
 export async function POST(request: NextRequest) {
+  if (!isSameOrigin(request)) {
+    return NextResponse.json({ error: 'Origin request tidak valid.' }, { status: 403 })
+  }
   if (!isAdminRole(await getUserRole(request))) {
     return NextResponse.json({ error: 'Akses ditolak.' }, { status: 403 })
   }
@@ -98,41 +119,66 @@ export async function POST(request: NextRequest) {
     identifiers.add(row.nim)
   }
 
+  if (file.size > 2 * 1024 * 1024) {
+    return NextResponse.json({ error: 'Ukuran CSV maksimal 2 MB.' }, { status: 400 })
+  }
+
   const admin = createAdminClient()
+  let authUsers: User[]
+  try {
+    authUsers = await listAllAuthUsers(admin)
+  } catch {
+    return NextResponse.json({ error: 'Gagal membaca akun Auth yang sudah ada.' }, { status: 500 })
+  }
+
+  const [profilesResult] = await Promise.all([
+    admin
+      .from('profiles')
+      .select('id, email, role, account_status, is_active')
+      .not('email', 'is', null),
+  ])
+
+  if (profilesResult.error) {
+    return NextResponse.json({ error: 'Gagal membaca profile yang sudah ada.' }, { status: 500 })
+  }
+
+  const authUsersByEmail = new Map(
+    authUsers
+      .filter((user) => user.email)
+      .map((user) => [user.email!.toLowerCase(), user]),
+  )
+  const profilesById = new Map((profilesResult.data ?? []).map((profile) => [profile.id, profile]))
   const imported: string[] = []
   const existing: string[] = []
   const failed: { email: string; error: string }[] = []
 
-  for (const row of rows) {
-    const { data, error } = await admin.auth.admin.createUser({
-      email: row.email,
-      email_confirm: true,
-      user_metadata: { full_name: row.full_name, nim: row.nim, user_type: row.user_type },
-    })
+  async function importRow(row: ImportRow) {
+    let user = authUsersByEmail.get(row.email)
+    let wasExisting = Boolean(user)
 
-    if (error && !/already|exists|registered/i.test(error.message)) {
-      failed.push({ email: row.email, error: error.message })
-      continue
+    if (!user) {
+      const result = await admin.auth.admin.createUser({
+        email: row.email,
+        email_confirm: true,
+        user_metadata: { full_name: row.full_name, nim: row.nim, user_type: row.user_type },
+      })
+      if (result.error && !/already|exists|registered/i.test(result.error.message)) {
+        failed.push({ email: row.email, error: result.error.message })
+        return
+      }
+      user = result.data.user ?? authUsersByEmail.get(row.email)
+      wasExisting = Boolean(result.error)
     }
 
-    let userId = data.user?.id
-    if (!userId && error) {
-      const users = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 })
-      userId = users.data.users.find((user) => user.email?.toLowerCase() === row.email)?.id
-    }
-    if (!userId) {
-      failed.push({ email: row.email, error: error?.message ?? 'User ID tidak ditemukan.' })
-      continue
+    if (!user) {
+      failed.push({ email: row.email, error: 'User ID tidak ditemukan.' })
+      return
     }
 
-    const { data: existingProfile } = await admin
-      .from('profiles')
-      .select('role, account_status, is_active')
-      .eq('id', userId)
-      .maybeSingle()
-
+    authUsersByEmail.set(row.email, user)
+    const existingProfile = profilesById.get(user.id)
     const { error: profileError } = await admin.from('profiles').upsert({
-      id: userId,
+      id: user.id,
       full_name: row.full_name,
       nim: row.nim,
       email: row.email,
@@ -144,10 +190,24 @@ export async function POST(request: NextRequest) {
       is_active: existingProfile?.is_active ?? true,
     })
 
-    if (profileError) failed.push({ email: row.email, error: profileError.message })
-    else if (error) existing.push(row.email)
-    else imported.push(row.email)
+    if (profileError) {
+      failed.push({ email: row.email, error: profileError.message })
+    } else if (wasExisting) {
+      existing.push(row.email)
+    } else {
+      imported.push(row.email)
+    }
   }
+
+  let nextIndex = 0
+  async function worker() {
+    while (nextIndex < rows.length) {
+      const row = rows[nextIndex]
+      nextIndex += 1
+      await importRow(row)
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(8, rows.length) }, () => worker()))
 
   return NextResponse.json({ imported, existing, failed })
 }

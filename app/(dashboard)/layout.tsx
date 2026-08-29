@@ -9,7 +9,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data: profile } = user
-    ? await supabase.from('profiles').select('*').eq('id', user.id).single()
+    ? await supabase.from('profiles').select('role, account_status, is_active').eq('id', user.id).maybeSingle()
     : { data: null }
   const access = normalizeProfileAccess(profile)
 

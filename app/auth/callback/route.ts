@@ -8,6 +8,9 @@ type SessionCookie = {
 }
 
 export async function GET(request: NextRequest) {
+  const oauthError = request.nextUrl.searchParams.get('error')
+  if (oauthError) return NextResponse.redirect(new URL('/login?error=google', request.url))
+
   const code = request.nextUrl.searchParams.get('code')
   if (!code) return NextResponse.redirect(new URL('/login?error=invalid', request.url))
 
