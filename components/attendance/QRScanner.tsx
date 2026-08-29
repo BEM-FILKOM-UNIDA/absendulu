@@ -37,10 +37,10 @@ export default function QRScanner({ onScan }: { onScan: (token: string) => void 
 
   return (
     <div className="flex flex-col items-center">
-      <div ref={containerRef} id="qr-reader" className="min-h-64 w-full overflow-hidden bg-[var(--ink)]" />
+      <div ref={containerRef} id="qr-reader" className="aspect-square min-h-64 w-full max-w-full overflow-hidden bg-[var(--ink)]" />
       {error && <p role="alert" className="mt-4 w-full border border-[#e7b6b6] bg-[#f8dddd] px-4 py-3 text-sm font-semibold text-[var(--danger)]">{error}</p>}
       {!scanning && <Button type="button" variant="accent" onClick={startScanning} className="mt-6">Aktifkan kamera <span aria-hidden="true">↗</span></Button>}
-      {scanning && <p className="mt-5 text-sm font-bold text-[var(--muted)]">Memindai... arahkan kamera ke QR code.</p>}
+      {scanning && <p className="mt-5 text-sm font-bold text-[var(--muted)]">Memindai… arahkan kamera ke QR code.</p>}
     </div>
   )
 }

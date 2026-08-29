@@ -14,9 +14,9 @@ type ButtonVariant = keyof typeof styles
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant; children: ReactNode }
 
 export function Button({ variant = 'primary', className = '', children, ...props }: ButtonProps) {
-  return <button className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-[4px] px-5 text-sm font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:pointer-events-none disabled:opacity-50 active:translate-y-px ${styles[variant]} ${className}`} {...props}>{children}</button>
+  return <button className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-[4px] px-5 text-sm font-bold touch-manipulation transition-[color,background-color,border-color,opacity,transform,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:pointer-events-none disabled:opacity-50 active:translate-y-px ${styles[variant]} ${className}`} {...props}>{children}</button>
 }
 
 export function ButtonLink({ href, variant = 'primary', className = '', children }: { href: string; variant?: ButtonVariant; className?: string; children: ReactNode }) {
-  return <Link href={href} className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-[4px] px-5 text-sm font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] active:translate-y-px ${styles[variant]} ${className}`}>{children}</Link>
+  return <Link href={href} className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-[4px] px-5 text-sm font-bold touch-manipulation transition-[color,background-color,border-color,opacity,transform,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] active:translate-y-px ${styles[variant]} ${className}`}>{children}</Link>
 }

@@ -22,8 +22,9 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { overflow-x: hidden; scroll-behavior: smooth; }
 body {
+  overflow-x: hidden;
   background: var(--background);
   color: var(--foreground);
   font-family: "Avenir Next", Avenir, "Segoe UI", Arial, sans-serif;
@@ -32,6 +33,7 @@ body {
 
 ::selection { background: var(--lime); color: var(--ink); }
 button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
+button, a { touch-action: manipulation; }
 button, a { transition-property: color, background-color, border-color, opacity, transform, box-shadow; }
 
 .display-type { font-family: Georgia, "Times New Roman", serif; }

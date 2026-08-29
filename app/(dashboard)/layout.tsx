@@ -20,7 +20,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <Sidebar isAdmin={isAdmin} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Header isAdmin={isAdmin} />
-        <main className="flex-1 px-5 pb-24 py-7 sm:px-8 sm:py-9 sm:pb-24 lg:pb-9">
+        <main className="flex-1 px-5 pb-[calc(6rem+env(safe-area-inset-bottom))] py-7 sm:px-8 sm:py-9 sm:pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-9">
           <div className="mx-auto max-w-7xl">{children}</div>
         </main>
       </div>

@@ -90,13 +90,13 @@ export default function LoginPage() {
       </CardHeader>
       <CardContent className="p-7 sm:p-8">
         {notice ? <p role="status" className="mb-5 border border-[var(--accent-strong)] bg-[var(--accent-soft)] px-3 py-3 text-sm font-semibold text-[var(--accent-strong)]">{notice}</p> : null}
-        <Button type="button" disabled={loading} variant="primary" className="w-full border border-[var(--border)] bg-white text-[var(--ink)] shadow-none hover:bg-[var(--surface-muted)]" onClick={handleGoogleLogin}><span className="text-base font-black" aria-hidden="true">G</span>{loading ? 'Membuka Google...' : 'Masuk dengan Google'}</Button>
+        <Button type="button" disabled={loading} variant="primary" className="w-full border border-[var(--border)] bg-white text-[var(--ink)] shadow-none hover:bg-[var(--surface-muted)]" onClick={handleGoogleLogin}><span className="text-base font-black" aria-hidden="true">G</span>{loading ? 'Membuka Google…' : 'Masuk dengan Google'}</Button>
         <div className="my-6 flex items-center gap-3 text-[10px] font-black uppercase tracking-[.14em] text-[var(--muted-soft)]"><span className="h-px flex-1 bg-[var(--border)]" /> atau pakai email <span className="h-px flex-1 bg-[var(--border)]" /></div>
         <form onSubmit={handleLogin} className="space-y-5">
           {sent ? <p role="status" className="border border-[var(--accent-strong)] bg-[var(--accent-soft)] px-3 py-3 text-sm leading-6 text-[var(--accent-strong)]">Magic Link sudah dikirim ke <strong>{email.trim().toLowerCase()}</strong>. Buka email tersebut untuk masuk otomatis ke dashboard.</p> : null}
-          <div className="space-y-2"><Label htmlFor="email" className="eyebrow text-[var(--muted)]">Email untuk Magic Link</Label><Input id="email" type="email" placeholder="nama@gmail.com" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" /></div>
+          <div className="space-y-2"><Label htmlFor="email" className="eyebrow text-[var(--muted)]">Email untuk Magic Link</Label><Input id="email" type="email" name="email" spellCheck={false} placeholder="nama@gmail.com" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" /></div>
           {error ? <p role="alert" className="border border-[#e7b6b6] bg-[#f8dddd] px-3 py-3 text-sm font-semibold text-[var(--danger)]">{error}</p> : null}
-          <Button type="submit" disabled={loading} variant="accent" className="w-full">{loading ? 'Mengirim link...' : 'Kirim Magic Link'} <span aria-hidden="true">↗</span></Button>
+          <Button type="submit" disabled={loading} variant="accent" className="w-full">{loading ? 'Mengirim link…' : 'Kirim Magic Link'} <span aria-hidden="true">↗</span></Button>
         </form>
         <div className="mt-7 border-t border-[var(--border)] pt-5"><p className="text-center text-xs leading-5 text-[var(--muted)]">Gmail biasa boleh digunakan. Admin FILKOM dapat menghapus akun luar dari data jika diperlukan.</p></div>
       </CardContent>

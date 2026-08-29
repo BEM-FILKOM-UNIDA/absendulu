@@ -44,7 +44,7 @@ export default function AttendanceCounter({ sessionId, eventId, initialCount }: 
           <div className="mt-3 space-y-3">
             {recent.map((attendance) => (
               <div key={attendance.id} className="flex items-center justify-between gap-3 text-sm">
-                <span className="truncate font-semibold">{attendance.profiles?.full_name || 'Peserta'}</span>
+                <span className="min-w-0 truncate font-semibold">{attendance.profiles?.full_name || 'Peserta'}</span>
                 <span className="shrink-0 font-mono text-xs text-white/40">{new Date(attendance.check_in_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
               </div>
             ))}
