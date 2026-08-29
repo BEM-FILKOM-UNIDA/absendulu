@@ -1,89 +1,20 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { Badge } from '@/components/ui/badge'
+import { ButtonLink } from '@/components/ui/button'
 
-export default async function EventDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+const statusLabels: Record<string, string> = { active: 'Berlangsung', draft: 'Draft', completed: 'Selesai', cancelled: 'Dibatalkan' }
+
+export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
-  const { data: event } = await supabase
-    .from('events')
-    .select('*')
-    .eq('id', id)
-    .single()
-
+  const { data: event } = await supabase.from('events').select('*').eq('id', id).single()
   if (!event) notFound()
+  const { data: session } = await supabase.from('attendance_sessions').select('*, attendances(*)').eq('event_id', id).eq('is_open', true).single()
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: profile } = user ? await supabase.from('profiles').select('role').eq('id', user.id).single() : { data: null }
+  const canManage = profile?.role === 'admin_bem' || profile?.role === 'admin'
 
-  const { data: session } = await supabase
-    .from('attendance_sessions')
-    .select('*, attendances(*, profiles(*))')
-    .eq('event_id', id)
-    .eq('is_open', true)
-    .single()
-
-  return (
-    <div className="max-w-4xl">
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">{event.name}</h1>
-          <p className="text-gray-600">{event.description}</p>
-        </div>
-        <span
-          className={`px-3 py-1 rounded-full text-sm font-medium ${
-            event.status === 'active'
-              ? 'bg-green-100 text-green-800'
-              : 'bg-gray-100 text-gray-800'
-          }`}
-        >
-          {event.status}
-        </span>
-      </div>
-
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            📅 <strong>Tanggal:</strong> {event.event_date}
-          </div>
-          <div>
-            🕐 <strong>Waktu:</strong> {event.start_time}
-            {event.end_time ? ` - ${event.end_time}` : ''}
-          </div>
-          <div>
-            📍 <strong>Lokasi:</strong> {event.location}
-          </div>
-        </div>
-      </div>
-
-      {session ? (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-          <p className="font-medium text-green-800 mb-2">
-            ✅ Sesi absensi aktif — {session.attendances?.length || 0} peserta
-            hadir
-          </p>
-          <Link
-            href={`/events/${id}/qr`}
-            className="inline-block bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-          >
-            Lihat QR Code
-          </Link>
-        </div>
-      ) : (
-        <form
-          action={`/api/events/${id}/session/open`}
-          method="POST"
-          className="mb-6"
-        >
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            Buka Sesi Absensi
-          </button>
-        </form>
-      )}
-    </div>
-  )
+  return <div className="max-w-5xl space-y-8"><Link href="/events" className="eyebrow inline-flex text-[var(--accent-strong)] hover:underline">← kembali ke acara</Link><section className="flex flex-col justify-between gap-6 border-b border-[var(--border)] pb-8 sm:flex-row sm:items-start"><div><p className="eyebrow text-[var(--muted-soft)]">event detail / {event.event_date}</p><h1 className="display-type mt-3 max-w-3xl text-5xl leading-none tracking-[-.07em] sm:text-6xl">{event.name}</h1>{event.description && <p className="mt-5 max-w-xl text-sm leading-6 text-[var(--muted)]">{event.description}</p>}</div><Badge variant={event.status === 'active' ? 'success' : event.status === 'cancelled' ? 'danger' : 'muted'}>{statusLabels[event.status] || event.status}</Badge></section><section className="grid gap-px border border-[var(--border)] bg-[var(--border)] sm:grid-cols-3"><div className="bg-[var(--surface)] p-5"><p className="eyebrow text-[var(--muted-soft)]">tanggal</p><p className="mt-3 font-black">{event.event_date}</p></div><div className="bg-[var(--surface)] p-5"><p className="eyebrow text-[var(--muted-soft)]">waktu</p><p className="mt-3 font-black">{event.start_time}{event.end_time ? ` — ${event.end_time}` : ''}</p></div><div className="bg-[var(--surface)] p-5"><p className="eyebrow text-[var(--muted-soft)]">lokasi</p><p className="mt-3 font-black">{event.location || 'Belum ditentukan'}</p></div></section>{session ? <section className="border border-[var(--accent-strong)] bg-[var(--accent-soft)] p-6 sm:p-8"><div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center"><div><p className="eyebrow text-[var(--accent-strong)]">session live</p><h2 className="mt-2 text-2xl font-black tracking-[-.05em]">{session.attendances?.length || 0} peserta sudah hadir</h2><p className="mt-2 text-sm text-[var(--muted)]">QR aktif dan siap dipindai.</p></div><ButtonLink href={`/events/${id}/qr`} variant="primary">Lihat QR <span aria-hidden="true">↗</span></ButtonLink></div></section> : canManage ? <form action={`/api/events/${id}/session/open`} method="POST" className="border border-dashed border-[var(--border)] bg-[var(--surface)] p-8 text-center"><p className="eyebrow text-[var(--muted-soft)]">no active session</p><h2 className="mt-3 text-2xl font-black">Nyalakan sesi absensi</h2><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--muted)]">QR code akan menjadi titik masuk peserta untuk acara ini.</p><button type="submit" className="mt-6 inline-flex min-h-11 items-center justify-center bg-[var(--ink)] px-5 text-sm font-bold text-[#f7f4ed] hover:bg-[var(--accent-strong)]">Buka sesi absensi</button></form> : <div className="border border-dashed border-[var(--border)] bg-[var(--surface)] p-8 text-center"><p className="text-sm text-[var(--muted)]">Sesi absensi belum dibuka oleh admin.</p></div>}</div>
 }

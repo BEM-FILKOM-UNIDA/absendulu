@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
+import { normalizeProfileAccess } from '@/lib/auth/profile-access'
 
 export async function POST(request: NextRequest) {
   // Use Supabase SSR client to properly read auth cookies
@@ -52,6 +53,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: 'QR Code tidak valid atau sesi sudah ditutup' },
       { status: 400 }
+    )
+  }
+
+  const { data: profile } = await adminSupabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
+  const access = normalizeProfileAccess(profile)
+
+  if (!access || access.account_status !== 'active' || !access.is_active) {
+    return NextResponse.json(
+      { error: 'Akun belum aktif atau sudah dinonaktifkan.' },
+      { status: 403 }
     )
   }
 

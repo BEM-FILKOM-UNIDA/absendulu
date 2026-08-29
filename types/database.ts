@@ -1,10 +1,18 @@
+export type UserType = 'mahasiswa' | 'dosen' | 'tata_usaha'
+export type AccountStatus = 'invited' | 'active' | 'disabled'
+export type UserRole = 'admin_bem' | 'admin' | 'user' | 'anggota'
+
 export interface Profile {
   id: string
   full_name: string
   nim: string
+  email: string | null
   division: string | null
   phone: string | null
+  user_type: UserType
+  account_status: AccountStatus
   is_active: boolean
+  role: UserRole
   created_at: string
 }
 
@@ -43,5 +51,3 @@ export interface Attendance {
   notes: string | null
   profiles?: Profile
 }
-
-export type UserRole = 'admin' | 'anggota'

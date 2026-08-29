@@ -3,14 +3,18 @@
 -- Run this in: Supabase Dashboard → SQL Editor
 -- ============================================
 
--- 1. Profiles (auto-created on signup via trigger)
+-- 1. Profiles (created by the BEM invite flow / auth trigger)
 CREATE TABLE profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name TEXT NOT NULL,
   nim TEXT UNIQUE NOT NULL,
+  email TEXT,
   division TEXT,
   phone TEXT,
-  is_active BOOLEAN DEFAULT true,
+  user_type TEXT NOT NULL DEFAULT 'mahasiswa' CHECK (user_type IN ('mahasiswa','dosen','tata_usaha')),
+  account_status TEXT NOT NULL DEFAULT 'invited' CHECK (account_status IN ('invited','active','disabled')),
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('admin_bem','user')),
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -61,38 +65,82 @@ ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE attendance_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE attendances ENABLE ROW LEVEL SECURITY;
 
--- Profiles policies
-CREATE POLICY "Admin full access profiles" ON profiles FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+-- Helper to detect admin without recursive RLS on profiles
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid()
+      AND role = 'admin_bem'
+      AND account_status <> 'disabled'
+  );
+$$;
+
+-- Profiles policies: only admin BEM may provision or change account fields.
+CREATE POLICY "Admin full access profiles" ON profiles FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
 CREATE POLICY "Users read own profile" ON profiles FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Users update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Users read all profiles" ON profiles FOR SELECT USING (true);
 
 -- Events policies
-CREATE POLICY "Admin full access events" ON events FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+CREATE POLICY "Admin full access events" ON events FOR ALL USING (public.is_admin());
 CREATE POLICY "Anyone read events" ON events FOR SELECT USING (true);
 
 -- Attendance sessions policies
-CREATE POLICY "Admin full access sessions" ON attendance_sessions FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+CREATE POLICY "Admin full access sessions" ON attendance_sessions FOR ALL USING (public.is_admin());
 CREATE POLICY "Anyone read sessions" ON attendance_sessions FOR SELECT USING (true);
 
 -- Attendances policies
-CREATE POLICY "Admin full access attendances" ON attendances FOR ALL USING (auth.jwt() ->> 'role' = 'admin');
+CREATE POLICY "Admin full access attendances" ON attendances FOR ALL USING (public.is_admin());
 CREATE POLICY "Users insert own attendance" ON attendances FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users read own attendance" ON attendances FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Anyone read attendances" ON attendances FOR SELECT USING (true);
 
 -- ============================================
--- TRIGGER: Auto-create profile on signup
+-- TRIGGER: create an invited profile for an Auth user.
+-- Public signups must remain disabled in Supabase Auth settings.
 -- ============================================
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  fallback_name TEXT;
+  fallback_nim TEXT;
 BEGIN
-  INSERT INTO public.profiles (id, full_name, nim)
-  VALUES (NEW.id, NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'nim');
+  fallback_name := COALESCE(
+    NULLIF(BTRIM(NEW.raw_user_meta_data->>'full_name'), ''),
+    NULLIF(BTRIM(NEW.email), ''),
+    'Pengguna'
+  );
+
+  fallback_nim := COALESCE(
+    NULLIF(BTRIM(NEW.raw_user_meta_data->>'nim'), ''),
+    'AUTH-' || REPLACE(NEW.id::text, '-', '')
+  );
+
+  INSERT INTO public.profiles (
+    id, full_name, nim, email, user_type, account_status, role
+  )
+  VALUES (
+    NEW.id,
+    fallback_name,
+    fallback_nim,
+    NEW.email,
+    COALESCE(NULLIF(BTRIM(NEW.raw_user_meta_data->>'user_type'), ''), 'mahasiswa'),
+    'active',
+    'user'
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    email = EXCLUDED.email;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
@@ -103,3 +151,8 @@ CREATE TRIGGER on_auth_user_created
 -- ============================================
 
 ALTER PUBLICATION supabase_realtime ADD TABLE attendances;
+
+-- Bootstrap the first BEM admin explicitly after creating/inviting the account:
+-- UPDATE public.profiles
+-- SET role = 'admin_bem', account_status = 'active', is_active = true
+-- WHERE email = 'admin-bem@example.org';

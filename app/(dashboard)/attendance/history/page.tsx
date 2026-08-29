@@ -1,61 +1,59 @@
 import { createClient } from '@/lib/supabase/server'
+import { Card } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+
+type AttendanceRecord = {
+  id: string
+  status: string
+  method: string
+  check_in_at: string
+  profiles: { full_name?: string; nim?: string } | null
+  events: { name?: string } | null
+}
+
+const statusLabels: Record<string, string> = { hadir: 'Hadir', terlambat: 'Terlambat', izin: 'Izin', alpha: 'Alpha' }
 
 export default async function AttendanceHistoryPage() {
   const supabase = await createClient()
+  const { data } = await supabase.from('attendances').select('*, profiles(*), events(*)').order('check_in_at', { ascending: false }).limit(100)
+  const attendances = (data ?? []) as unknown as AttendanceRecord[]
+  const byEvent: Record<string, AttendanceRecord[]> = {}
 
-  const { data: attendances } = await supabase
-    .from('attendances')
-    .select('*, profiles(*), events(*)')
-    .order('check_in_at', { ascending: false })
-    .limit(100)
-
-  // Group by event
-  const byEvent: Record<string, typeof attendances> = {}
-  attendances?.forEach((a) => {
-    const name = (a as Record<string, unknown>).events
-      ? ((a as Record<string, unknown>).events as Record<string, string>).name
-      : 'Unknown'
+  attendances.forEach((attendance) => {
+    const name = attendance.events?.name || 'Acara tanpa nama'
     if (!byEvent[name]) byEvent[name] = []
-    byEvent[name].push(a)
+    byEvent[name].push(attendance)
   })
 
+  const eventEntries = Object.entries(byEvent)
+
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Riwayat Kehadiran</h1>
-      {Object.entries(byEvent).map(([name, atts]) => (
-        <div key={name} className="bg-white rounded-lg shadow p-4 mb-4">
-          <h2 className="font-semibold text-lg mb-2">{name}</h2>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-gray-500 border-b">
-                <th className="py-2">Nama</th>
-                <th className="py-2">NIM</th>
-                <th className="py-2">Status</th>
-                <th className="py-2">Metode</th>
-                <th className="py-2">Waktu</th>
-              </tr>
-            </thead>
-            <tbody>
-              {atts?.map((a) => {
-                const profile = (a as Record<string, unknown>).profiles as
-                  | Record<string, string>
-                  | undefined
-                return (
-                  <tr key={a.id} className="border-b">
-                    <td className="py-2">{profile?.full_name}</td>
-                    <td className="py-2">{profile?.nim}</td>
-                    <td className="py-2 font-medium">{a.status}</td>
-                    <td className="py-2">{a.method}</td>
-                    <td className="py-2">
-                      {new Date(a.check_in_at).toLocaleString('id')}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      ))}
+    <div className="space-y-8">
+      <section className="border-b border-[var(--border)] pb-8">
+        <p className="eyebrow text-[var(--accent-strong)]">attendance ledger / archive</p>
+        <h1 className="display-type mt-3 text-5xl leading-none tracking-[-.07em]">Jejak<br /><em>kehadiran.</em></h1>
+        <p className="mt-4 max-w-md text-sm leading-6 text-[var(--muted)]">Semua check-in, tersusun berdasarkan acara. Tidak ada nama yang hilang di antara spreadsheet.</p>
+      </section>
+
+      {eventEntries.length > 0 ? eventEntries.map(([name, records]) => (
+        <Card key={name} className="overflow-hidden">
+          <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-5 sm:px-6">
+            <div><p className="eyebrow text-[var(--accent-strong)]">event log</p><h2 className="mt-2 text-lg font-black">{name}</h2></div>
+            <span className="font-mono text-xs text-[var(--muted)]">{records.length} check-in</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[680px] text-sm">
+              <thead className="bg-[var(--surface-muted)] text-left text-[10px] font-black uppercase tracking-[.1em] text-[var(--muted)]"><tr><th className="px-5 py-3">Nama</th><th className="px-5 py-3">NIM/NIP</th><th className="px-5 py-3">Status</th><th className="px-5 py-3">Metode</th><th className="px-5 py-3">Waktu</th></tr></thead>
+              <tbody className="divide-y divide-[var(--border)]">
+                {records.map((attendance) => {
+                  const variant = attendance.status === 'hadir' ? 'success' : attendance.status === 'alpha' ? 'danger' : 'muted'
+                  return <tr key={attendance.id} className="hover:bg-[var(--surface-muted)]"><td className="px-5 py-4 font-semibold">{attendance.profiles?.full_name || '-'}</td><td className="px-5 py-4 text-[var(--muted)]">{attendance.profiles?.nim || '-'}</td><td className="px-5 py-4"><Badge variant={variant}>{statusLabels[attendance.status] || attendance.status}</Badge></td><td className="px-5 py-4 text-xs font-bold text-[var(--muted)]">{attendance.method}</td><td className="px-5 py-4 text-xs text-[var(--muted)]">{new Date(attendance.check_in_at).toLocaleString('id-ID')}</td></tr>
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )) : <div className="border border-dashed border-[var(--border)] bg-[var(--surface)] px-6 py-20 text-center"><p className="eyebrow text-[var(--accent-strong)]">empty ledger</p><h2 className="display-type mt-4 text-3xl">Belum ada jejak.</h2><p className="mt-3 text-sm text-[var(--muted)]">Riwayat akan muncul setelah peserta melakukan check-in.</p></div>}
     </div>
   )
 }

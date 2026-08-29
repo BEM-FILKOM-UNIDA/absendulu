@@ -1,26 +1,40 @@
 'use client'
 
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
 
-export default function Header() {
+const labels: Record<string, string> = { '/dashboard': 'Ringkasan', '/events': 'Acara', '/scan': 'Scan QR', '/attendance/history': 'Riwayat', '/members': 'Pengguna', '/profile': 'Profil' }
+const mobileNav = [
+  { href: '/dashboard', label: 'Home', code: '00' },
+  { href: '/', label: 'Beranda', code: '↖' },
+  { href: '/events', label: 'Acara', code: '01' },
+  { href: '/scan', label: 'Scan', code: '02' },
+  { href: '/attendance/history', label: 'Riwayat', code: '03' },
+]
+
+export default function Header({ isAdmin = false }: { isAdmin?: boolean }) {
+  const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const title = labels[pathname] || 'Absen'
+  const navItems = isAdmin ? [...mobileNav, { href: '/members', label: 'Orang', code: '04' }] : mobileNav
 
-  const handleLogout = async () => {
+  async function signOut() {
     await supabase.auth.signOut()
     router.push('/login')
+    router.refresh()
   }
 
   return (
-    <header className="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
-      <h2 className="text-lg font-semibold text-gray-800">Sistem Absensi</h2>
-      <button
-        onClick={handleLogout}
-        className="text-sm text-red-600 hover:text-red-800"
-      >
-        Logout
-      </button>
-    </header>
+    <>
+      <header className="flex min-h-24 items-center justify-between border-b border-[var(--border)] bg-[var(--paper)] px-5 sm:px-8">
+        <div><p className="eyebrow text-[var(--accent-strong)] lg:hidden">absen/</p><h1 className="mt-1 text-2xl font-black tracking-[-.06em]">{title}</h1></div>
+        <div className="flex items-center gap-4"><Link href="/profile" className="hidden text-right sm:block"><p className="text-sm font-black">Akun saya</p><p className="eyebrow mt-1 text-[var(--muted-soft)]">lihat profil</p></Link><button type="button" onClick={signOut} className="grid h-10 w-10 place-items-center bg-[var(--ink)] text-sm font-black text-[var(--lime)] hover:bg-[var(--accent-strong)]" aria-label="Keluar">A</button></div>
+      </header>
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid border-t border-[var(--ink)] bg-[var(--ink)] px-2 pb-[env(safe-area-inset-bottom)] lg:hidden" style={{ gridTemplateColumns: `repeat(${navItems.length}, minmax(0, 1fr))` }} aria-label="Navigasi mobile">
+        {navItems.map((item) => { const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)); return <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined} className={`flex min-h-16 flex-col items-center justify-center gap-1 border-t-2 text-[10px] font-black uppercase tracking-[.06em] ${active ? 'border-[var(--accent)] text-[var(--lime)]' : 'border-transparent text-white/45 hover:text-white'}`}><span className="font-mono text-[9px]">{item.code}</span>{item.label}</Link> })}
+      </nav>
+    </>
   )
 }

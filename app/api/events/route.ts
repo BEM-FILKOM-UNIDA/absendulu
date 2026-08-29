@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { getUserRole } from '@/lib/supabase/request'
+import { isAdminRole } from '@/lib/auth/roles'
 
 export async function GET() {
   const supabase = createClient(
@@ -17,6 +19,10 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  if (!isAdminRole(await getUserRole(request))) {
+    return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 })
+  }
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!

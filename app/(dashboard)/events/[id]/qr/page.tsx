@@ -1,75 +1,20 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import QRDisplay from '@/components/attendance/QRDisplay'
 import AttendanceCounter from '@/components/attendance/AttendanceCounter'
+import { Card } from '@/components/ui/card'
 
-export default async function QRPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function QRPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
-  const { data: event } = await supabase
-    .from('events')
-    .select('*')
-    .eq('id', id)
-    .single()
-
+  const { data: event } = await supabase.from('events').select('*').eq('id', id).single()
   if (!event) notFound()
+  const { data: session } = await supabase.from('attendance_sessions').select('*').eq('event_id', id).eq('is_open', true).single()
 
-  const { data: session } = await supabase
-    .from('attendance_sessions')
-    .select('*')
-    .eq('event_id', id)
-    .eq('is_open', true)
-    .single()
+  if (!session) return <div className="mx-auto max-w-xl space-y-6 py-12 text-center"><p className="eyebrow text-[var(--muted-soft)]">session offline</p><h1 className="display-type text-5xl leading-none">Belum ada<br /><em>sinyal aktif.</em></h1><p className="text-sm text-[var(--muted)]">Buka sesi absensi dari halaman detail acara terlebih dahulu.</p><Link href={`/events/${id}`} className="inline-flex text-xs font-black uppercase tracking-[.12em] text-[var(--accent-strong)] hover:underline">← Kembali ke acara</Link></div>
 
-  if (!session) {
-    return (
-      <div className="text-center py-12">
-        <h1 className="text-2xl font-bold mb-4">
-          Tidak ada sesi absensi aktif
-        </h1>
-        <a
-          href={`/events/${id}`}
-          className="text-blue-600 hover:underline"
-        >
-          Kembali ke detail acara
-        </a>
-      </div>
-    )
-  }
+  const { count } = await supabase.from('attendances').select('*', { count: 'exact', head: true }).eq('session_id', session.id)
 
-  const { count } = await supabase
-    .from('attendances')
-    .select('*', { count: 'exact', head: true })
-    .eq('session_id', session.id)
-    .then((r) => ({ count: r.count || 0 }))
-
-  return (
-    <div className="max-w-2xl mx-auto">
-      <QRDisplay token={session.qr_token} eventName={event.name} />
-      <div className="mt-6">
-        <AttendanceCounter
-          sessionId={session.id}
-          eventId={event.id}
-          initialCount={count}
-        />
-      </div>
-      <div className="mt-4 text-center">
-        <form
-          action={`/api/events/${id}/session/close`}
-          method="POST"
-        >
-          <button
-            type="submit"
-            className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700"
-          >
-            Tutup Sesi Absensi
-          </button>
-        </form>
-      </div>
-    </div>
-  )
+  return <main className="paper-noise -mx-5 -my-7 min-h-[calc(100dvh-6rem)] bg-[var(--ink)] px-5 py-8 text-[#f7f4ed] sm:-mx-8 sm:-my-9 sm:px-8 sm:py-12"><div className="mx-auto max-w-6xl"><div className="mb-8 flex flex-col justify-between gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-end"><div><Link href={`/events/${id}`} className="eyebrow text-[var(--accent)] hover:underline">← {event.name}</Link><p className="mt-3 text-sm text-white/45">Tunjukkan layar ini kepada peserta untuk check-in.</p></div><span className="flex items-center gap-2 text-xs font-black uppercase tracking-[.1em] text-[var(--lime)]"><span className="signal-pulse h-2 w-2 rounded-full bg-[var(--lime)]" /> sesi live</span></div><div className="grid items-center gap-10 lg:grid-cols-[1fr_.42fr]"><Card className="bg-[var(--paper)] p-6 text-[var(--ink)] shadow-[12px_14px_0_var(--accent)] sm:p-10"><QRDisplay token={session.qr_token} eventName={event.name} /></Card><div className="space-y-5"><AttendanceCounter sessionId={session.id} eventId={event.id} initialCount={count || 0} /><form action={`/api/events/${id}/session/close`} method="POST"><button type="submit" className="w-full border border-white/20 px-5 py-3 text-sm font-bold text-white/65 hover:border-[#ffb5ad] hover:bg-[#b84c4c]/20 hover:text-[#ffb5ad]">Tutup sesi absensi</button></form></div></div></div></main>
 }

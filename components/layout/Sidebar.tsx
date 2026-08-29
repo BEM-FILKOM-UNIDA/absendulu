@@ -1,37 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
-const navItems = [
-  { href: '/', label: 'Dashboard', icon: '🏠' },
-  { href: '/events', label: 'Acara', icon: '📅' },
-  { href: '/scan', label: 'Scan QR', icon: '📷' },
-  { href: '/members', label: 'Anggota', icon: '👥' },
-  { href: '/attendance/history', label: 'Riwayat', icon: '📋' },
-  { href: '/profile', label: 'Profil', icon: '👤' },
-]
+const nav = [{ href: '/dashboard', label: 'Ringkasan', code: '00' }, { href: '/events', label: 'Acara', code: '01' }, { href: '/scan', label: 'Scan QR', code: '02' }, { href: '/attendance/history', label: 'Riwayat', code: '03' }, { href: '/members', label: 'Pengguna', code: '04', admin: true }]
 
-export default function Sidebar() {
-  const pathname = usePathname()
-
-  return (
-    <aside className="w-64 bg-gray-900 text-white min-h-screen p-4">
-      <div className="text-xl font-bold mb-8 px-3">📋 Absensi</div>
-      <nav className="space-y-1">
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg transition ${
-              pathname === item.href ? 'bg-blue-600' : 'hover:bg-gray-800'
-            }`}
-          >
-            <span>{item.icon}</span>
-            <span>{item.label}</span>
-          </Link>
-        ))}
-      </nav>
-    </aside>
-  )
+export default function Sidebar({ isAdmin }: { isAdmin?: boolean }) {
+  const pathname = usePathname(); const router = useRouter(); const supabase = createClient()
+  async function signOut() { await supabase.auth.signOut(); router.push('/login'); router.refresh() }
+  return <aside className="hidden w-[268px] shrink-0 flex-col border-r border-[var(--ink)] bg-[var(--ink)] text-[#f7f4ed] lg:flex"><Link href="/" className="flex h-24 items-center gap-3 border-b border-white/10 px-7 transition-colors hover:bg-white/5"><span className="grid h-10 w-10 place-items-center bg-[var(--accent)] text-sm font-black text-[var(--ink)]">A</span><div><p className="font-black tracking-[-.08em]">absen<span className="text-[var(--lime)]">/</span></p><p className="eyebrow mt-1 text-white/35">control room</p></div></Link><nav className="flex-1 px-4 py-8"><p className="eyebrow mb-4 px-3 text-white/35">Workspace</p>{nav.filter((item) => !item.admin || isAdmin).map((item) => { const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)); return <Link key={item.href} href={item.href} className={`group flex items-center justify-between border-l-2 px-3 py-3 text-sm font-bold transition-all ${active ? 'border-[var(--accent)] bg-white/10 text-[var(--lime)]' : 'border-transparent text-white/55 hover:border-white/30 hover:bg-white/5 hover:text-white'}`}><span>{item.label}</span><span className={`font-mono text-[10px] ${active ? 'text-[var(--accent)]' : 'text-white/25'}`}>{item.code}</span></Link> })}<p className="eyebrow mb-4 mt-12 px-3 text-white/35">Account</p><Link href="/profile" className={`flex items-center justify-between border-l-2 px-3 py-3 text-sm font-bold ${pathname === '/profile' ? 'border-[var(--accent)] bg-white/10 text-[var(--lime)]' : 'border-transparent text-white/55 hover:border-white/30 hover:text-white'}`}><span>Profil</span><span className="font-mono text-[10px] text-white/25">05</span></Link></nav><div className="border-t border-white/10 p-4"><button type="button" onClick={signOut} className="flex w-full items-center justify-between px-3 py-3 text-left text-sm font-bold text-white/55 hover:bg-[#b84c4c]/20 hover:text-[#ffb5ad]"><span>Keluar</span><span>↗</span></button></div></aside>
 }
