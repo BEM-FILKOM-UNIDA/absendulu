@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 
 export default async function DashboardPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data: events } = await supabase.from('events').select('*')
   const { data: profiles } = await supabase.from('profiles').select('*')

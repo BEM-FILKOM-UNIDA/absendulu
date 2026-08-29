@@ -3,7 +3,7 @@ import EventCard from '@/components/events/EventCard'
 import Link from 'next/link'
 
 export default async function EventsPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: events } = await supabase
     .from('events')
     .select('*')

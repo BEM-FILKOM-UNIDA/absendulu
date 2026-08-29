@@ -3,8 +3,9 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -13,7 +14,7 @@ export async function GET(
   const { data, error } = await supabase
     .from('attendance_sessions')
     .select('*, attendances(*, profiles(*))')
-    .eq('event_id', params.id)
+    .eq('event_id', id)
     .eq('is_open', true)
     .single()
 

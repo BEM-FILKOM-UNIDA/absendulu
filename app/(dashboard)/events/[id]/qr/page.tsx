@@ -6,13 +6,14 @@ import AttendanceCounter from '@/components/attendance/AttendanceCounter'
 export default async function QRPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
-  const supabase = createClient()
+  const { id } = await params
+  const supabase = await createClient()
   const { data: event } = await supabase
     .from('events')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (!event) notFound()
@@ -20,7 +21,7 @@ export default async function QRPage({
   const { data: session } = await supabase
     .from('attendance_sessions')
     .select('*')
-    .eq('event_id', params.id)
+    .eq('event_id', id)
     .eq('is_open', true)
     .single()
 
@@ -31,7 +32,7 @@ export default async function QRPage({
           Tidak ada sesi absensi aktif
         </h1>
         <a
-          href={`/events/${params.id}`}
+          href={`/events/${id}`}
           className="text-blue-600 hover:underline"
         >
           Kembali ke detail acara
@@ -58,7 +59,7 @@ export default async function QRPage({
       </div>
       <div className="mt-4 text-center">
         <form
-          action={`/api/events/${params.id}/session/close`}
+          action={`/api/events/${id}/session/close`}
           method="POST"
         >
           <button

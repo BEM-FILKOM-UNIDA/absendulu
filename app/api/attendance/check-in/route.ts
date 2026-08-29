@@ -1,30 +1,26 @@
-import { createClient } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-
-  // Get user from auth cookie
-  const cookieHeader = request.headers.get('cookie') || ''
-  const cookies = Object.fromEntries(
-    cookieHeader.split(';').map((c) => {
-      const [key, ...val] = c.split('=')
-      return [key.trim(), val.join('=')]
-    })
-  )
-
-  const authSupabase = createClient(
+  // Use Supabase SSR client to properly read auth cookies
+  const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    { cookies: { get: (name) => cookies[name] } }
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll() {
+          // No-op: we don't need to set cookies in API routes
+        },
+      },
+    }
   )
 
   const {
     data: { user },
-  } = await authSupabase.auth.getUser()
+  } = await supabase.auth.getUser()
 
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -38,8 +34,14 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Find session by QR token
-  const { data: session } = await supabase
+  // Find session by QR token (use service role for read)
+  const { createClient } = await import('@supabase/supabase-js')
+  const adminSupabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { data: session } = await adminSupabase
     .from('attendance_sessions')
     .select('*, events(*)')
     .eq('qr_token', qrToken)
@@ -54,7 +56,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Check if already checked in
-  const { data: existing } = await supabase
+  const { data: existing } = await adminSupabase
     .from('attendances')
     .select('id')
     .eq('session_id', session.id)
@@ -77,7 +79,7 @@ export async function POST(request: NextRequest) {
   const diffMinutes = (now.getTime() - eventStart.getTime()) / (1000 * 60)
   const status = diffMinutes > 15 ? 'terlambat' : 'hadir'
 
-  const { error } = await supabase.from('attendances').insert({
+  const { error } = await adminSupabase.from('attendances').insert({
     session_id: session.id,
     event_id: session.event_id,
     user_id: user.id,

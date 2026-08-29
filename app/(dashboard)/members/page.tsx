@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 
 export default async function MembersPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: members } = await supabase
     .from('profiles')
     .select('*')

@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 
 export default async function AttendanceHistoryPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data: attendances } = await supabase
     .from('attendances')
@@ -10,16 +10,14 @@ export default async function AttendanceHistoryPage() {
     .limit(100)
 
   // Group by event
-  const byEvent =
-    attendances?.reduce(
-      (acc, a) => {
-        const name = a.events?.name || 'Unknown'
-        if (!acc[name]) acc[name] = []
-        acc[name].push(a)
-        return acc
-      },
-      {} as Record<string, typeof attendances>
-    ) || {}
+  const byEvent: Record<string, typeof attendances> = {}
+  attendances?.forEach((a) => {
+    const name = (a as Record<string, unknown>).events
+      ? ((a as Record<string, unknown>).events as Record<string, string>).name
+      : 'Unknown'
+    if (!byEvent[name]) byEvent[name] = []
+    byEvent[name].push(a)
+  })
 
   return (
     <div>
@@ -38,17 +36,22 @@ export default async function AttendanceHistoryPage() {
               </tr>
             </thead>
             <tbody>
-              {atts.map((a) => (
-                <tr key={a.id} className="border-b">
-                  <td className="py-2">{a.profiles?.full_name}</td>
-                  <td className="py-2">{a.profiles?.nim}</td>
-                  <td className="py-2 font-medium">{a.status}</td>
-                  <td className="py-2">{a.method}</td>
-                  <td className="py-2">
-                    {new Date(a.check_in_at).toLocaleString('id')}
-                  </td>
-                </tr>
-              ))}
+              {atts?.map((a) => {
+                const profile = (a as Record<string, unknown>).profiles as
+                  | Record<string, string>
+                  | undefined
+                return (
+                  <tr key={a.id} className="border-b">
+                    <td className="py-2">{profile?.full_name}</td>
+                    <td className="py-2">{profile?.nim}</td>
+                    <td className="py-2 font-medium">{a.status}</td>
+                    <td className="py-2">{a.method}</td>
+                    <td className="py-2">
+                      {new Date(a.check_in_at).toLocaleString('id')}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

@@ -5,13 +5,14 @@ import Link from 'next/link'
 export default async function EventDetailPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
-  const supabase = createClient()
+  const { id } = await params
+  const supabase = await createClient()
   const { data: event } = await supabase
     .from('events')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (!event) notFound()
@@ -19,7 +20,7 @@ export default async function EventDetailPage({
   const { data: session } = await supabase
     .from('attendance_sessions')
     .select('*, attendances(*, profiles(*))')
-    .eq('event_id', params.id)
+    .eq('event_id', id)
     .eq('is_open', true)
     .single()
 
@@ -63,7 +64,7 @@ export default async function EventDetailPage({
             hadir
           </p>
           <Link
-            href={`/events/${event.id}/qr`}
+            href={`/events/${id}/qr`}
             className="inline-block bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
           >
             Lihat QR Code
@@ -71,7 +72,7 @@ export default async function EventDetailPage({
         </div>
       ) : (
         <form
-          action={`/api/events/${event.id}/session/open`}
+          action={`/api/events/${id}/session/open`}
           method="POST"
           className="mb-6"
         >

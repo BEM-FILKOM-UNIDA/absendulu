@@ -4,8 +4,9 @@ import crypto from 'crypto'
 
 export async function POST(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -15,7 +16,7 @@ export async function POST(
   const { data: existing } = await supabase
     .from('attendance_sessions')
     .select('id')
-    .eq('event_id', params.id)
+    .eq('event_id', id)
     .eq('is_open', true)
     .single()
 
@@ -32,7 +33,7 @@ export async function POST(
   const { data, error } = await supabase
     .from('attendance_sessions')
     .insert({
-      event_id: params.id,
+      event_id: id,
       qr_token: qrToken,
       opened_by: '00000000-0000-0000-0000-000000000000',
     })

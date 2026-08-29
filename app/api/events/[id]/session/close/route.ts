@@ -3,8 +3,9 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -13,7 +14,7 @@ export async function POST(
   const { data, error } = await supabase
     .from('attendance_sessions')
     .update({ is_open: false, closed_at: new Date().toISOString() })
-    .eq('event_id', params.id)
+    .eq('event_id', id)
     .eq('is_open', true)
     .select()
     .single()
