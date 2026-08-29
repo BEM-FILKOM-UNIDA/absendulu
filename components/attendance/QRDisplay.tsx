@@ -1,26 +1,28 @@
 'use client'
 
-import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
 
 export default function QRDisplay({ token, eventName }: { token: string; eventName: string }) {
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
+  const [qrSvg, setQrSvg] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
 
     if (!token) return
 
-    QRCode.toDataURL(token, {
+    QRCode.toString(token, {
+      type: 'svg',
       width: 380,
       margin: 2,
       color: { dark: '#10252d', light: '#f3f0e9' },
-    }).then((dataUrl) => {
-      if (!cancelled) setQrDataUrl(dataUrl)
-    }).catch(() => {
-      if (!cancelled) setQrDataUrl(null)
     })
+      .then((svg) => {
+        if (!cancelled) setQrSvg(svg)
+      })
+      .catch(() => {
+        if (!cancelled) setQrSvg(null)
+      })
 
     return () => {
       cancelled = true
@@ -33,8 +35,13 @@ export default function QRDisplay({ token, eventName }: { token: string; eventNa
       <h2 className="mt-3 max-w-md break-words text-xl font-black tracking-[-.05em] sm:text-2xl">{eventName}</h2>
       <p className="mt-2 max-w-sm text-sm leading-6 text-[var(--muted)]">Scan QR ini untuk mencatat kehadiran acara FILKOM.</p>
       <div className="mx-auto mt-6 flex aspect-square w-[74vw] max-w-[280px] items-center justify-center border-4 border-[var(--ink)] bg-[var(--paper)] p-2 sm:mt-8 sm:w-full sm:max-w-[380px] sm:p-4">
-        {qrDataUrl ? (
-          <Image src={qrDataUrl} alt={`QR absensi ${eventName}`} className="block h-auto w-full max-w-full" width={380} height={380} unoptimized />
+        {qrSvg ? (
+          <div
+            aria-label={`QR absensi ${eventName}`}
+            className="flex h-full w-full items-center justify-center [&>svg]:block [&>svg]:h-auto [&>svg]:w-full"
+            dangerouslySetInnerHTML={{ __html: qrSvg }}
+            role="img"
+          />
         ) : (
           <span className="text-center text-xs font-bold uppercase tracking-[.12em] text-[var(--muted)]">Menyiapkan QR…</span>
         )}
