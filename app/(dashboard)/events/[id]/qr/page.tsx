@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect, notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/supabase/server'
 import { isAdminRole } from '@/lib/auth/roles'
 import QRDisplay from '@/components/attendance/QRDisplay'
 import AttendanceCounter from '@/components/attendance/AttendanceCounter'
@@ -8,8 +8,7 @@ import { Card } from '@/components/ui/card'
 
 export default async function QRPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { supabase, user } = await getCurrentUser()
   const { data: profile } = user
     ? await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
     : { data: null }

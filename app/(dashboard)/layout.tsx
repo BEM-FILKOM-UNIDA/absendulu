@@ -1,13 +1,12 @@
 import { redirect } from 'next/navigation'
 import Sidebar from '@/components/layout/Sidebar'
 import Header from '@/components/layout/Header'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/supabase/server'
 import { isAdminRole } from '@/lib/auth/roles'
 import { normalizeProfileAccess } from '@/lib/auth/profile-access'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { supabase, user } = await getCurrentUser()
   const { data: profile } = user
     ? await supabase.from('profiles').select('role, account_status, is_active').eq('id', user.id).maybeSingle()
     : { data: null }

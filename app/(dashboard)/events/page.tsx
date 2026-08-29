@@ -1,11 +1,10 @@
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/supabase/server'
 import EventCard from '@/components/events/EventCard'
 import { ButtonLink } from '@/components/ui/button'
 import { isAdminRole } from '@/lib/auth/roles'
 
 export default async function EventsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { supabase, user } = await getCurrentUser()
   const { data: profile } = user ? await supabase.from('profiles').select('role').eq('id', user.id).single() : { data: null }
   const isAdmin = isAdminRole(profile?.role)
   const { data: events } = await supabase

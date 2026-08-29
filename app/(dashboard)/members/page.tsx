@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/supabase/server'
 import { isAdminRole } from '@/lib/auth/roles'
 import MemberImportForm from '@/components/members/MemberImportForm'
 import { Badge } from '@/components/ui/badge'
@@ -7,8 +7,7 @@ import { Badge } from '@/components/ui/badge'
 const typeLabels: Record<string, string> = { mahasiswa: 'Mahasiswa', dosen: 'Dosen', tata_usaha: 'Tata Usaha' }
 
 export default async function MembersPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const { supabase, user } = await getCurrentUser()
   if (!user) redirect('/login')
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (!isAdminRole(profile?.role)) redirect('/dashboard')

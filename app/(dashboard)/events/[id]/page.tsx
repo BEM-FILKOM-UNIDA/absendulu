@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -9,7 +9,7 @@ const statusLabels: Record<string, string> = { active: 'Berlangsung', draft: 'Dr
 
 export default async function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const supabase = await createClient()
+  const { supabase, user } = await getCurrentUser()
   const admin = createAdminClient()
   const { data: event } = await supabase
     .from('events')
@@ -26,7 +26,6 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
   const { count: attendanceCount } = session
     ? await admin.from('attendances').select('id', { count: 'exact', head: true }).eq('session_id', session.id)
     : { count: 0 }
-  const { data: { user } } = await supabase.auth.getUser()
   const { data: profile } = user ? await supabase.from('profiles').select('role').eq('id', user.id).single() : { data: null }
   const canManage = profile?.role === 'admin_bem' || profile?.role === 'admin'
 
