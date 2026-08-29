@@ -35,7 +35,10 @@ export default function Header({ isAdmin = false }: { isAdmin?: boolean }) {
             <span className="grid h-10 w-10 place-items-center bg-[var(--ink)] text-sm font-black text-[var(--lime)]">A</span>
             <span className="hidden sm:block"><p className="text-sm font-black">Akun saya</p><p className="eyebrow mt-1 text-[var(--muted-soft)]">lihat profil</p></span>
           </Link>
-          <button type="button" onClick={signOut} className="border border-[var(--ink)] px-3 py-2 text-xs font-black uppercase tracking-[.1em] text-[var(--ink)] hover:bg-[var(--ink)] hover:text-[var(--lime)]" aria-label="Keluar">Keluar <span aria-hidden="true">↗</span></button>
+          <button type="button" onClick={signOut} className="flex flex-col items-center gap-0.5 border-l border-[var(--border)] pl-3 text-[var(--ink)] hover:text-[var(--accent-strong)]" aria-label="Keluar">
+            <span className="eyebrow text-[var(--muted-soft)]">KELUAR</span>
+            <span className="text-lg font-black leading-none" aria-hidden="true">↗</span>
+          </button>
         </div>
       </header>
       <nav className="fixed inset-x-0 bottom-0 z-30 grid border-t border-[var(--ink)] bg-[var(--ink)] px-2 pb-[max(env(safe-area-inset-bottom),.5rem)] lg:hidden" style={{ gridTemplateColumns: `repeat(${navItems.length}, minmax(0, 1fr))` }} aria-label="Navigasi mobile">
