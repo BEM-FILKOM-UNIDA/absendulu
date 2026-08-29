@@ -38,7 +38,7 @@ export default function LandingPage() {
 
         <div className="animate-rise-in-delay relative">
           <div className="absolute -right-8 -top-8 h-36 w-36 rounded-full bg-[var(--lime)] blur-3xl" />
-          <Card className="relative overflow-hidden border-[var(--ink)] bg-[var(--ink)] p-5 text-[#f7f4ed] shadow-[18px_22px_0_var(--accent)] sm:p-8">
+          <Card className="live-demo-card relative overflow-hidden border-[var(--ink)] p-5 shadow-[18px_22px_0_var(--accent)] sm:p-8" style={{ backgroundColor: 'var(--ink)', color: '#f7f4ed' }}>
             <div className="flex items-start justify-between border-b border-white/15 pb-6"><div><p className="eyebrow text-[var(--accent)]">absensi live</p><h2 className="mt-3 text-2xl font-black tracking-[-.05em]">Forum Organisasi FILKOM</h2></div><span className="flex items-center gap-2 text-xs font-bold text-[var(--lime)]"><span className="signal-pulse h-2 w-2 rounded-full bg-[var(--lime)]" /> SEDANG DIBUKA</span></div>
             <div className="grid gap-8 pt-8 sm:grid-cols-[.85fr_1.15fr] sm:items-center"><div><p className="eyebrow text-white/45">sudah hadir</p><p className="mt-2 text-7xl font-black tracking-[-.1em] text-[var(--lime)]">24</p><p className="mt-2 text-sm text-white/55">dari 32 mahasiswa terdaftar</p><div className="mt-7 h-1.5 bg-white/10"><div className="h-full w-3/4 bg-[var(--accent)]" /></div><p className="mt-3 text-xs font-bold text-[var(--accent)]">75% hadir sekarang</p></div><div className="relative bg-[var(--paper)] p-7 text-[var(--ink)]"><SignalGrid /><div className="absolute -bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[var(--lime)] px-3 py-1 text-[10px] font-black uppercase tracking-[.12em]">scan untuk hadir</div></div></div>
           </Card>
