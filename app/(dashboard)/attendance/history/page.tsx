@@ -17,10 +17,19 @@ export default async function AttendanceHistoryPage() {
   const supabase = await createClient()
   const { data } = await supabase
     .from('attendances')
-    .select('id, status, method, check_in_at, profiles(full_name, nim), events(name)')
+    .select('id, user_id, status, method, check_in_at, events(name)')
     .order('check_in_at', { ascending: false })
     .limit(100)
-  const attendances = (data ?? []) as unknown as AttendanceRecord[]
+  const attendanceRows = data ?? []
+  const userIds = [...new Set(attendanceRows.map((attendance) => attendance.user_id))]
+  const { data: profiles } = userIds.length > 0
+    ? await supabase.from('profiles').select('id, full_name, nim').in('id', userIds)
+    : { data: [] }
+  const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]))
+  const attendances = attendanceRows.map((attendance) => ({
+    ...attendance,
+    profiles: profilesById.get(attendance.user_id) ?? null,
+  })) as unknown as AttendanceRecord[]
   const byEvent: Record<string, AttendanceRecord[]> = {}
 
   attendances.forEach((attendance) => {

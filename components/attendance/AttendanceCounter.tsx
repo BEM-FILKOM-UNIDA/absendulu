@@ -12,12 +12,20 @@ export default function AttendanceCounter({ sessionId, eventId, initialCount }: 
   useEffect(() => {
     supabase
       .from('attendances')
-      .select('*, profiles(*)')
+      .select('*')
       .eq('session_id', sessionId)
       .order('check_in_at', { ascending: false })
       .limit(5)
-      .then(({ data }) => {
-        if (data) setRecent(data as Attendance[])
+      .then(async ({ data }) => {
+        if (!data || data.length === 0) return
+
+        const userIds = [...new Set(data.map((attendance) => attendance.user_id))]
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('*')
+          .in('id', userIds)
+        const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]))
+        setRecent(data.map((attendance) => ({ ...attendance, profiles: profilesById.get(attendance.user_id) })))
       })
 
     const channel = supabase
