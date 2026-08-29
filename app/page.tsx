@@ -106,7 +106,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-2">
             <Image
               src="/logo/logo-bem-footer.webp"
-              alt="Logo BEM FILKOM UNIDA"
+              alt="Logo PSDM BEM FILKOM UNIDA"
               width={24}
               height={24}
               className="h-6 w-6 rounded-full object-contain"
