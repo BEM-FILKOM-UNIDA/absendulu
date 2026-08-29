@@ -1,0 +1,85 @@
+name: Deploy production
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Type DEPLOY to deploy the selected develop commit to production
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Vercel
+    if: ${{ inputs.confirm == 'DEPLOY' && github.ref == 'refs/heads/develop' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: ${{ secrets.PRODUCTION_URL }}
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@41.7.0
+
+      - name: Pull Vercel production environment
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Verify Vercel project context
+        run: test -s .vercel/project.json
+
+      - name: Run application checks
+        run: npm run check
+
+      - name: Build Vercel artifact
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+
+      - name: Deploy Vercel artifact
+        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+
+      - name: Smoke test production
+        env:
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+        run: |
+          set -eu
+          test -n "$PRODUCTION_URL"
+
+          headers="$(curl --fail --silent --show-error --location --dump-header - --max-time 30 "$PRODUCTION_URL/")"
+          printf '%s\n' "$headers" | grep -qi '^x-content-type-options: nosniff'
+          printf '%s\n' "$headers" | grep -qi '^x-frame-options: DENY'
+          printf '%s\n' "$headers" | grep -qi '^referrer-policy: strict-origin-when-cross-origin'
+          printf '%s\n' "$headers" | grep -qi '^permissions-policy: camera=(self), microphone=()'
+          ! printf '%s\n' "$headers" | grep -qi '^x-powered-by:'
+
+          protected_status="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' --max-time 30 "$PRODUCTION_URL/dashboard")"
+          test "$protected_status" = "307" || test "$protected_status" = "308"
+
+          profile_status="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' --max-time 30 -X PATCH "$PRODUCTION_URL/api/profile" -H "Origin: $PRODUCTION_URL" -H 'Content-Type: application/json' --data '{}')"
+          test "$profile_status" = "401"
+
+          curl --fail --silent --show-error --location --max-time 30 "$PRODUCTION_URL/login" >/dev/null

@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Absendulu
 
-## Getting Started
+Absensi acara organisasi FILKOM UNIDA berbasis Next.js dan Supabase. Mahasiswa masuk dengan Magic Link atau Google OAuth, lalu melakukan check-in melalui QR code acara.
 
-First, run the development server:
+## CI/CD
+
+The repository uses GitHub Actions for PR validation, controlled Vercel production deploys, and manually approved Supabase migrations. See [`docs/ci-cd.md`](docs/ci-cd.md) for the required secrets and release flow.
+
+## Local development
+
+Requirements: Node.js 22+ and npm.
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open <http://localhost:3000>.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Create `.env.local` with these server/runtime variables:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<publishable-or-anon-key>
+SUPABASE_SERVICE_ROLE_KEY=<server-only-service-role-key>
+```
 
-## Learn More
+`SUPABASE_SERVICE_ROLE_KEY` must never be exposed to the browser or committed to Git. Only the two `NEXT_PUBLIC_*` values may be used by client code.
 
-To learn more about Next.js, take a look at the following resources:
+## Supabase setup
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Create or select the Supabase project.
+2. Apply the migrations in `supabase/migrations/` using the linked Supabase CLI project:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   ```bash
+   supabase db push
+   ```
 
-## Deploy on Vercel
+3. Configure Auth providers in Supabase. Enable Email/Magic Link and, if used, Google OAuth.
+4. Add the deployed callback URL to Supabase Auth URL Configuration:
+   `https://<production-domain>/auth/callback`
+5. Add the same callback URL to the Google OAuth client, together with the Supabase provider callback URL shown in the Supabase dashboard.
+6. Confirm the production project has the required `profiles`, `events`, `attendance_sessions`, and `attendances` tables and that the production hardening migration is applied.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Events are intentionally readable as public event metadata. Session records, QR tokens, profiles, and attendance details remain protected by RLS and server-side authorization.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Pre-deploy validation
+
+Run the full local gate before deploying:
+
+```bash
+npm run check
+```
+
+The command runs ESLint, TypeScript checking, and the production build. For a production-like local smoke test:
+
+```bash
+npm run build
+npm run start
+```
+
+Then verify:
+
+- `/` and `/login` load at mobile widths (320px and 375px) without horizontal overflow.
+- Protected pages redirect unauthenticated users to `/login`.
+- `GET /api/events` returns only event metadata.
+- Mutating/admin endpoints reject unauthenticated or non-admin requests.
+- Magic Link and Google callbacks return to `/dashboard` for active accounts.
+- An active event can open one QR session, accept one check-in per user, update the live counter, and close the session.
+- The production response includes `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy` headers.
+
+## Deploy to Vercel
+
+1. Import the repository and the intended branch into Vercel.
+2. Set all three environment variables for the Production environment. Keep `SUPABASE_SERVICE_ROLE_KEY` server-only.
+3. Use the default Next.js build settings; the build command is `npm run build`.
+4. Deploy only after `npm run check` passes and the Supabase migrations are applied.
+5. After deployment, open the production URL and perform the smoke checks above, especially login, QR check-in, and session close.
+
+Do not deploy `.env.local`, service-role keys, or local Supabase `.temp` files.
+
+## Useful commands
+
+```bash
+npm run lint       # ESLint
+npm run typecheck  # TypeScript without emitting files
+npm run build      # Production build
+npm run check      # lint + typecheck + build
+```
