@@ -24,17 +24,15 @@ function parseProfileInput(value: unknown) {
   const fullName = typeof body.full_name === 'string' ? body.full_name.trim() : ''
   const nim = typeof body.nim === 'string' ? body.nim.trim().toUpperCase() : ''
   const division = typeof body.division === 'string' ? body.division.trim() : ''
-  const phone = typeof body.phone === 'string' ? body.phone.trim() : ''
 
   if (!NAME_PATTERN.test(fullName)) return null
   if (!NIM_PATTERN.test(nim)) return null
-  if (division.length > 100 || phone.length > 30) return null
+  if (division.length > 100) return null
 
   return {
     full_name: fullName,
     nim,
     division: division || null,
-    phone: phone || null,
   }
 }
 
@@ -63,7 +61,7 @@ export async function PATCH(request: NextRequest) {
     .from('profiles')
     .update(input)
     .eq('id', user.id)
-    .select('full_name, nim, division, phone')
+    .select('full_name, nim, division')
     .maybeSingle()
 
   if (error) {

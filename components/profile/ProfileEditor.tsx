@@ -12,14 +12,13 @@ type ProfileEditorProps = {
   fullName: string
   nim: string
   division: string
-  phone: string
 }
 
 type FormMessage = { type: 'success' | 'error'; text: string } | null
 
-export default function ProfileEditor({ email, fullName, nim, division, phone }: ProfileEditorProps) {
+export default function ProfileEditor({ email, fullName, nim, division }: ProfileEditorProps) {
   const router = useRouter()
-  const [form, setForm] = useState({ full_name: fullName, nim, division, phone })
+  const [form, setForm] = useState({ full_name: fullName, nim, division })
   const [message, setMessage] = useState<FormMessage>(null)
   const [loading, setLoading] = useState(false)
 
@@ -53,7 +52,6 @@ export default function ProfileEditor({ email, fullName, nim, division, phone }:
         full_name: result.full_name,
         nim: result.nim,
         division: result.division || '',
-        phone: result.phone || '',
       }))
       setMessage({ type: 'success', text: 'Profil berhasil diperbarui.' })
       router.refresh()
@@ -93,8 +91,9 @@ export default function ProfileEditor({ email, fullName, nim, division, phone }:
               <Input id="profile-division" value={form.division} onChange={(event) => updateField('division', event.target.value)} maxLength={100} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="profile-phone">Nomor telepon <span className="font-normal text-[var(--muted)]">(opsional)</span></Label>
-              <Input id="profile-phone" value={form.phone} onChange={(event) => updateField('phone', event.target.value)} autoComplete="tel" inputMode="tel" maxLength={30} />
+              <Label htmlFor="profile-faculty">Fakultas</Label>
+              <Input id="profile-faculty" value="Fakultas Ilmu Komputer" readOnly disabled className="bg-[var(--surface-muted)]" />
+              <p className="text-xs leading-5 text-[var(--muted)]">Fakultas ditetapkan oleh sistem dan tidak dapat diubah.</p>
             </div>
           </div>
           {message && <p role={message.type === 'error' ? 'alert' : 'status'} className={`border px-4 py-3 text-sm font-semibold ${message.type === 'error' ? 'border-[#e7b6b6] bg-[#f8dddd] text-[var(--danger)]' : 'border-[var(--accent-strong)] bg-[var(--accent-soft)] text-[var(--accent-strong)]'}`}>{message.text}</p>}

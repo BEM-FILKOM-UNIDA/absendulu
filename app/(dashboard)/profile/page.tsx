@@ -15,7 +15,7 @@ export default async function ProfilePage() {
   const { supabase, user } = await getCurrentUser()
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name, nim, user_type, division, phone, account_status')
+    .select('full_name, nim, user_type, division, account_status')
     .eq('id', user?.id)
     .maybeSingle()
 
@@ -55,7 +55,6 @@ export default async function ProfilePage() {
         fullName={profile?.full_name || ''}
         nim={profile?.nim || ''}
         division={profile?.division || ''}
-        phone={profile?.phone || ''}
       />
     </div>
   )
