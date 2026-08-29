@@ -23,11 +23,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const isAdmin = isAdminRole(access.role)
 
   return (
-    <div className="flex min-h-[100dvh] bg-[var(--background)]">
+    <div className="flex min-h-[100dvh] bg-[var(--background)] lg:h-[100dvh] lg:overflow-hidden">
       <Sidebar isAdmin={isAdmin} />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col lg:min-h-0 lg:overflow-hidden">
         <Header isAdmin={isAdmin} />
-        <main className="flex-1 px-5 py-7 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-8 sm:py-9 lg:pb-9">
+        <main className="min-h-0 flex-1 px-5 py-7 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-8 sm:py-9 lg:overflow-y-auto lg:pb-9">
           <div className="mx-auto w-full max-w-7xl">{children}</div>
         </main>
       </div>
