@@ -1,8 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { usePathname } from 'next/navigation'
 
 const labels: Record<string, string> = { '/dashboard': 'Ringkasan', '/events': 'Acara FILKOM', '/scan': 'Scan QR', '/attendance/history': 'Riwayat Absensi', '/members': 'Data Mahasiswa', '/profile': 'Profil' }
 const mobileNav = [
@@ -15,16 +14,8 @@ const mobileNav = [
 
 export default function Header({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname()
-  const router = useRouter()
-  const supabase = createClient()
   const title = labels[pathname] || 'Absendulu'
   const navItems = isAdmin ? [...mobileNav, { href: '/members', label: 'Data', code: '04' }] : mobileNav
-
-  async function signOut() {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
 
   return (
     <>
@@ -34,10 +25,6 @@ export default function Header({ isAdmin = false }: { isAdmin?: boolean }) {
           <Link href="/profile" className="flex items-center gap-2 text-right" aria-label="Lihat profil akun">
             <span><p className="text-sm font-black">Akun saya</p><p className="eyebrow mt-1 text-[var(--muted-soft)]">lihat profil</p></span>
           </Link>
-          <button type="button" onClick={signOut} className="flex items-center gap-1 border-l border-[var(--border)] pl-3 text-xs font-black uppercase tracking-[.1em] text-[var(--ink)] hover:text-[var(--accent-strong)]" aria-label="Keluar">
-            <span>KELUAR</span>
-            <span className="text-lg leading-none" aria-hidden="true">↗</span>
-          </button>
           <Link href="/profile" className="grid h-10 w-10 place-items-center bg-[var(--ink)] text-sm font-black text-[var(--lime)]" aria-label="Lihat profil akun">A</Link>
         </div>
       </header>
