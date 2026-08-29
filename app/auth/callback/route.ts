@@ -44,8 +44,7 @@ export async function GET(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return redirectWithSession('/login?error=invalid')
 
-  const admin = createAdminClient()
-  const { data: initialProfile, error: profileError } = await admin
+  const { data: initialProfile, error: profileError } = await supabase
     .from('profiles')
     .select('account_status, is_active')
     .eq('id', user.id)
@@ -55,6 +54,7 @@ export async function GET(request: NextRequest) {
   if (profileError) return redirectWithSession('/login?error=profile')
 
   if (!profile) {
+    const admin = createAdminClient()
     const fullName = typeof user.user_metadata?.full_name === 'string' && user.user_metadata.full_name.trim()
       ? user.user_metadata.full_name.trim()
       : user.email || 'Pengguna'
