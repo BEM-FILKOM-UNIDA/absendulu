@@ -1,11 +1,12 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { isAdminRole } from '@/lib/auth/roles'
+import { isProfileComplete } from '@/lib/auth/identity'
 import { normalizeProfileAccess } from '@/lib/auth/profile-access'
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
-  const isPublic = pathname === '/' || pathname.startsWith('/login') || pathname.startsWith('/auth/callback')
+  const isPublic = pathname === '/' || pathname === '/login' || pathname === '/auth/callback'
   if (isPublic) return NextResponse.next()
 
   let supabaseResponse = NextResponse.next({ request })
@@ -36,13 +37,33 @@ export async function proxy(request: NextRequest) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, account_status, is_active')
+    .select('role, user_type, nim, full_name, account_status, is_active')
     .eq('id', userId)
     .maybeSingle()
   const access = normalizeProfileAccess(profile)
 
-  if (access?.account_status === 'active' && access.is_active && !isAdminRole(access.role) && pathname !== '/scan') {
-    return NextResponse.redirect(new URL('/scan', request.url))
+  if (!access || !access.is_active || access.account_status === 'disabled') {
+    if (pathname !== '/account-disabled') return NextResponse.redirect(new URL('/account-disabled', request.url))
+    return supabaseResponse
+  }
+
+  if (access.account_status === 'invited') {
+    const onboardingPath = isProfileComplete(profile) ? '/waiting-approval' : '/complete-profile'
+    const allowed = pathname === '/complete-profile' || pathname === '/waiting-approval'
+    if (!allowed || pathname !== onboardingPath) return NextResponse.redirect(new URL(onboardingPath, request.url))
+    return supabaseResponse
+  }
+
+  if (!isAdminRole(access.role)) {
+    if (pathname === '/dashboard') return NextResponse.redirect(new URL('/mahasiswa', request.url))
+    const isStudentRoute = pathname === '/mahasiswa'
+      || pathname === '/scan'
+      || pathname === '/events'
+      || pathname.startsWith('/events/')
+      || pathname === '/attendance/history'
+      || pathname.startsWith('/attendance/history/')
+      || pathname === '/profile'
+    if (!isStudentRoute) return NextResponse.redirect(new URL('/mahasiswa', request.url))
   }
 
   return supabaseResponse

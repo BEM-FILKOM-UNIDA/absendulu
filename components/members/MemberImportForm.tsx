@@ -106,7 +106,7 @@ export default function MemberImportForm() {
           <div className="mb-5 border-l-4 border-[var(--accent-strong)] bg-[var(--surface-muted)] px-4 py-3 text-sm leading-6 text-[var(--foreground)]">
             <p className="mb-1 font-bold text-[var(--ink)]">Format kolom CSV</p>
             <code className="break-all font-bold text-[var(--accent-strong)]">full_name,nim,email,user_type,division,phone</code>
-            <p className="mt-1 text-[var(--foreground)]">Tipe pengguna: mahasiswa, dosen, atau tata_usaha.</p>
+            <p className="mt-1 text-[var(--foreground)]">Untuk mahasiswa, NIM harus berformat I. diikuti 7 angka. Tipe pengguna: mahasiswa, dosen, atau tata_usaha.</p>
           </div>
           <form onSubmit={handleImport} className="space-y-3">
             <label htmlFor="member-csv" className="block text-sm font-bold text-[var(--ink)]">
@@ -150,7 +150,7 @@ export default function MemberImportForm() {
             </div>
             <div className="space-y-2">
               <label htmlFor="manual-nim" className="text-sm font-bold">NIM / NIP</label>
-              <Input id="manual-nim" value={manualForm.nim} onChange={(event) => updateManualField('nim', event.target.value)} placeholder="Contoh: 20240001" required />
+              <Input id="manual-nim" value={manualForm.nim} onChange={(event) => updateManualField('nim', event.target.value.toUpperCase())} placeholder="Contoh: I.2410036" required />
             </div>
             <div className="space-y-2">
               <label htmlFor="manual-type" className="text-sm font-bold">Tipe pengguna</label>

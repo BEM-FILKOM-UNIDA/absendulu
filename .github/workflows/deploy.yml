@@ -82,4 +82,7 @@ jobs:
           profile_status="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' --max-time 30 -X PATCH "$PRODUCTION_URL/api/profile" -H "Origin: $PRODUCTION_URL" -H 'Content-Type: application/json' --data '{}')"
           test "$profile_status" = "401"
 
+          attendance_status="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' --max-time 30 -X POST "$PRODUCTION_URL/api/attendance/check-in" -H "Origin: $PRODUCTION_URL" -H 'Content-Type: application/json' --data '{}')"
+          test "$attendance_status" = "401"
+
           curl --fail --silent --show-error --location --max-time 30 "$PRODUCTION_URL/login" >/dev/null

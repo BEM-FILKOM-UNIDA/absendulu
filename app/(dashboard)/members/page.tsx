@@ -10,7 +10,7 @@ export default async function MembersPage() {
   const { supabase, user } = await getCurrentUser()
   if (!user) redirect('/login')
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (!isAdminRole(profile?.role)) redirect('/scan')
+  if (!isAdminRole(profile?.role)) redirect('/mahasiswa')
   const { data: members } = await supabase
     .from('profiles')
     .select('id, full_name, nim, email, user_type, account_status, is_active')

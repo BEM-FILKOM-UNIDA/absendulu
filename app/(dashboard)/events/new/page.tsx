@@ -9,7 +9,7 @@ export default async function NewEventPage() {
     ? await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
     : { data: null }
 
-  if (!isAdminRole(profile?.role)) redirect('/scan')
+  if (!isAdminRole(profile?.role)) redirect('/mahasiswa')
 
   return <NewEventForm />
 }

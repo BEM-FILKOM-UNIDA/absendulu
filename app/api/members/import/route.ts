@@ -4,6 +4,7 @@ import type { User, SupabaseClient } from '@supabase/supabase-js'
 import { getUserRole } from '@/lib/supabase/request'
 import { isSameOrigin } from '@/lib/http/request-security'
 import { isAdminRole } from '@/lib/auth/roles'
+import { isValidStaffIdentifier, isValidStudentNim } from '@/lib/auth/identity'
 
 type ImportRow = {
   full_name: string
@@ -53,15 +54,18 @@ function parseCsv(csv: string): Record<string, string>[] {
 }
 
 function normalizeRow(row: Record<string, string>, index: number): ImportRow {
-  const full_name = row.full_name || row.nama || ''
-  const nim = row.nim || row.identifier || row.nip || ''
-  const email = (row.email || '').toLowerCase()
+  const full_name = (row.full_name || row.nama || '').trim()
+  const nim = (row.nim || row.identifier || row.nip || '').trim().toUpperCase()
+  const email = (row.email || '').trim().toLowerCase()
   const user_type = (row.user_type || row.tipe || row.jenis || '').toLowerCase() as ImportRow['user_type']
 
   if (!full_name || !nim || !email || !USER_TYPES.has(user_type)) {
     throw new Error(`Baris ${index}: wajib memiliki full_name, nim, email, dan user_type yang valid.`)
   }
   if (!email.includes('@')) throw new Error(`Baris ${index}: format email tidak valid.`)
+  if ((user_type === 'mahasiswa' && !isValidStudentNim(nim)) || (user_type !== 'mahasiswa' && !isValidStaffIdentifier(nim))) {
+    throw new Error(`Baris ${index}: identifier ${user_type === 'mahasiswa' ? 'NIM mahasiswa harus berformat I.#######, contoh I.2410036.' : 'NIP/NIK tidak valid.'}`)
+  }
 
   return {
     full_name,
@@ -183,6 +187,7 @@ export async function POST(request: NextRequest) {
       nim: row.nim,
       email: row.email,
       user_type: row.user_type,
+      nim_format_legacy: false,
       division: row.division,
       phone: row.phone,
       role: existingProfile?.role ?? 'user',

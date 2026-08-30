@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 function getPageTitle(pathname: string) {
-  if (pathname === '/dashboard') return 'Ringkasan'
+  if (pathname === '/dashboard' || pathname === '/mahasiswa') return pathname === '/mahasiswa' ? 'Beranda' : 'Ringkasan'
   if (pathname === '/profile') return 'Profil'
   if (pathname === '/events' || pathname.startsWith('/events/')) return 'Acara FILKOM'
   if (pathname === '/scan' || pathname.startsWith('/scan/')) return 'Scan QR'
@@ -12,11 +12,18 @@ function getPageTitle(pathname: string) {
   if (pathname === '/members' || pathname.startsWith('/members/')) return 'Data Mahasiswa'
   return 'Absendulu'
 }
-const mobileNav = [
+const adminMobileNav = [
   { href: '/dashboard', label: 'Ringkasan', code: '00' },
   { href: '/events', label: 'Acara', code: '01' },
   { href: '/scan', label: 'Scan', code: '02' },
   { href: '/attendance/history', label: 'Riwayat', code: '03' },
+] as const
+
+const userMobileNav = [
+  { href: '/mahasiswa', label: 'Beranda', code: '00' },
+  { href: '/scan', label: 'Scan', code: '01' },
+  { href: '/attendance/history', label: 'Riwayat', code: '02' },
+  { href: '/profile', label: 'Profil', code: '03' },
 ] as const
 
 function isActiveRoute(pathname: string, href: string) {
@@ -28,8 +35,8 @@ export default function Header({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname()
   const title = getPageTitle(pathname)
   const navItems = isAdmin
-    ? [...mobileNav, { href: '/members', label: 'Data', code: '04' }]
-    : [{ href: '/scan', label: 'Scan', code: '02' }]
+    ? [...adminMobileNav, { href: '/members', label: 'Data', code: '04' }]
+    : userMobileNav
 
   return (
     <>
@@ -57,7 +64,7 @@ export default function Header({ isAdmin = false }: { isAdmin?: boolean }) {
       </header>
 
       <nav
-        className={`fixed inset-x-0 bottom-0 z-50 grid border-t border-white/10 bg-[var(--ink)] px-1 pb-[max(env(safe-area-inset-bottom),.5rem)] shadow-[0_-8px_30px_rgba(0,0,0,.12)] lg:hidden ${isAdmin ? 'grid-cols-5' : 'grid-cols-1'}`}
+        className={`fixed inset-x-0 bottom-0 z-50 grid border-t border-white/10 bg-[var(--ink)] px-1 pb-[max(env(safe-area-inset-bottom),.5rem)] shadow-[0_-8px_30px_rgba(0,0,0,.12)] lg:hidden ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'}`}
         aria-label="Navigasi dashboard"
       >
         {navItems.map((item) => {

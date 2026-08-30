@@ -91,11 +91,12 @@ export async function POST(request: NextRequest) {
   const { data: existing } = await admin
     .from('attendances')
     .select('id')
-    .eq('session_id', session.id)
+    .eq('event_id', session.event_id)
     .eq('user_id', user.id)
+    .limit(1)
     .maybeSingle()
 
-  if (existing) return NextResponse.json({ error: 'Sudah melakukan absensi.' }, { status: 409 })
+  if (existing) return NextResponse.json({ error: 'Sudah melakukan absensi untuk acara ini.' }, { status: 409 })
 
   const jakartaNow = getJakartaDateTime()
   if (jakartaNow.date !== event.event_date) {

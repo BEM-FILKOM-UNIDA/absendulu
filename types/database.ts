@@ -6,6 +6,7 @@ export interface Profile {
   id: string
   full_name: string
   nim: string
+  nim_format_legacy: boolean
   email: string | null
   division: string | null
   phone: string | null

@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getUserRole } from '@/lib/supabase/request'
 import { isSameOrigin } from '@/lib/http/request-security'
 import { isAdminRole } from '@/lib/auth/roles'
+import { isValidStaffIdentifier, isValidStudentNim } from '@/lib/auth/identity'
 
 type UserType = 'mahasiswa' | 'dosen' | 'tata_usaha'
 
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
   }
 
   const fullName = typeof body.full_name === 'string' ? body.full_name.trim() : ''
-  const nim = typeof body.nim === 'string' ? body.nim.trim() : ''
+  const nim = typeof body.nim === 'string' ? body.nim.trim().toUpperCase() : ''
   const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''
   const userType = typeof body.user_type === 'string' ? body.user_type : ''
   const division = typeof body.division === 'string' ? body.division.trim() : ''
@@ -55,6 +56,9 @@ export async function POST(request: NextRequest) {
   }
   if (fullName.length > 160 || nim.length > 80 || email.length > 254) {
     return NextResponse.json({ error: 'Data terlalu panjang.' }, { status: 400 })
+  }
+  if ((userType === 'mahasiswa' && !isValidStudentNim(nim)) || (userType !== 'mahasiswa' && !isValidStaffIdentifier(nim))) {
+    return NextResponse.json({ error: userType === 'mahasiswa' ? 'NIM mahasiswa harus berformat I.#######, contoh I.2410036.' : 'NIP/NIK tidak valid.' }, { status: 400 })
   }
 
   const admin = createAdminClient()
@@ -116,6 +120,7 @@ export async function POST(request: NextRequest) {
     nim,
     email,
     user_type: userType,
+    nim_format_legacy: false,
     division: division || null,
     phone: phone || null,
     role: existingProfile?.role ?? 'user',

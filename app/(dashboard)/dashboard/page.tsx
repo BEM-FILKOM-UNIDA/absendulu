@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/card'
 export default async function DashboardPage() {
   const { supabase, user } = await getCurrentUser()
   const { data: profile } = user ? await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle() : { data: null }
-  if (!isAdminRole(profile?.role)) redirect('/scan')
+  if (!isAdminRole(profile?.role)) redirect('/mahasiswa')
 
   const admin = createAdminClient()
   const [eventsResult, profilesResult, sessionsResult] = await Promise.all([

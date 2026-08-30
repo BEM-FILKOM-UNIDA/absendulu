@@ -42,7 +42,7 @@ SUPABASE_SERVICE_ROLE_KEY=<server-only-service-role-key>
 5. Add the same callback URL to the Google OAuth client, together with the Supabase provider callback URL shown in the Supabase dashboard.
 6. Confirm the production project has the required `profiles`, `events`, `attendance_sessions`, and `attendances` tables and that the production hardening migration is applied.
 
-Events, session records, QR tokens, profiles, and attendance details are protected by RLS and server-side authorization. Only admin roles can access event metadata, event management, attendance history, member management, and profile management. Non-admin users are limited to the `/scan` flow and `POST /api/attendance/check-in`.
+Events, session records, QR tokens, profiles, and attendance details are protected by RLS and server-side authorization. Admin roles can manage events, QR sessions, attendance recaps, members, and operational profile data. Active non-admin users can browse active event metadata, view their own profile and attendance history, and use the `/mahasiswa` workspace; they cannot access QR/session internals, member management, or other users' attendance data.
 
 ## Pre-deploy validation
 
@@ -63,10 +63,13 @@ Then verify:
 
 - `/` and `/login` load at mobile widths (320px and 375px) without horizontal overflow.
 - Protected pages redirect unauthenticated users to `/login`.
-- Non-admin users are redirected to `/scan` from admin pages and cannot access admin event/profile APIs.
-- `GET /api/events` and other event/session metadata endpoints reject unauthenticated and non-admin requests.
-- `POST /api/attendance/check-in` accepts a valid active QR token for an authenticated active user.
-- Magic Link and Google callbacks return admins to `/dashboard` and non-admin users to `/scan`.
+- Invited users are routed to `/complete-profile` until their identity is complete, then to `/waiting-approval`.
+- Disabled users are routed to `/account-disabled` and cannot use protected APIs.
+- Non-admin users are redirected to `/mahasiswa` from admin pages and cannot access admin event/session/member APIs.
+- Active non-admin users can open `/mahasiswa`, `/events`, `/events/[id]`, `/profile`, and `/attendance/history`; their history contains only their own attendance records.
+- `GET /api/events` and other event/session management endpoints reject unauthenticated and non-admin requests where applicable.
+- `POST /api/attendance/check-in` accepts a valid active QR token for an authenticated active user and rejects duplicate check-ins for the same event.
+- Magic Link and Google callbacks return admins to `/dashboard`, active non-admin users to `/mahasiswa`, and incomplete users to the correct onboarding page.
 - An active event can open one QR session, accept one check-in per user, update the live counter, and close the session.
 - The production response includes `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy` headers.
 
