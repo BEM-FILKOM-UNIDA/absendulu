@@ -85,3 +85,4 @@ jobs:
           test "$attendance_status" = "401"
 
           curl --fail --silent --show-error --location --max-time 30 "$PRODUCTION_URL/login" >/dev/null
+          curl --fail --silent --show-error --max-time 30 "$PRODUCTION_URL/api/health" | grep -q '"status":"ok"'

@@ -9,7 +9,7 @@ Absendulu uses GitHub Actions for validation and controlled deployment. Vercel r
 3. `CI` runs `npm ci` and `npm run check` with non-production placeholder Supabase values.
 4. Merge only after CI passes and the PR is reviewed.
 5. For a database change, run **Actions → Apply Supabase migrations → Run workflow** from `develop`, type `APPLY`, verify migration history, and wait for the protected `production` environment approval.
-6. After the migration succeeds, run **Actions → Deploy production → Run workflow** from `develop`, type `DEPLOY`, and wait for the protected `production` environment approval. The workflow checks out that exact commit, runs the full `npm run check` gate, pulls Vercel production environment variables, builds a prebuilt artifact, deploys it, and smoke-tests headers, protected redirects, and anonymous mutation rejection.
+6. After the migration succeeds, run **Actions → Deploy production → Run workflow** from `develop`, type `DEPLOY`, and wait for the protected `production` environment approval. The workflow checks out that exact commit, runs the full `npm run check` gate, pulls Vercel production environment variables, builds a prebuilt artifact, deploys it, and smoke-tests the database-backed health endpoint, headers, protected redirects, and anonymous mutation rejection.
 
 Both production workflows are manual and restricted to `develop`; a feature branch cannot apply schema changes or deploy directly. Before applying database migrations, verify migration history with `supabase migration list --db-url "$SUPABASE_DB_URL"`. The migration workflow includes a dry-run, but it cannot repair a remote history mismatch automatically.
 

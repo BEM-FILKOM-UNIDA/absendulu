@@ -71,6 +71,7 @@ Then verify:
 - `POST /api/attendance/check-in` accepts a valid active QR token for an authenticated active user and rejects duplicate check-ins for the same event.
 - Magic Link and Google callbacks return admins to `/dashboard`, active non-admin users to `/mahasiswa`, and incomplete users to the correct onboarding page.
 - An active event can open one QR session, accept one check-in per user, update the live counter, and close the session.
+- `GET /api/health` returns `{"status":"ok"}` only when the application can reach Supabase.
 - The production response includes `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy` headers.
 
 ## Deploy to Vercel
