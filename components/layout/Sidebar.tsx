@@ -21,9 +21,10 @@ const adminNav: NavItem[] = [
 
 const userNav: NavItem[] = [
   { href: '/mahasiswa', label: 'Beranda', code: '00' },
-  { href: '/scan', label: 'Scan Absensi', code: '01' },
-  { href: '/attendance/history', label: 'Riwayat Saya', code: '02' },
-  { href: '/profile', label: 'Profil', code: '03' },
+  { href: '/events', label: 'Acara FILKOM', code: '01' },
+  { href: '/scan', label: 'Scan Absensi', code: '02' },
+  { href: '/attendance/history', label: 'Riwayat Saya', code: '03' },
+  { href: '/profile', label: 'Profil', code: '04' },
 ]
 
 function isActiveRoute(pathname: string, href: string) {

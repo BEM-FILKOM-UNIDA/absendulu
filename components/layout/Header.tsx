@@ -21,9 +21,10 @@ const adminMobileNav = [
 
 const userMobileNav = [
   { href: '/mahasiswa', label: 'Beranda', code: '00' },
-  { href: '/scan', label: 'Scan', code: '01' },
-  { href: '/attendance/history', label: 'Riwayat', code: '02' },
-  { href: '/profile', label: 'Profil', code: '03' },
+  { href: '/events', label: 'Acara', code: '01' },
+  { href: '/scan', label: 'Scan', code: '02' },
+  { href: '/attendance/history', label: 'Riwayat', code: '03' },
+  { href: '/profile', label: 'Profil', code: '04' },
 ] as const
 
 function isActiveRoute(pathname: string, href: string) {
@@ -64,7 +65,7 @@ export default function Header({ isAdmin = false }: { isAdmin?: boolean }) {
       </header>
 
       <nav
-        className={`fixed inset-x-0 bottom-0 z-50 grid border-t border-white/10 bg-[var(--ink)] px-1 pb-[max(env(safe-area-inset-bottom),.5rem)] shadow-[0_-8px_30px_rgba(0,0,0,.12)] lg:hidden ${isAdmin ? 'grid-cols-5' : 'grid-cols-4'}`}
+        className={`fixed inset-x-0 bottom-0 z-50 grid border-t border-white/10 bg-[var(--ink)] px-1 pb-[max(env(safe-area-inset-bottom),.5rem)] shadow-[0_-8px_30px_rgba(0,0,0,.12)] lg:hidden grid-cols-5`}
         aria-label="Navigasi dashboard"
       >
         {navItems.map((item) => {
