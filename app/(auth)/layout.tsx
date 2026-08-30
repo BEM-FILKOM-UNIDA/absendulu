@@ -18,6 +18,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             width={68}
             height={40}
             className="h-10 w-auto"
+            style={{ width: 'auto' }}
           />
           <span className="text-[10px] font-bold uppercase tracking-[.18em] text-[var(--muted)]">
             FILKOM UNIDA

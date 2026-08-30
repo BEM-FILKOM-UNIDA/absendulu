@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getUser, getUserRole } from '@/lib/supabase/request'
+import { isValidEventTimeRange } from '@/lib/events/schedule'
 import { isSameOrigin } from '@/lib/http/request-security'
 import { isAdminRole } from '@/lib/auth/roles'
 
@@ -47,7 +48,7 @@ function parseEventInput(value: unknown): EventInput | null {
   if (!name || name.length > 160 || (description && description.length > 5000) || (location && location.length > 200)) return null
   if (!isValidDate(event_date) || !isValidTime(start_time)) return null
   if (end_time && !isValidTime(end_time)) return null
-  if (end_time && end_time <= start_time) return null
+  if (!isValidEventTimeRange(start_time, end_time)) return null
 
   return { name, description, event_date, start_time, end_time, location, status }
 }

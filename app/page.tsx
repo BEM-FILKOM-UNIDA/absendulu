@@ -28,7 +28,7 @@ export default function LandingPage() {
     <main className="paper-noise overflow-hidden bg-[var(--paper)]">
       <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:h-24 sm:px-5 lg:px-8">
         <Link href="/" className="flex items-center gap-3">
-          <Image src="/logo/Absendulu.webp" alt="Absendulu" width={61} height={36} className="h-9 w-auto sm:h-10" />
+          <Image src="/logo/Absendulu.webp" alt="Absendulu" width={61} height={36} className="h-9 w-auto sm:h-10" style={{ width: 'auto' }} />
           <span className="text-[10px] font-bold uppercase tracking-[.18em] text-[var(--muted)] sm:text-xs">FILKOM UNIDA</span>
         </Link>
         <div className="flex items-center gap-3 sm:gap-5">

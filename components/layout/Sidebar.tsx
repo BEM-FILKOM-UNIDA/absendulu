@@ -59,7 +59,7 @@ export default function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
   return (
     <aside className="hidden h-full w-[268px] shrink-0 flex-col border-r border-white/10 bg-[var(--ink)] text-[#f7f4ed] lg:flex">
       <Link href={isAdmin ? '/dashboard' : '/mahasiswa'} className="flex h-24 shrink-0 items-center gap-3 border-b border-white/10 px-7 transition-colors hover:bg-white/[.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lime)] focus-visible:ring-inset">
-        <Image src="/logo/Absendulu.webp" alt="Absendulu" width={68} height={40} className="h-9 w-auto shrink-0" />
+        <Image src="/logo/Absendulu.webp" alt="Absendulu" width={68} height={40} className="h-9 w-auto shrink-0" style={{ width: 'auto' }} />
         <span className="eyebrow text-white/35">FILKOM UNIDA</span>
       </Link>
 
