@@ -1,9 +1,16 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { isAdminRole } from '@/lib/auth/roles'
+import { getCurrentUser } from '@/lib/supabase/server'
 import { ButtonLink } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
 export default async function DashboardPage() {
+  const { supabase, user } = await getCurrentUser()
+  const { data: profile } = user ? await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle() : { data: null }
+  if (!isAdminRole(profile?.role)) redirect('/mahasiswa')
+
   const admin = createAdminClient()
   const [eventsResult, profilesResult, sessionsResult] = await Promise.all([
     admin

@@ -27,9 +27,9 @@ export default function LandingPage() {
   return (
     <main className="paper-noise overflow-hidden bg-[var(--paper)]">
       <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:h-24 sm:px-5 lg:px-8">
-        <Link href="/" className="flex items-center gap-2 sm:gap-3">
-          <span className="grid h-9 w-9 place-items-center bg-[var(--ink)] text-sm font-black text-[var(--lime)] sm:h-10 sm:w-10">A</span>
-          <span className="text-lg font-black tracking-[-.08em] sm:text-xl">absendulu<span className="text-[var(--accent-strong)]">/</span></span>
+        <Link href="/" className="flex items-center gap-3">
+          <Image src="/logo/Absendulu.webp" alt="Absendulu" width={61} height={36} className="h-9 w-auto sm:h-10" style={{ width: 'auto' }} />
+          <span className="text-[10px] font-bold uppercase tracking-[.18em] text-[var(--muted)] sm:text-xs">FILKOM UNIDA</span>
         </Link>
         <div className="flex items-center gap-3 sm:gap-5">
           <span className="hidden text-xs font-bold uppercase tracking-[.14em] text-[var(--muted)] sm:inline">HADIR DALAM SATU SCAN</span>

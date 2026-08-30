@@ -16,9 +16,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
     : { data: null }
 
   const access = normalizeProfileAccess(profile)
-  if (!access || access.account_status !== 'active' || !access.is_active) {
-    redirect('/login?pending=1')
+  if (!access || !access.is_active || access.account_status === 'disabled') {
+    redirect('/account-disabled')
   }
+  if (access.account_status !== 'active') redirect('/complete-profile')
 
   const isAdmin = isAdminRole(access.role)
 

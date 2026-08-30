@@ -6,9 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test:schedule": "node scripts/test-schedule.mjs",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "check": "npm run lint && npm run typecheck && npm run build"
+    "check": "npm run test:schedule && npm run lint && npm run typecheck && npm run build"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",

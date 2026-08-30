@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createServerClient } from '@supabase/ssr'
 import { normalizeProfileAccess } from '@/lib/auth/profile-access'
+import { getSchedulePosition } from '@/lib/events/schedule'
 import { isSameOrigin } from '@/lib/http/request-security'
 
 function getAuthenticatedClient(request: NextRequest) {
@@ -15,12 +16,6 @@ function getAuthenticatedClient(request: NextRequest) {
       },
     },
   )
-}
-
-function toComparableMinutes(date: string, time: string) {
-  const [year, month, day] = date.split('-').map(Number)
-  const [hour, minute] = time.slice(0, 5).split(':').map(Number)
-  return Date.UTC(year, month - 1, day, hour, minute) / 60000
 }
 
 function getJakartaDateTime(now = new Date()) {
@@ -67,14 +62,15 @@ export async function POST(request: NextRequest) {
   const qrToken = body && typeof body === 'object' && 'qrToken' in body
     ? (body as { qrToken?: unknown }).qrToken
     : null
-  if (typeof qrToken !== 'string' || qrToken.length < 16 || qrToken.length > 128) {
+  const normalizedQrToken = typeof qrToken === 'string' ? qrToken.trim() : ''
+  if (normalizedQrToken.length < 16 || normalizedQrToken.length > 128) {
     return NextResponse.json({ error: 'QR token tidak valid.' }, { status: 400 })
   }
 
   const { data: session, error: sessionError } = await admin
     .from('attendance_sessions')
     .select('id, event_id, is_open, events!inner(name, event_date, start_time, end_time, status)')
-    .eq('qr_token', qrToken)
+    .eq('qr_token', normalizedQrToken)
     .eq('is_open', true)
     .maybeSingle()
 
@@ -90,26 +86,31 @@ export async function POST(request: NextRequest) {
   const { data: existing } = await admin
     .from('attendances')
     .select('id')
-    .eq('session_id', session.id)
+    .eq('event_id', session.event_id)
     .eq('user_id', user.id)
+    .limit(1)
     .maybeSingle()
 
-  if (existing) return NextResponse.json({ error: 'Sudah melakukan absensi.' }, { status: 409 })
+  if (existing) return NextResponse.json({ error: 'Sudah melakukan absensi untuk acara ini.' }, { status: 409 })
 
   const jakartaNow = getJakartaDateTime()
-  if (jakartaNow.date !== event.event_date) {
-    return NextResponse.json({ error: 'Waktu absensi acara sudah berakhir.' }, { status: 400 })
-  }
-  const startMinutes = toComparableMinutes(event.event_date, event.start_time)
-  const nowMinutes = toComparableMinutes(jakartaNow.date, jakartaNow.time)
-  const endMinutes = event.end_time ? toComparableMinutes(event.event_date, event.end_time) : null
-  if (nowMinutes < startMinutes) {
+  const schedule = getSchedulePosition(
+    event.event_date,
+    event.start_time,
+    event.end_time,
+    jakartaNow.date,
+    jakartaNow.time,
+  )
+  if (!schedule || schedule.nowMinutes < schedule.startMinutes) {
     return NextResponse.json({ error: 'Absensi belum dibuka. Tunggu sampai waktu acara dimulai.' }, { status: 400 })
   }
-  if (endMinutes !== null && nowMinutes > endMinutes) {
+  if (schedule.endMinutes !== null && schedule.nowMinutes > schedule.endMinutes) {
     return NextResponse.json({ error: 'Waktu absensi acara sudah berakhir.' }, { status: 400 })
   }
-  const status = nowMinutes - startMinutes > 15 ? 'terlambat' : 'hadir'
+  if (schedule.endMinutes === null && jakartaNow.date !== event.event_date) {
+    return NextResponse.json({ error: 'Waktu absensi acara sudah berakhir.' }, { status: 400 })
+  }
+  const status = schedule.nowMinutes - schedule.startMinutes > 15 ? 'terlambat' : 'hadir'
 
   const { error } = await admin.from('attendances').insert({
     session_id: session.id,

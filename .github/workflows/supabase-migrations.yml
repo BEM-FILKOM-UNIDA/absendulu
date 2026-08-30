@@ -28,6 +28,13 @@ jobs:
         with:
           version: 2.33.9
 
+      - name: Inspect remote migration history
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          test -n "$SUPABASE_DB_URL"
+          supabase migration list --db-url "$SUPABASE_DB_URL"
+
       - name: Preview pending migrations
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

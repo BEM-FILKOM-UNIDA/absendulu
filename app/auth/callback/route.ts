@@ -1,5 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { isAdminRole } from '@/lib/auth/roles'
+import { isProfileComplete } from '@/lib/auth/identity'
 
 type SessionCookie = {
   name: string
@@ -45,21 +47,20 @@ export async function GET(request: NextRequest) {
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('account_status, is_active')
+    .select('role, user_type, nim, full_name, account_status, is_active')
     .eq('id', user.id)
     .maybeSingle()
 
   if (profileError) return redirectWithSession('/login?error=profile')
 
   if (!profile || profile.account_status === 'disabled' || !profile.is_active) {
-    await supabase.auth.signOut()
-    return redirectWithSession('/login?disabled=1')
+    return redirectWithSession('/account-disabled')
   }
 
   if (profile.account_status !== 'active') {
-    await supabase.auth.signOut()
-    return redirectWithSession('/login?pending=1')
+    const hasValidIdentity = isProfileComplete(profile)
+    return redirectWithSession(hasValidIdentity ? '/waiting-approval' : '/complete-profile')
   }
 
-  return redirectWithSession('/dashboard')
+  return redirectWithSession(isAdminRole(profile.role) ? '/dashboard' : '/mahasiswa')
 }
