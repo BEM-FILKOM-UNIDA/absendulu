@@ -14,7 +14,8 @@ export default function QRDisplay({ token, eventName }: { token: string; eventNa
     QRCode.toString(token, {
       type: 'svg',
       width: 380,
-      margin: 2,
+      margin: 4,
+      errorCorrectionLevel: 'M',
       color: { dark: '#10252d', light: '#f3f0e9' },
     })
       .then((svg) => {

@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/server'
 import EventCard from '@/components/events/EventCard'
 import { ButtonLink } from '@/components/ui/button'
@@ -7,6 +8,8 @@ export default async function EventsPage() {
   const { supabase, user } = await getCurrentUser()
   const { data: profile } = user ? await supabase.from('profiles').select('role').eq('id', user.id).single() : { data: null }
   const isAdmin = isAdminRole(profile?.role)
+  if (!isAdmin) redirect('/scan')
+
   const { data: events } = await supabase
     .from('events')
     .select('id, name, description, event_date, start_time, end_time, location, status')

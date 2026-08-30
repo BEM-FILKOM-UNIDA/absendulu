@@ -1,4 +1,3 @@
-import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getUserRole } from '@/lib/supabase/request'
@@ -6,14 +5,15 @@ import { isAdminRole } from '@/lib/auth/roles'
 import { isSameOrigin } from '@/lib/http/request-security'
 
 export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
 ) {
+  if (!isAdminRole(await getUserRole(request))) {
+    return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 })
+  }
+
   const { id } = await params
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabase = createAdminClient()
 
   const { data, error } = await supabase
     .from('events')

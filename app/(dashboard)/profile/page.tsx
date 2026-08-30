@@ -1,5 +1,7 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/server'
+import { isAdminRole } from '@/lib/auth/roles'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import ProfileActions from '@/components/profile/ProfileActions'
@@ -13,6 +15,11 @@ const typeLabels: Record<string, string> = {
 
 export default async function ProfilePage() {
   const { supabase, user } = await getCurrentUser()
+  const { data: access } = user
+    ? await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
+    : { data: null }
+  if (!isAdminRole(access?.role)) redirect('/scan')
+
   const { data: profile } = await supabase
     .from('profiles')
     .select('full_name, nim, user_type, division, account_status')

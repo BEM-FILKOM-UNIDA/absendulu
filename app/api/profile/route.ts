@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { isSameOrigin } from '@/lib/http/request-security'
+import { getUserRole } from '@/lib/supabase/request'
+import { isAdminRole } from '@/lib/auth/roles'
 
 const NAME_PATTERN = /^.{2,100}$/u
 const NIM_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._/-]{2,63}$/
@@ -41,6 +44,10 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Origin request tidak valid.' }, { status: 403 })
   }
 
+  if (!isAdminRole(await getUserRole(request))) {
+    return NextResponse.json({ error: 'Akses ditolak.' }, { status: 403 })
+  }
+
   const supabase = getAuthenticatedClient(request)
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Sesi login tidak valid.' }, { status: 401 })
@@ -57,7 +64,8 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Nama atau NIM tidak valid. Gunakan nama 2–100 karakter dan NIM 3–64 karakter.' }, { status: 400 })
   }
 
-  const { data, error } = await supabase
+  const admin = createAdminClient()
+  const { data, error } = await admin
     .from('profiles')
     .update(input)
     .eq('id', user.id)

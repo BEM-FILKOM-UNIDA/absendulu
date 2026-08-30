@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { isAdminRole } from '@/lib/auth/roles'
 
 type SessionCookie = {
   name: string
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('account_status, is_active')
+    .select('role, account_status, is_active')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -61,5 +62,5 @@ export async function GET(request: NextRequest) {
     return redirectWithSession('/login?pending=1')
   }
 
-  return redirectWithSession('/dashboard')
+  return redirectWithSession(isAdminRole(profile.role) ? '/dashboard' : '/scan')
 }

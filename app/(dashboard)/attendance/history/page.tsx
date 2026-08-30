@@ -1,4 +1,6 @@
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { isAdminRole } from '@/lib/auth/roles'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
@@ -15,6 +17,12 @@ const statusLabels: Record<string, string> = { hadir: 'Hadir', terlambat: 'Terla
 
 export default async function AttendanceHistoryPage() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const { data: profile } = user
+    ? await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
+    : { data: null }
+  if (!isAdminRole(profile?.role)) redirect('/scan')
+
   const { data } = await supabase
     .from('attendances')
     .select('id, user_id, status, method, check_in_at, events(name)')

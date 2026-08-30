@@ -1,5 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { isAdminRole } from '@/lib/auth/roles'
+import { normalizeProfileAccess } from '@/lib/auth/profile-access'
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
@@ -22,11 +24,25 @@ export async function proxy(request: NextRequest) {
     },
   )
 
-  const { data: claims } = await supabase.auth.getClaims()
-  if (!claims) {
+  const { data: claimsData } = await supabase.auth.getClaims()
+  if (!claimsData?.claims) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
+  }
+
+  const userId = typeof claimsData.claims.sub === 'string' ? claimsData.claims.sub : null
+  if (!userId) return supabaseResponse
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, account_status, is_active')
+    .eq('id', userId)
+    .maybeSingle()
+  const access = normalizeProfileAccess(profile)
+
+  if (access?.account_status === 'active' && access.is_active && !isAdminRole(access.role) && pathname !== '/scan') {
+    return NextResponse.redirect(new URL('/scan', request.url))
   }
 
   return supabaseResponse

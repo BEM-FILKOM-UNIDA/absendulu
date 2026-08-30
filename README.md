@@ -42,7 +42,7 @@ SUPABASE_SERVICE_ROLE_KEY=<server-only-service-role-key>
 5. Add the same callback URL to the Google OAuth client, together with the Supabase provider callback URL shown in the Supabase dashboard.
 6. Confirm the production project has the required `profiles`, `events`, `attendance_sessions`, and `attendances` tables and that the production hardening migration is applied.
 
-Events are intentionally readable as public event metadata. Session records, QR tokens, profiles, and attendance details remain protected by RLS and server-side authorization.
+Events, session records, QR tokens, profiles, and attendance details are protected by RLS and server-side authorization. Only admin roles can access event metadata, event management, attendance history, member management, and profile management. Non-admin users are limited to the `/scan` flow and `POST /api/attendance/check-in`.
 
 ## Pre-deploy validation
 
@@ -63,9 +63,10 @@ Then verify:
 
 - `/` and `/login` load at mobile widths (320px and 375px) without horizontal overflow.
 - Protected pages redirect unauthenticated users to `/login`.
-- `GET /api/events` returns only event metadata.
-- Mutating/admin endpoints reject unauthenticated or non-admin requests.
-- Magic Link and Google callbacks return to `/dashboard` for active accounts.
+- Non-admin users are redirected to `/scan` from admin pages and cannot access admin event/profile APIs.
+- `GET /api/events` and other event/session metadata endpoints reject unauthenticated and non-admin requests.
+- `POST /api/attendance/check-in` accepts a valid active QR token for an authenticated active user.
+- Magic Link and Google callbacks return admins to `/dashboard` and non-admin users to `/scan`.
 - An active event can open one QR session, accept one check-in per user, update the live counter, and close the session.
 - The production response includes `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy` headers.
 

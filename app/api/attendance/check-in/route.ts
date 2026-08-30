@@ -67,14 +67,15 @@ export async function POST(request: NextRequest) {
   const qrToken = body && typeof body === 'object' && 'qrToken' in body
     ? (body as { qrToken?: unknown }).qrToken
     : null
-  if (typeof qrToken !== 'string' || qrToken.length < 16 || qrToken.length > 128) {
+  const normalizedQrToken = typeof qrToken === 'string' ? qrToken.trim() : ''
+  if (normalizedQrToken.length < 16 || normalizedQrToken.length > 128) {
     return NextResponse.json({ error: 'QR token tidak valid.' }, { status: 400 })
   }
 
   const { data: session, error: sessionError } = await admin
     .from('attendance_sessions')
     .select('id, event_id, is_open, events!inner(name, event_date, start_time, end_time, status)')
-    .eq('qr_token', qrToken)
+    .eq('qr_token', normalizedQrToken)
     .eq('is_open', true)
     .maybeSingle()
 

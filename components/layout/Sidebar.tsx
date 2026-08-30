@@ -31,7 +31,7 @@ export default function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
 
   const navItems = isAdmin
     ? [...mainNav, { href: '/members', label: 'Data Mahasiswa', code: '04' }]
-    : mainNav
+    : [{ href: '/scan', label: 'Scan Absensi', code: '02' }]
 
   async function handleSignOut() {
     if (isSigningOut) return
@@ -49,7 +49,7 @@ export default function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
 
   return (
     <aside className="hidden h-full w-[268px] shrink-0 flex-col border-r border-white/10 bg-[var(--ink)] text-[#f7f4ed] lg:flex">
-      <Link href="/dashboard" className="flex h-24 shrink-0 items-center gap-3 border-b border-white/10 px-7 transition-colors hover:bg-white/[.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lime)] focus-visible:ring-inset">
+      <Link href={isAdmin ? '/dashboard' : '/scan'} className="flex h-24 shrink-0 items-center gap-3 border-b border-white/10 px-7 transition-colors hover:bg-white/[.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--lime)] focus-visible:ring-inset">
         <span className="grid h-10 w-10 shrink-0 place-items-center bg-[var(--accent)] text-sm font-black text-[var(--ink)]">A</span>
         <span className="min-w-0">
           <span className="block font-black tracking-[-.08em]">absendulu<span className="text-[var(--lime)]">/</span></span>
@@ -76,15 +76,19 @@ export default function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
           })}
         </div>
 
-        <p className="eyebrow mb-4 mt-12 px-3 text-white/35">Akun</p>
-        <Link
-          href="/profile"
-          aria-current={pathname === '/profile' ? 'page' : undefined}
-          className={`group flex items-center justify-between border-l-2 px-3 py-3 text-sm font-bold transition-colors ${pathname === '/profile' ? 'border-[var(--accent)] bg-white/10 text-[var(--lime)]' : 'border-transparent text-white/55 hover:border-white/30 hover:bg-white/[.05] hover:text-white'}`}
-        >
-          <span>Profil</span>
-          <span className={`font-mono text-[10px] ${pathname === '/profile' ? 'text-[var(--accent)]' : 'text-white/25 group-hover:text-white/45'}`}>05</span>
-        </Link>
+        {isAdmin && (
+          <>
+            <p className="eyebrow mb-4 mt-12 px-3 text-white/35">Akun</p>
+            <Link
+              href="/profile"
+              aria-current={pathname === '/profile' ? 'page' : undefined}
+              className={`group flex items-center justify-between border-l-2 px-3 py-3 text-sm font-bold transition-colors ${pathname === '/profile' ? 'border-[var(--accent)] bg-white/10 text-[var(--lime)]' : 'border-transparent text-white/55 hover:border-white/30 hover:bg-white/[.05] hover:text-white'}`}
+            >
+              <span>Profil</span>
+              <span className={`font-mono text-[10px] ${pathname === '/profile' ? 'text-[var(--accent)]' : 'text-white/25 group-hover:text-white/45'}`}>05</span>
+            </Link>
+          </>
+        )}
       </nav>
 
       <div className="shrink-0 border-t border-white/10 p-4">

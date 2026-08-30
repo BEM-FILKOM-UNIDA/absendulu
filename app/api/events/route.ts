@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient as createPublicClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getUser, getUserRole } from '@/lib/supabase/request'
 import { isSameOrigin } from '@/lib/http/request-security'
@@ -53,11 +52,12 @@ function parseEventInput(value: unknown): EventInput | null {
   return { name, description, event_date, start_time, end_time, location, status }
 }
 
-export async function GET() {
-  const supabase = createPublicClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
+export async function GET(request: NextRequest) {
+  if (!isAdminRole(await getUserRole(request))) {
+    return NextResponse.json({ error: 'Akses ditolak' }, { status: 403 })
+  }
+
+  const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('events')
     .select('id, name, description, event_date, start_time, end_time, location, status')
@@ -66,7 +66,7 @@ export async function GET() {
 
   if (error) return NextResponse.json({ error: 'Gagal memuat acara.' }, { status: 500 })
   return NextResponse.json(data, {
-    headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=300' },
+    headers: { 'Cache-Control': 'private, no-store' },
   })
 }
 

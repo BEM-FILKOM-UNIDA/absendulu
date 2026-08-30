@@ -12,7 +12,7 @@ export default async function QRPage({ params }: { params: Promise<{ id: string 
   const { data: profile } = user
     ? await supabase.from('profiles').select('role').eq('id', user.id).maybeSingle()
     : { data: null }
-  if (!isAdminRole(profile?.role)) redirect('/dashboard')
+  if (!isAdminRole(profile?.role)) redirect('/scan')
 
   const { data: event } = await supabase.from('events').select('id, name, event_date, start_time, end_time, location, status').eq('id', id).maybeSingle()
   if (!event) notFound()
