@@ -110,7 +110,7 @@ export default function LoginPage() {
       setError(
         loginError.message.toLowerCase().includes('rate limit')
           ? 'Tunggu sebentar, lalu coba lagi.'
-          : 'Email belum terdaftar. Hubungi panitia.',
+          : 'Email tidak dapat diproses. Pastikan sudah didaftarkan panitia atau coba lagi nanti.',
       )
 
       setLoading(false)
