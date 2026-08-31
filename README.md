@@ -14,7 +14,7 @@
 
 > Absendulu is an internal event attendance platform for FILKOM UNIDA. Admins manage members and events, open a live QR attendance session, and monitor check-ins while users access only their own profile and attendance history.
 
-[Getting Started](#local-development) · [Business Flow](#business-flow) · [User Guide](./docs/business-user-guide.md) · [Security](#security) · [Release](#release)
+[Getting Started](#local-development) · [Business Flow](#business-flow) · [Security](#security) · [Release](#release)
 
 </div>
 
@@ -59,8 +59,6 @@ The frontend and server routes run on **Next.js 16 + React 19**, while **Supabas
 
 ## Architecture
 
-See [`docs/business-user-guide.md`](./docs/business-user-guide.md) for the English operational guide.
-
 See [`docs/ci-cd.md`](./docs/ci-cd.md) for the deployment and migration release process.
 
 ### High-level architecture
@@ -93,12 +91,12 @@ flowchart TD
 ```mermaid
 erDiagram
     AUTH_USERS ||--|| PROFILES : owns
-    AUTH_USERS ||--o EVENTS : creates
-    AUTH_USERS ||--o ATTENDANCE_SESSIONS : opens
-    AUTH_USERS ||--o ATTENDANCES : records
-    EVENTS ||--o ATTENDANCE_SESSIONS : has
-    EVENTS ||--o ATTENDANCES : contains
-    ATTENDANCE_SESSIONS ||--o ATTENDANCES : receives
+    AUTH_USERS ||--o{ EVENTS : creates
+    AUTH_USERS ||--o{ ATTENDANCE_SESSIONS : opens
+    AUTH_USERS ||--o{ ATTENDANCES : records
+    EVENTS ||--o{ ATTENDANCE_SESSIONS : has
+    EVENTS ||--o{ ATTENDANCES : contains
+    ATTENDANCE_SESSIONS ||--o{ ATTENDANCES : receives
 
     PROFILES {
         uuid id PK
