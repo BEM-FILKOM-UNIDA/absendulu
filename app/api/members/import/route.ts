@@ -16,6 +16,8 @@ type ImportRow = {
 }
 
 const USER_TYPES = new Set<ImportRow['user_type']>(['mahasiswa', 'dosen', 'tata_usaha'])
+const MAX_CSV_BYTES = 2 * 1024 * 1024
+const MAX_MULTIPART_BYTES = 3 * 1024 * 1024
 
 function parseCsv(csv: string): Record<string, string>[] {
   const rows: string[][] = []
@@ -99,10 +101,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Akses ditolak.' }, { status: 403 })
   }
 
+  const contentLength = Number(request.headers.get('content-length') ?? '')
+  if (Number.isFinite(contentLength) && contentLength > MAX_MULTIPART_BYTES) {
+    return NextResponse.json({ error: 'Ukuran CSV maksimal 2 MB.' }, { status: 413 })
+  }
+
   const formData = await request.formData()
   const file = formData.get('file')
   if (!(file instanceof File)) {
     return NextResponse.json({ error: 'File CSV wajib diunggah.' }, { status: 400 })
+  }
+
+  if (file.size > MAX_CSV_BYTES) {
+    return NextResponse.json({ error: 'Ukuran CSV maksimal 2 MB.' }, { status: 413 })
   }
 
   let rows: ImportRow[]
@@ -121,10 +132,6 @@ export async function POST(request: NextRequest) {
     if (identifiers.has(row.nim)) return NextResponse.json({ error: `NIM/NIP duplikat: ${row.nim}` }, { status: 400 })
     emails.add(row.email)
     identifiers.add(row.nim)
-  }
-
-  if (file.size > 2 * 1024 * 1024) {
-    return NextResponse.json({ error: 'Ukuran CSV maksimal 2 MB.' }, { status: 400 })
   }
 
   const admin = createAdminClient()
