@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { extractQrToken } from '@/lib/http/navigation'
 import QRScanner from '@/components/attendance/QRScanner'
 import { Card } from '@/components/ui/card'
 import { ButtonLink } from '@/components/ui/button'
@@ -18,10 +19,10 @@ export default function ScanPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  async function handleScan(rawToken: string) {
-    const qrToken = rawToken.trim()
+  const handleScan = useCallback(async (rawToken: string) => {
+    const qrToken = extractQrToken(rawToken)
     if (!qrToken) {
-      setResult({ error: 'QR Code kosong. Coba scan ulang.' })
+      setResult({ error: 'QR Code kosong atau tidak valid. Coba scan ulang.' })
       return
     }
 
@@ -42,7 +43,17 @@ export default function ScanPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get('token')
+    if (!token) return
+
+    const timer = window.setTimeout(() => {
+      void handleScan(token)
+    }, 0)
+    return () => window.clearTimeout(timer)
+  }, [handleScan])
 
   return (
     <div className="mx-auto max-w-xl space-y-8">

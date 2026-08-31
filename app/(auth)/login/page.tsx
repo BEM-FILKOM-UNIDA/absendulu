@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useSyncExternalStore } from 'react'
+import { getSafeNextPath } from '@/lib/http/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import {
@@ -71,6 +72,13 @@ export default function LoginPage() {
 
   const supabase = createClient()
 
+  function getAuthCallbackUrl() {
+    const nextPath = getSafeNextPath(new URLSearchParams(window.location.search).get('next'))
+    const callbackUrl = new URL('/auth/callback', window.location.origin)
+    callbackUrl.searchParams.set('next', nextPath)
+    return callbackUrl.toString()
+  }
+
   async function handleGoogleLogin() {
     setLoading(true)
     setError('')
@@ -79,7 +87,7 @@ export default function LoginPage() {
     const { error: loginError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: getAuthCallbackUrl(),
       },
     })
 
@@ -102,7 +110,7 @@ export default function LoginPage() {
       email: normalizedEmail,
       options: {
         shouldCreateUser: false,
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: getAuthCallbackUrl(),
       },
     })
 

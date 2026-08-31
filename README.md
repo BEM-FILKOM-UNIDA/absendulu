@@ -6,8 +6,6 @@
   </picture>
 </a>
 
-# Absendulu
-
 **Digital Attendance for FILKOM UNIDA** · *Internal Organization Web App*
 
 **Release:** `v0.1.1` · **Capacity:** ±50 internal users
@@ -43,23 +41,23 @@ The frontend and server routes run on **Next.js 16 + React 19**, while **Supabas
 
 ## Tech Stack
 
-| Layer | Stack |
-|---|---|
-| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS |
-| Authentication | Supabase Auth, Magic Link, Google OAuth |
-| Database | Supabase PostgreSQL |
-| Authorization | Application role checks, account status checks, PostgreSQL RLS |
-| Realtime | Supabase Realtime for attendance updates |
-| QR | `qrcode`, `html5-qrcode` |
-| Deployment | Vercel + Supabase |
-| CI/CD | GitHub Actions |
-| Runtime | Node.js 22+ |
+| Layer          | Stack                                                          |
+| -------------- | -------------------------------------------------------------- |
+| Frontend       | Next.js 16, React 19, TypeScript, Tailwind CSS                 |
+| Authentication | Supabase Auth, Magic Link, Google OAuth                        |
+| Database       | Supabase PostgreSQL                                            |
+| Authorization  | Application role checks, account status checks, PostgreSQL RLS |
+| Realtime       | Supabase Realtime for attendance updates                       |
+| QR             | `qrcode`, `html5-qrcode`                                       |
+| Deployment     | Vercel + Supabase                                              |
+| CI/CD          | GitHub Actions                                                 |
+| Runtime        | Node.js 22+                                                    |
 
 ---
 
 ## Architecture
 
-See [`docs/ci-cd.md`](./docs/ci-cd.md) for the deployment and migration release process.
+See [`docs/ci-cd.md`](docs/ci-cd.md) for the deployment and migration release process.
 
 ### High-level architecture
 
@@ -203,12 +201,12 @@ sequenceDiagram
 
 ### 3. Account status determines access
 
-| Status | Meaning | Destination |
-|---|---|---|
-| `active` | Account is approved and enabled | Dashboard or student workspace |
-| `invited` + incomplete profile | User must complete identity data | `/complete-profile` |
-| `invited` + complete profile | Waiting for committee approval | `/waiting-approval` |
-| `disabled` or `is_active = false` | Account access is blocked | `/account-disabled` |
+| Status                            | Meaning                          | Destination                    |
+| --------------------------------- | -------------------------------- | ------------------------------ |
+| `active`                          | Account is approved and enabled  | Dashboard or student workspace |
+| `invited` + incomplete profile    | User must complete identity data | `/complete-profile`            |
+| `invited` + complete profile      | Waiting for committee approval   | `/waiting-approval`            |
+| `disabled` or `is_active = false` | Account access is blocked        | `/account-disabled`            |
 
 ### 4. Admin creates an event
 
@@ -381,36 +379,36 @@ absen/
 
 ### Authentication and profile
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/auth/callback` | Exchange Magic Link or OAuth code for a session |
-| `PATCH` | `/api/profile` | Update permitted profile fields |
+| Method  | Endpoint         | Description                                     |
+| ------- | ---------------- | ------------------------------------------------ |
+| `GET`   | `/auth/callback` | Exchange Magic Link or OAuth code for a session |
+| `PATCH` | `/api/profile`   | Update permitted profile fields                 |
 
 ### Attendance
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/attendance/check-in` | Validate QR and create an attendance record |
-| `GET` | `/api/events/[id]/session` | Read the current admin QR session and attendance recap |
-| `POST` | `/api/events/[id]/session/open` | Open one QR session for an active event |
-| `POST` | `/api/events/[id]/session/close` | Close the open QR session |
+| Method | Endpoint                         | Description                                            |
+| ------ | --------------------------------- | ------------------------------------------------------- |
+| `POST` | `/api/attendance/check-in`       | Validate QR and create an attendance record            |
+| `GET`  | `/api/events/[id]/session`       | Read the current admin QR session and attendance recap |
+| `POST` | `/api/events/[id]/session/open`  | Open one QR session for an active event                |
+| `POST` | `/api/events/[id]/session/close` | Close the open QR session                              |
 
 ### Events
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/events` | List events for admin operations |
-| `POST` | `/api/events` | Create an event as an admin |
-| `GET` | `/api/events/[id]` | Read an event as an admin |
-| `DELETE` | `/api/events/[id]` | Permanently delete an event and its attendance data |
+| Method   | Endpoint           | Description                                         |
+| -------- | ------------------ | ----------------------------------------------------- |
+| `GET`    | `/api/events`      | List events for admin operations                    |
+| `POST`   | `/api/events`      | Create an event as an admin                          |
+| `GET`    | `/api/events/[id]` | Read an event as an admin                            |
+| `DELETE` | `/api/events/[id]` | Permanently delete an event and its attendance data  |
 
 ### Members and operations
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/members/manual` | Create or update one member as an admin |
-| `POST` | `/api/members/import` | Import up to 500 members from CSV |
-| `GET` | `/api/health` | Verify that the application can reach Supabase |
+| Method | Endpoint              | Description                                    |
+| ------ | ---------------------- | ------------------------------------------------ |
+| `POST` | `/api/members/manual` | Create or update one member as an admin        |
+| `POST` | `/api/members/import` | Import up to 500 members from CSV              |
+| `GET`  | `/api/health`         | Verify that the application can reach Supabase |
 
 All state-changing application routes require an authenticated session, appropriate role authorization, same-origin request validation, and backend input validation.
 
@@ -461,13 +459,13 @@ Turnstile can be enabled later if the app becomes public or receives bot traffic
 
 ## Prerequisites
 
-| Tool | Version |
-|---|---|
-| Node.js | 22+ |
-| npm | 10+ recommended |
-| Git | Recent version |
+| Tool             | Version                                 |
+| ----------------- | ----------------------------------------- |
+| Node.js          | 22+                                     |
+| npm              | 10+ recommended                         |
+| Git              | Recent version                          |
 | Supabase project | Hosted project with Auth and PostgreSQL |
-| Vercel | Required only for production deployment |
+| Vercel           | Required only for production deployment |
 
 The Supabase CLI is optional for local development but required by the documented migration workflow.
 
@@ -477,11 +475,11 @@ The Supabase CLI is optional for local development but required by the documente
 
 Create `.env.local` in the project root. This file must not be committed.
 
-| Variable | Required | Purpose |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes | Supabase project URL; safe to expose to the browser |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes | Publishable/legacy anon key used by browser and server clients |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes on server | Privileged server-only key used by admin route handlers |
+| Variable                        | Required      | Purpose                                                        |
+| --------------------------------- | --------------- | ------------------------------------------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Yes           | Supabase project URL; safe to expose to the browser            |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes           | Publishable/legacy anon key used by browser and server clients |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Yes on server | Privileged server-only key used by admin route handlers        |
 
 Example:
 
@@ -501,27 +499,21 @@ SUPABASE_SERVICE_ROLE_KEY=<server-only-service-role-key>
 2. Configure Email/Magic Link under **Authentication → Providers**.
 3. Enable Google OAuth only if the organization needs it.
 4. Set the production Site URL and callback URL in **Authentication → URL Configuration**:
-
    ```text
    https://<production-domain>/auth/callback
    ```
-
 5. Add the same callback URL to the Google OAuth client when Google login is enabled.
 6. Apply the ordered migrations in `supabase/migrations/`:
-
    ```bash
    supabase db push
    ```
-
 7. Confirm RLS is enabled for:
-
    ```text
    profiles
    events
    attendance_sessions
    attendances
    ```
-
 8. Create the first admin profile by a controlled database/admin procedure. Do not allow users to self-promote through profile fields.
 9. Configure Auth rate limits and monitor Auth logs.
 10. Use custom SMTP for production Magic Link delivery when reliable organizational email delivery is required.
@@ -548,7 +540,7 @@ Create `.env.local` manually using the variables above:
 npm run dev
 ```
 
-Open <http://localhost:3000>.
+Open [http://localhost:3000](http://localhost:3000).
 
 ### 4. Run a production-like server
 
@@ -603,7 +595,7 @@ Manual deploy workflow
 Vercel production + smoke tests
 ```
 
-See [`docs/ci-cd.md`](./docs/ci-cd.md) for required GitHub secrets, Vercel configuration, protected environments, and migration commands.
+See [`docs/ci-cd.md`](docs/ci-cd.md) for required GitHub secrets, Vercel configuration, protected environments, and migration commands.
 
 ---
 
@@ -702,18 +694,18 @@ The `v0.1.0` tag is the previous remote release. The current `v0.1.1` tag points
 
 ## Troubleshooting
 
-| Problem | What to check |
-|---|---|
-| Magic Link is not received | Check Supabase Auth email provider, SMTP, spam folder, Site URL, and rate limits |
-| OAuth callback fails | Verify the Supabase redirect URL and Google OAuth callback configuration |
-| User is redirected to `/complete-profile` | Check `profiles.full_name`, `profiles.nim`, `user_type`, and `account_status` |
-| User is redirected to `/account-disabled` | Check `profiles.account_status` and `is_active` |
-| Admin page redirects to student workspace | Check that the profile role is exactly `admin` or `admin_bem` and account is active |
-| Check-in is rejected | Confirm event status, QR session status, event schedule, account status, and duplicate history |
-| Realtime counter does not update | Confirm `attendances` is enabled in Supabase Realtime publication and the session ID is correct |
-| `/api/health` returns `degraded` | Check `NEXT_PUBLIC_SUPABASE_URL` and server-side `SUPABASE_SERVICE_ROLE_KEY` |
-| CSV import fails | Check file size, CSV headers, identifier format, duplicate emails, duplicate identifiers, and the 500-row limit |
-| Production deploy fails | Run `npm run check`, verify Vercel environment variables, and inspect the protected workflow logs |
+| Problem                                   | What to check                                                                                                   |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Magic Link is not received                | Check Supabase Auth email provider, SMTP, spam folder, Site URL, and rate limits                                |
+| OAuth callback fails                      | Verify the Supabase redirect URL and Google OAuth callback configuration                                        |
+| User is redirected to `/complete-profile` | Check `profiles.full_name`, `profiles.nim`, `user_type`, and `account_status`                                   |
+| User is redirected to `/account-disabled` | Check `profiles.account_status` and `is_active`                                                                 |
+| Admin page redirects to student workspace | Check that the profile role is exactly `admin` or `admin_bem` and account is active                             |
+| Check-in is rejected                      | Confirm event status, QR session status, event schedule, account status, and duplicate history                  |
+| Realtime counter does not update          | Confirm `attendances` is enabled in Supabase Realtime publication and the session ID is correct                 |
+| `/api/health` returns `degraded`          | Check `NEXT_PUBLIC_SUPABASE_URL` and server-side `SUPABASE_SERVICE_ROLE_KEY`                                    |
+| CSV import fails                          | Check file size, CSV headers, identifier format, duplicate emails, duplicate identifiers, and the 500-row limit |
+| Production deploy fails                   | Run `npm run check`, verify Vercel environment variables, and inspect the protected workflow logs               |
 
 ---
 

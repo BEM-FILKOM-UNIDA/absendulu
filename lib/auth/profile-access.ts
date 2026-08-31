@@ -1,8 +1,10 @@
 type ProfileRecord = Record<string, unknown> | null | undefined
 
+export type AccountStatus = 'invited' | 'active' | 'disabled'
+
 export type ProfileAccess = {
   role: string | null
-  account_status: 'invited' | 'active' | 'disabled'
+  account_status: AccountStatus
   is_active: boolean
 }
 
