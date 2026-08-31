@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
 import { Button } from '@/components/ui/button'
 
-type CameraSource = string | MediaTrackConstraints
+type Qrbox = (viewfinderWidth: number, viewfinderHeight: number) => { width: number; height: number }
 
 const scannerConfig = {
   verbose: false,
@@ -12,30 +12,16 @@ const scannerConfig = {
   formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
 }
 
-const scanConfig = {
-  fps: 10,
-  // Scan the complete camera frame. A centered qrbox can diverge from the
-  // visible frame on mobile browsers when the video is resized or letterboxed.
-  formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+const responsiveQrbox: Qrbox = (viewfinderWidth, viewfinderHeight) => {
+  const size = Math.round(Math.min(viewfinderWidth, viewfinderHeight) * 0.72)
+  const boundedSize = Math.max(160, Math.min(size, 420))
+  return { width: boundedSize, height: boundedSize }
 }
 
-function getCameraSources(cameras: Array<{ id: string; label: string }>): CameraSource[] {
-  const rearCameraIds = cameras
-    .filter((camera) => /back|rear|environment|belakang/i.test(camera.label))
-    .map((camera) => camera.id)
-  const otherCameraIds = cameras
-    .filter((camera) => !rearCameraIds.includes(camera.id))
-    .map((camera) => camera.id)
-
-  // Prefer the browser's environment camera selection. Device labels are not
-  // reliable on iOS and are often empty until permission has been granted.
-  return [
-    { facingMode: { exact: 'environment' } },
-    { facingMode: 'environment' },
-    ...rearCameraIds,
-    ...otherCameraIds,
-    { facingMode: 'user' },
-  ]
+const scanConfig = {
+  fps: 10,
+  aspectRatio: 4 / 3,
+  qrbox: responsiveQrbox,
 }
 
 export default function QRScanner({ onScan }: { onScan: (token: string) => void }) {
@@ -98,25 +84,22 @@ export default function QRScanner({ onScan }: { onScan: (token: string) => void 
       })
     }
 
-    const startWith = async (camera: CameraSource) => {
-      await scanner.start(camera, scanConfig, handleDecoded, () => {})
-    }
-
     try {
-      let cameras: Array<{ id: string; label: string }> = []
-      try {
-        cameras = await Html5Qrcode.getCameras()
-      } catch {
-        // start() below can still request a camera directly on browsers that hide camera enumeration.
-      }
-
-      const cameraSources = getCameraSources(cameras)
       let started = false
       let lastCameraError: unknown
 
+      // Do not call getCameras() first. That API opens a temporary stream to
+      // enumerate devices, then start() opens another stream; iOS Safari can
+      // leave the second stream in a bad state.
+      const cameraSources: MediaTrackConstraints[] = [
+        { facingMode: { exact: 'environment' } },
+        { facingMode: 'environment' },
+        { facingMode: 'user' },
+      ]
+
       for (const camera of cameraSources) {
         try {
-          await startWith(camera)
+          await scanner.start(camera, scanConfig, handleDecoded, () => {})
           started = true
           break
         } catch (cameraError) {
@@ -169,7 +152,7 @@ export default function QRScanner({ onScan }: { onScan: (token: string) => void 
 
   return (
     <div className="flex w-full min-w-0 flex-col items-center">
-      <div ref={containerRef} id="qr-reader" className="qr-camera-shell relative aspect-[4/3] w-full min-w-0 overflow-hidden bg-[var(--ink)] sm:aspect-[16/10] lg:aspect-video" />
+      <div ref={containerRef} id="qr-reader" className="qr-camera-shell relative aspect-[4/3] w-full min-w-0 overflow-hidden bg-[var(--ink)]" />
       <p className="mt-3 w-full text-center text-xs leading-5 text-[var(--muted)]">
         {hint || 'Posisikan QR di dalam kotak. Kamera akan menyesuaikan ukuran layar.'}
       </p>
