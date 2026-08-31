@@ -15,17 +15,17 @@ export default function QRDisplay({ token, eventName }: { token: string; eventNa
 
     if (!token) return
 
-    const scanUrl = new URL('/scan', window.location.origin)
-    scanUrl.searchParams.set('token', token)
+    // Keep the payload short: live camera decoding is much more reliable with
+    // the session token than with a full URL, especially on small screens.
     const options = {
       margin: 4,
-      errorCorrectionLevel: 'L' as const,
+      errorCorrectionLevel: 'M' as const,
       color: { dark: '#000000', light: '#ffffff' },
     }
 
     Promise.all([
-      QRCode.toString(scanUrl.toString(), { ...options, type: 'svg', width: 512 }),
-      QRCode.toDataURL(scanUrl.toString(), { ...options, width: 1200 }),
+      QRCode.toString(token, { ...options, type: 'svg', width: 512 }),
+      QRCode.toDataURL(token, { ...options, width: 1200 }),
     ])
       .then(([svg, dataUrl]) => {
         if (cancelled) return

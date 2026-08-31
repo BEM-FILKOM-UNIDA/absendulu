@@ -4,15 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
 import { Button } from '@/components/ui/button'
 
-type ResponsiveQrbox = (viewfinderWidth: number, viewfinderHeight: number) => { width: number; height: number }
-
 type CameraSource = string | MediaTrackConstraints
-
-const responsiveQrbox: ResponsiveQrbox = (viewfinderWidth, viewfinderHeight) => {
-  const size = Math.round(Math.min(viewfinderWidth, viewfinderHeight) * 0.76)
-  const boundedSize = Math.max(160, Math.min(size, 360))
-  return { width: boundedSize, height: boundedSize }
-}
 
 const scannerConfig = {
   verbose: false,
@@ -22,13 +14,12 @@ const scannerConfig = {
 
 const scanConfig = {
   fps: 10,
-  qrbox: responsiveQrbox,
+  // Scan the complete camera frame. A centered qrbox can diverge from the
+  // visible frame on mobile browsers when the video is resized or letterboxed.
   formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
 }
 
 function getCameraSources(cameras: Array<{ id: string; label: string }>): CameraSource[] {
-  if (cameras.length === 0) return [{ facingMode: 'environment' }, { facingMode: 'user' }]
-
   const rearCameraIds = cameras
     .filter((camera) => /back|rear|environment|belakang/i.test(camera.label))
     .map((camera) => camera.id)
@@ -36,7 +27,15 @@ function getCameraSources(cameras: Array<{ id: string; label: string }>): Camera
     .filter((camera) => !rearCameraIds.includes(camera.id))
     .map((camera) => camera.id)
 
-  return [...rearCameraIds, { facingMode: 'environment' }, ...otherCameraIds, { facingMode: 'user' }]
+  // Prefer the browser's environment camera selection. Device labels are not
+  // reliable on iOS and are often empty until permission has been granted.
+  return [
+    { facingMode: { exact: 'environment' } },
+    { facingMode: 'environment' },
+    ...rearCameraIds,
+    ...otherCameraIds,
+    { facingMode: 'user' },
+  ]
 }
 
 export default function QRScanner({ onScan }: { onScan: (token: string) => void }) {
