@@ -10,7 +10,7 @@
 
 **Digital Attendance for FILKOM UNIDA** · *Internal Organization Web App*
 
-**Release:** `v0.1.0` · **Capacity:** ±50 internal users
+**Release:** `v0.1.1` · **Capacity:** ±50 internal users
 
 > Absendulu is an internal event attendance platform for FILKOM UNIDA. Admins manage members and events, open a live QR attendance session, and monitor check-ins while users access only their own profile and attendance history.
 
@@ -661,7 +661,7 @@ After deployment, verify:
 
 ## Validation Status
 
-The `v0.1.0` release passed:
+The `v0.1.1` release passed:
 
 ```text
 npm run test:schedule  PASS
@@ -679,13 +679,13 @@ npm audit              0 vulnerabilities
 Current release:
 
 ```text
-v0.1.0
+v0.1.1
 ```
 
 Release commit:
 
 ```text
-6b54fd1 security: harden auth and request handling
+54813bb docs: add comprehensive project README
 ```
 
 Create a new annotated release tag:
@@ -696,7 +696,7 @@ git push origin develop
 git push origin v0.2.0
 ```
 
-The current `v0.1.0` tag is local until it is pushed to the remote repository.
+The `v0.1.0` tag is the previous remote release. The current `v0.1.1` tag points to the latest pushed commit.
 
 ---
 
