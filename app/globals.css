@@ -43,16 +43,12 @@ button, a { transition-property: color, background-color, border-color, opacity,
   width: 100% !important;
   height: 100% !important;
   max-width: none !important;
-  object-fit: cover;
+  /* Never crop the camera frame; the decoder reads the complete source frame. */
+  object-fit: contain;
 }
 
 .qr-camera-shell > canvas {
   display: none !important;
-}
-
-.qr-camera-shell > #qr-shaded-region {
-  width: 100% !important;
-  height: 100% !important;
 }
 
 .paper-grid {
