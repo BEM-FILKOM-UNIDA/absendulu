@@ -46,7 +46,9 @@ export async function POST(
 
   const { error } = await admin.from('attendance_sessions').insert({
     event_id: id,
-    qr_token: crypto.randomBytes(32).toString('hex'),
+    // Keep the QR payload compact enough for reliable camera scanning while
+    // retaining 192 bits of cryptographic randomness.
+    qr_token: crypto.randomBytes(24).toString('base64url'),
     opened_by: user?.id ?? null,
     is_open: true,
   })

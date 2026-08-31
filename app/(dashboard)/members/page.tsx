@@ -1,7 +1,10 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/supabase/server'
 import { isAdminRole } from '@/lib/auth/roles'
+import { isProfileComplete } from '@/lib/auth/identity'
+import type { AccountStatus } from '@/lib/auth/profile-access'
 import MemberImportForm from '@/components/members/MemberImportForm'
+import MemberStatusActions from '@/components/members/MemberStatusActions'
 import { Badge } from '@/components/ui/badge'
 
 const typeLabels: Record<string, string> = { mahasiswa: 'Mahasiswa', dosen: 'Dosen', tata_usaha: 'Tata Usaha' }
@@ -23,8 +26,8 @@ export default async function MembersPage() {
       <MemberImportForm />
       <div className="overflow-hidden border border-[var(--border)] bg-[var(--surface)]">
         <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-5"><div><p className="eyebrow text-[var(--accent-strong)]">data mahasiswa</p><h2 className="mt-2 text-lg font-black">Akun terdaftar</h2></div><span className="font-mono text-xs text-[var(--muted)]">{members?.length || 0} akun</span></div>
-        <div className="overflow-x-auto overscroll-x-contain"><p className="mb-2 px-5 text-[10px] font-bold uppercase tracking-[.1em] text-[var(--muted-soft)] sm:hidden">Geser tabel ke samping untuk melihat semua kolom.</p><table className="w-full min-w-[760px] text-sm"><thead className="bg-[var(--surface-muted)] text-left text-[10px] font-black uppercase tracking-[.1em] text-[var(--muted)]"><tr><th className="px-5 py-3">Nama</th><th className="px-5 py-3">NIM/NIP</th><th className="px-5 py-3">Tipe</th><th className="px-5 py-3">Email</th><th className="px-5 py-3">Status</th></tr></thead><tbody className="divide-y divide-[var(--border)]">
-          {members?.map((member) => { const active = member.account_status === 'active' && member.is_active; const disabled = member.account_status === 'disabled' || !member.is_active; return <tr key={member.id} className="hover:bg-[var(--surface-muted)]"><td className="px-5 py-4 font-semibold">{member.full_name}</td><td className="px-5 py-4 text-[var(--muted)]">{member.nim}</td><td className="px-5 py-4 text-[var(--muted)]">{typeLabels[member.user_type] || member.user_type}</td><td className="px-5 py-4 text-[var(--muted)]">{member.email || '-'}</td><td className="px-5 py-4"><Badge variant={active ? 'success' : disabled ? 'danger' : 'muted'}>{active ? 'Aktif' : disabled ? 'Nonaktif' : 'Menunggu akses'}</Badge></td></tr> })}
+        <div className="overflow-x-auto overscroll-x-contain"><p className="mb-2 px-5 text-[10px] font-bold uppercase tracking-[.1em] text-[var(--muted-soft)] sm:hidden">Geser tabel ke samping untuk melihat semua kolom.</p><table className="w-full min-w-[760px] text-sm"><thead className="bg-[var(--surface-muted)] text-left text-[10px] font-black uppercase tracking-[.1em] text-[var(--muted)]"><tr><th className="px-5 py-3">Nama</th><th className="px-5 py-3">NIM/NIP</th><th className="px-5 py-3">Tipe</th><th className="px-5 py-3">Email</th><th className="px-5 py-3">Status</th><th className="px-5 py-3">Tindakan</th></tr></thead><tbody className="divide-y divide-[var(--border)]">
+          {members?.map((member) => { const active = member.account_status === 'active' && member.is_active; const disabled = member.account_status === 'disabled' || !member.is_active; const profileComplete = isProfileComplete(member); return <tr key={member.id} className="hover:bg-[var(--surface-muted)]"><td className="px-5 py-4 font-semibold">{member.full_name}</td><td className="px-5 py-4 text-[var(--muted)]">{member.nim}</td><td className="px-5 py-4 text-[var(--muted)]">{typeLabels[member.user_type] || member.user_type}</td><td className="px-5 py-4 text-[var(--muted)]">{member.email || '-'}</td><td className="px-5 py-4"><Badge variant={active ? 'success' : disabled ? 'danger' : 'muted'}>{active ? 'Aktif' : disabled ? 'Nonaktif' : 'Menunggu akses'}</Badge></td><td className="px-5 py-4"><MemberStatusActions memberId={member.id} accountStatus={member.account_status as AccountStatus} isActive={member.is_active} profileComplete={profileComplete} /></td></tr> })}
         </tbody></table></div>
         {(!members || members.length === 0) && <p className="px-6 py-12 text-center text-sm text-[var(--muted)]">Belum ada pengguna.</p>}
       </div>

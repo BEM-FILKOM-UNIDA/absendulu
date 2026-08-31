@@ -2,6 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { isAdminRole } from '@/lib/auth/roles'
 import { isProfileComplete } from '@/lib/auth/identity'
+import { getSafeNextPath } from '@/lib/http/navigation'
 
 type SessionCookie = {
   name: string
@@ -10,11 +11,19 @@ type SessionCookie = {
 }
 
 export async function GET(request: NextRequest) {
+  const nextPath = getSafeNextPath(request.nextUrl.searchParams.get('next'))
+  const redirectToLogin = (error: string) => {
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('error', error)
+    if (nextPath !== '/mahasiswa') loginUrl.searchParams.set('next', nextPath)
+    return NextResponse.redirect(loginUrl)
+  }
+
   const oauthError = request.nextUrl.searchParams.get('error')
-  if (oauthError) return NextResponse.redirect(new URL('/login?error=google', request.url))
+  if (oauthError) return redirectToLogin('google')
 
   const code = request.nextUrl.searchParams.get('code')
-  if (!code) return NextResponse.redirect(new URL('/login?error=invalid', request.url))
+  if (!code) return redirectToLogin('invalid')
 
   const sessionCookies: SessionCookie[] = []
   const supabase = createServerClient(
@@ -39,11 +48,18 @@ export async function GET(request: NextRequest) {
     return response
   }
 
+  const redirectToLoginWithSession = (error: string) => {
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('error', error)
+    if (nextPath !== '/mahasiswa') loginUrl.searchParams.set('next', nextPath)
+    return redirectWithSession(`${loginUrl.pathname}${loginUrl.search}`)
+  }
+
   const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-  if (exchangeError) return redirectWithSession('/login?error=expired')
+  if (exchangeError) return redirectToLoginWithSession('expired')
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return redirectWithSession('/login?error=invalid')
+  if (!user) return redirectToLoginWithSession('invalid')
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
@@ -51,7 +67,7 @@ export async function GET(request: NextRequest) {
     .eq('id', user.id)
     .maybeSingle()
 
-  if (profileError) return redirectWithSession('/login?error=profile')
+  if (profileError) return redirectToLoginWithSession('profile')
 
   if (!profile || profile.account_status === 'disabled' || !profile.is_active) {
     return redirectWithSession('/account-disabled')
@@ -62,5 +78,7 @@ export async function GET(request: NextRequest) {
     return redirectWithSession(hasValidIdentity ? '/waiting-approval' : '/complete-profile')
   }
 
-  return redirectWithSession(isAdminRole(profile.role) ? '/dashboard' : '/mahasiswa')
+  return redirectWithSession(nextPath !== '/mahasiswa'
+    ? nextPath
+    : (isAdminRole(profile.role) ? '/dashboard' : '/mahasiswa'))
 }

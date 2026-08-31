@@ -27,9 +27,10 @@ export async function proxy(request: NextRequest) {
 
   const { data: claimsData } = await supabase.auth.getClaims()
   if (!claimsData?.claims) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+    const loginUrl = new URL('/login', request.url)
+    const nextPath = `${request.nextUrl.pathname}${request.nextUrl.search}`
+    if (nextPath !== '/login') loginUrl.searchParams.set('next', nextPath)
+    return NextResponse.redirect(loginUrl)
   }
 
   const userId = typeof claimsData.claims.sub === 'string' ? claimsData.claims.sub : null
