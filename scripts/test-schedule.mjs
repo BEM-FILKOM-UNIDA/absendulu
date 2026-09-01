@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 import * as ts from 'typescript'
 
 const directory = path.dirname(fileURLToPath(import.meta.url))
-const sourcePath = path.join(directory, '..', 'lib', 'events', 'schedule.ts')
+const sourcePath = path.join(directory, '..', 'src', 'lib', 'events', 'schedule.ts')
 const source = fs.readFileSync(sourcePath, 'utf8')
 const output = ts.transpileModule(source, {
   compilerOptions: {

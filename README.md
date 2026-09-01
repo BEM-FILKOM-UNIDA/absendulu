@@ -18,7 +18,7 @@
 
 Absendulu helps organization committees replace manual attendance sheets with a controlled workflow built around Supabase Auth, invite-only member provisioning, event management, QR check-in, realtime attendance counters, and role-based access control.
 
-The frontend and server routes run on **Next.js 16 + React 19**, while **Supabase** provides authentication, PostgreSQL, Row Level Security, and Realtime updates.
+The frontend and server routes run on **TanStack Start + React 19 + Vite**, while **Supabase** provides authentication, PostgreSQL, Row Level Security, and Realtime updates.
 
 ---
 
@@ -43,7 +43,7 @@ The frontend and server routes run on **Next.js 16 + React 19**, while **Supabas
 
 | Layer          | Stack                                                          |
 | -------------- | -------------------------------------------------------------- |
-| Frontend       | Next.js 16, React 19, TypeScript, Tailwind CSS                 |
+| Frontend       | TanStack Start, React 19, TypeScript, Tailwind CSS, Vite       |
 | Authentication | Supabase Auth, Magic Link, Google OAuth                        |
 | Database       | Supabase PostgreSQL                                            |
 | Authorization  | Application role checks, account status checks, PostgreSQL RLS |
@@ -63,12 +63,12 @@ See [`docs/ci-cd.md`](docs/ci-cd.md) for the deployment and migration release pr
 
 ```mermaid
 flowchart TD
-    USER[User / Mahasiswa] --> WEB[Next.js App]
+    USER[User / Mahasiswa] --> WEB[TanStack Start App]
     ADMIN[Admin Panitia] --> WEB
 
     WEB --> AUTH[Supabase Auth\nMagic Link / Google OAuth]
-    WEB --> PROXY[Next.js Proxy\nSession and route checks]
-    WEB --> API[Next.js Route Handlers]
+    WEB --> GUARD[Route loaders and server functions\nSession and access checks]
+    WEB --> API[TanStack Start server routes]
 
     API --> AUTH
     API --> DB[Supabase PostgreSQL]
@@ -184,7 +184,7 @@ shouldCreateUser: false
 ```mermaid
 sequenceDiagram
     participant User
-    participant Web as Next.js Login
+    participant Web as TanStack Start Login
     participant Auth as Supabase Auth
     participant Callback as /auth/callback
     participant Profile as profiles
@@ -349,27 +349,20 @@ They cannot:
 
 ```text
 absen/
-├── app/
-│   ├── (auth)/                 # Login page and auth layout
-│   ├── (dashboard)/            # Protected admin and user workspaces
-│   ├── api/                    # Server-side route handlers
-│   │   ├── attendance/         # QR check-in
-│   │   ├── events/              # Event and QR session operations
-│   │   ├── members/             # Manual and CSV member management
-│   │   ├── profile/             # Authenticated profile updates
-│   │   └── health/              # Supabase-backed health check
-│   └── auth/callback/           # Magic Link and OAuth callback
-├── components/                 # Reusable UI and feature components
-├── lib/
-│   ├── auth/                   # Roles, identity validation, access rules
-│   ├── http/                   # Request security helpers
-│   └── supabase/                # Browser, server, request, and admin clients
+├── src/
+│   ├── routes/                 # File-based pages and TanStack Start server routes
+│   │   ├── _auth/              # Protected admin and user workspaces
+│   │   ├── api/                # Server-side API handlers
+│   │   └── auth/callback.ts    # Magic Link and OAuth callback
+│   ├── components/             # Reusable UI and feature components
+│   ├── lib/                    # Auth, request security, validation, and clients
+│   └── server/                 # Server functions and request-auth helpers
 ├── public/logo/                # Absendulu branding assets
 ├── scripts/                    # Small regression test scripts
 ├── supabase/migrations/        # Ordered production database migrations
 ├── docs/                       # CI/CD and migration documentation
-├── proxy.ts                    # Next.js 16 route/session proxy
-├── next.config.ts              # Security headers and Next.js config
+├── vite.config.ts              # TanStack Start/Vite configuration
+├── bun.lock                    # Reproducible dependency lockfile
 └── package.json                # Scripts and dependencies
 ```
 
@@ -428,8 +421,8 @@ Absendulu is designed for an internal organization deployment with approximately
 
 ### Authorization and data protection
 
-- `proxy.ts` performs an early session and route access check.
-- Server routes call `getUser()` or `getUserRole()` before privileged operations.
+- Protected route loaders and server functions perform session and route access checks.
+- Server routes call Supabase Auth before privileged operations.
 - Admin operations use the server-only Supabase admin client.
 - PostgreSQL RLS protects `profiles`, `events`, `attendance_sessions`, and `attendances`.
 - Regular users can read only their own profile and attendance records.
@@ -527,7 +520,7 @@ SUPABASE_SERVICE_ROLE_KEY=<server-only-service-role-key>
 ```bash
 git clone <your-repository-url>.git
 cd absen
-npm ci
+bun install --frozen-lockfile
 ```
 
 ### 2. Configure environment
@@ -537,7 +530,7 @@ Create `.env.local` manually using the variables above:
 ### 3. Run the development server
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
@@ -545,8 +538,8 @@ Open [http://localhost:3000](http://localhost:3000).
 ### 4. Run a production-like server
 
 ```bash
-npm run build
-npm run start
+bun run build
+bun run start
 ```
 
 ---
@@ -556,16 +549,16 @@ npm run start
 ### Application checks
 
 ```bash
-npm run test:schedule
-npm run lint
-npm run typecheck
-npm run build
+bun run test:schedule
+bun run lint
+bun run typecheck
+bun run build
 ```
 
 Or run the complete gate:
 
 ```bash
-npm run check
+bun run check
 ```
 
 ### Database changes
@@ -582,7 +575,7 @@ Feature branch
       ↓
 Pull request into develop
       ↓
-GitHub Actions: npm ci + npm run check
+GitHub Actions: bun install --frozen-lockfile + bun run check
       ↓
 Review and merge
       ↓
@@ -614,7 +607,7 @@ SUPABASE_SERVICE_ROLE_KEY
 Deploy only after:
 
 ```bash
-npm run check
+bun run check
 ```
 
 The production workflow validates:
@@ -656,11 +649,11 @@ After deployment, verify:
 The `v0.1.1` release passed:
 
 ```text
-npm run test:schedule  PASS
-npm run lint           PASS
-npm run typecheck      PASS
-npm run build          PASS
-npm run check          PASS
+bun run test:schedule  PASS
+bun run lint           PASS
+bun run typecheck      PASS
+bun run build          PASS
+bun run check          PASS
 npm audit              0 vulnerabilities
 ```
 
@@ -705,7 +698,7 @@ The `v0.1.0` tag is the previous remote release. The current `v0.1.1` tag points
 | Realtime counter does not update          | Confirm `attendances` is enabled in Supabase Realtime publication and the session ID is correct                 |
 | `/api/health` returns `degraded`          | Check `NEXT_PUBLIC_SUPABASE_URL` and server-side `SUPABASE_SERVICE_ROLE_KEY`                                    |
 | CSV import fails                          | Check file size, CSV headers, identifier format, duplicate emails, duplicate identifiers, and the 500-row limit |
-| Production deploy fails                   | Run `npm run check`, verify Vercel environment variables, and inspect the protected workflow logs               |
+| Production deploy fails                   | Run `bun run check`, verify Vercel environment variables, and inspect the protected workflow logs               |
 
 ---
 
