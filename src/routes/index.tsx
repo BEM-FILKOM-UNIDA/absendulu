@@ -1,4 +1,7 @@
-import { Link, createFileRoute, redirect } from '@tanstack/react-router'
+import { Link, createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { useEffect } from 'react'
+import { createClient } from '~/lib/supabase/client'
+import { isAdminRole } from '~/lib/auth/roles'
 import { getCurrentAuth } from '~/server/auth'
 
 const steps = [
@@ -35,7 +38,31 @@ function SignalGrid() {
 }
 
 function LandingPage() {
+  const navigate = useNavigate()
   const year = new Date().getFullYear()
+
+  useEffect(() => {
+    let cancelled = false
+    const supabase = createClient()
+
+    async function redirectAuthenticatedUser() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user || cancelled) return
+
+      const auth = await getCurrentAuth()
+      if (!auth.user || !auth.profile || cancelled) return
+      if (auth.profile.account_status === 'disabled' || !auth.profile.is_active) {
+        await navigate({ to: '/account-disabled', replace: true })
+      } else if (auth.profile.account_status !== 'active') {
+        await navigate({ to: '/complete-profile', replace: true })
+      } else {
+        await navigate({ to: isAdminRole(auth.profile.role) ? '/dashboard' : '/mahasiswa', replace: true })
+      }
+    }
+
+    void redirectAuthenticatedUser()
+    return () => { cancelled = true }
+  }, [navigate])
 
   return (
     <main className="paper-noise overflow-hidden bg-[var(--paper)]">
