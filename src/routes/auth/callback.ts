@@ -66,7 +66,7 @@ export const Route = createFileRoute('/auth/callback')({
           ? '/account-disabled'
           : profile.account_status !== 'active'
             ? '/complete-profile'
-            : nextPath !== '/mahasiswa' ? nextPath : isAdminRole(profile.role) ? '/dashboard' : '/mahasiswa'
+            : nextPath !== '/' && nextPath !== '/mahasiswa' ? nextPath : isAdminRole(profile.role) ? '/dashboard' : '/mahasiswa'
         return redirectTo(destination)
       },
     },

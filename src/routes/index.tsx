@@ -1,4 +1,5 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
+import { Link, createFileRoute, redirect } from '@tanstack/react-router'
+import { getCurrentAuth } from '~/server/auth'
 
 const steps = [
   ['01', 'Scan QR', 'Buka kamera, arahkan ke kode QR yang ditampilkan di lokasi acara.'],
@@ -8,7 +9,20 @@ const steps = [
 
 const signalCells = new Set([0, 1, 2, 6, 8, 13, 14, 20, 22, 24, 28, 30, 34, 35, 36, 40, 41, 42, 44, 47])
 
-export const Route = createFileRoute('/')({ component: LandingPage })
+export const Route = createFileRoute('/')({
+  loader: async () => {
+    const auth = await getCurrentAuth()
+    if (!auth.user || !auth.profile) return null
+    if (auth.profile.account_status === 'disabled' || !auth.profile.is_active) {
+      throw redirect({ to: '/account-disabled' })
+    }
+    if (auth.profile.account_status !== 'active') {
+      throw redirect({ to: '/complete-profile' })
+    }
+    throw redirect({ to: auth.profile.role === 'admin' || auth.profile.role === 'admin_bem' ? '/dashboard' : '/mahasiswa' })
+  },
+  component: LandingPage,
+})
 
 function SignalGrid() {
   return (
