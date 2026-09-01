@@ -419,7 +419,7 @@ Edit application or SQL migration
         ↓
 Review TypeScript, SQL, RLS, grants, and data impact
         ↓
-Run npm run check
+Run bun run check
         ↓
 Inspect remote migration history
         ↓

@@ -1,15 +1,15 @@
 # CI/CD
 
-Absendulu uses GitHub Actions for validation and controlled deployment. Vercel remains the Next.js runtime and Supabase remains the database/Auth/Realtime provider.
+Absendulu uses GitHub Actions for validation and controlled deployment. TanStack Start runs on Vite/Nitro, Vercel remains the deployment target, and Supabase remains the database/Auth/Realtime provider.
 
 ## Release flow
 
 1. Create a feature branch from `develop`.
 2. Open a pull request into `develop`.
-3. `CI` runs `npm ci` and `npm run check` with non-production placeholder Supabase values.
+3. `CI` runs `bun install --frozen-lockfile` and `bun run check` with non-production placeholder Supabase values.
 4. Merge only after CI passes and the PR is reviewed.
 5. For a database change, run **Actions → Apply Supabase migrations → Run workflow** from `develop`, type `APPLY`, verify migration history, and wait for the protected `production` environment approval.
-6. After the migration succeeds, run **Actions → Deploy production → Run workflow** from `develop`, type `DEPLOY`, and wait for the protected `production` environment approval. The workflow checks out that exact commit, runs the full `npm run check` gate, pulls Vercel production environment variables, builds a prebuilt artifact, deploys it, and smoke-tests the database-backed health endpoint, headers, protected redirects, and anonymous mutation rejection.
+6. After the migration succeeds, run **Actions → Deploy production → Run workflow** from `develop`, type `DEPLOY`, and wait for the protected `production` environment approval. The workflow checks out that exact commit, runs the full `bun run check` gate, builds the Vite/Nitro artifact, deploys it, and smoke-tests the health endpoint, headers, protected redirects, and anonymous mutation rejection.
 
 Both production workflows are manual and restricted to `develop`; a feature branch cannot apply schema changes or deploy directly. Before applying database migrations, verify migration history with `supabase migration list --db-url "$SUPABASE_DB_URL"`. The migration workflow includes a dry-run, but it cannot repair a remote history mismatch automatically.
 
@@ -37,7 +37,7 @@ SUPABASE_SERVICE_ROLE_KEY=<server-only-service-role-key>
 
 ## Vercel setup
 
-Link the repository/project in Vercel and ensure the production project ID matches `VERCEL_PROJECT_ID`. The deploy workflow uses the Vercel CLI to:
+Link the repository/project in Vercel and ensure the production project ID matches `VERCEL_PROJECT_ID`. The deploy workflow uses the Vercel CLI to pull production variables, build the TanStack Start/Vite artifact, and deploy the prebuilt output:
 
 ```text
 vercel pull --environment=production
@@ -45,7 +45,7 @@ vercel build --prod
 vercel deploy --prebuilt --prod
 ```
 
-The Vercel CLI is pinned in the workflow. Keep the repository's normal Vercel project settings for the framework preset and build output.
+Keep the repository's Vercel project settings aligned with the Vite/Nitro build output.
 
 ## Supabase migration setup
 
@@ -66,13 +66,13 @@ If a deployment fails, use Vercel's deployment rollback/previous deployment cont
 Run the same application gate before opening a PR:
 
 ```bash
-npm ci
-npm run check
+bun install --frozen-lockfile
+bun run check
 ```
 
 For a production-like local check:
 
 ```bash
-npm run build
-npm run start
+bun run build
+bun run start
 ```
