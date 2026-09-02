@@ -1,9 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
-import type { SupabaseClient, User } from '@supabase/supabase-js'
+import type { User } from '@supabase/supabase-js'
 import { createAdminClient } from '~/server/supabase'
 import { isSameOrigin } from '~/lib/http/request-security'
 import { isValidStaffIdentifier, isValidStudentNim } from '~/lib/auth/identity'
 import { getRequestAdmin, responseWithCookies } from '~/server/request-auth'
+import { listAllAuthUsers } from '~/lib/members/auth-users'
 
 type ImportRow = { full_name: string; nim: string; email: string; user_type: 'mahasiswa' | 'dosen' | 'tata_usaha'; division: string | null; phone: string | null }
 const USER_TYPES = new Set<ImportRow['user_type']>(['mahasiswa', 'dosen', 'tata_usaha'])
@@ -42,15 +43,7 @@ function normalizeRow(row: Record<string, string>, index: number): ImportRow {
   return { full_name, nim, email, user_type, division: row.division || row.divisi || null, phone: row.phone || row.telepon || null }
 }
 
-async function listAllAuthUsers(admin: SupabaseClient) {
-  const users: User[] = []
-  for (let page = 1; ; page += 1) {
-    const result = await admin.auth.admin.listUsers({ page, perPage: 1000 })
-    if (result.error) throw result.error
-    users.push(...result.data.users)
-    if (result.data.users.length < 1000) return users
-  }
-}
+
 
 export const Route = createFileRoute('/api/members/import')({
   server: {

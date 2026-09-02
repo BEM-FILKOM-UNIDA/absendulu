@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { getStudentHomeData } from '~/server/auth'
+import { getStudentHomeData } from '~/server/data'
 import { Badge, ButtonLink, Card } from '~/components/ui'
 
 type StudentEvent = { id: string; name: string; event_date: string; start_time: string; location: string | null }

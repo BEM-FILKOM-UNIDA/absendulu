@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useCallback, useEffect, useState } from 'react'
 import QRScanner from '~/components/attendance/QRScanner'
-import { extractQrToken } from '~/lib/http/navigation'
+import { extractQrToken } from '~/lib/navigation'
 import { ButtonLink, Card } from '~/components/ui'
 
 type ScanResult = { status?: string; error?: string; httpStatus?: number; eventName?: string; success?: boolean }

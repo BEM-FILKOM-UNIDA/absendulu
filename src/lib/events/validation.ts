@@ -48,5 +48,8 @@ export function parseEventInput(value: unknown): EventInput | null {
   if (!name || name.length > 160 || (description && description.length > 5000) || (location && location.length > 200)) return null
   if (!isValidDate(event_date) || !isValidTime(start_time) || (end_time && !isValidTime(end_time))) return null
   if (!isValidEventTimeRange(start_time, end_time)) return null
+  // Reject events with dates in the past (allow same-day events)
+  const today = new Date().toISOString().slice(0, 10)
+  if (event_date < today) return null
   return { name, description, event_date, start_time, end_time, location, status }
 }

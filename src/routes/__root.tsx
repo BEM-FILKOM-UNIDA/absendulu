@@ -39,16 +39,5 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   )
 }
 
-function ErrorComponent({ error }: { error: Error }) {
-  return (
-    <main className="grid min-h-screen place-items-center bg-[var(--paper)] p-6">
-      <div className="max-w-md border border-[var(--border)] bg-[var(--surface)] p-8">
-        <p className="eyebrow text-[var(--danger)]">terjadi kesalahan</p>
-        <h1 className="display-type mt-3 text-4xl">Coba lagi.</h1>
-        <p className="mt-4 text-sm text-[var(--muted)]">{error.message}</p>
-      </div>
-    </main>
-  )
-}
 
-export { ErrorComponent }
+

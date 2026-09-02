@@ -1,22 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
-import type { SupabaseClient, User } from '@supabase/supabase-js'
+import type { User } from '@supabase/supabase-js'
 import { createAdminClient } from '~/server/supabase'
 import { isSameOrigin } from '~/lib/http/request-security'
 import { isValidStaffIdentifier, isValidStudentNim } from '~/lib/auth/identity'
 import { getRequestAdmin, responseWithCookies } from '~/server/request-auth'
+import { listAllAuthUsers } from '~/lib/members/auth-users'
 
 type UserType = 'mahasiswa' | 'dosen' | 'tata_usaha'
 const USER_TYPES = new Set<UserType>(['mahasiswa', 'dosen', 'tata_usaha'])
-
-async function listAllAuthUsers(admin: SupabaseClient) {
-  const users: User[] = []
-  for (let page = 1; ; page += 1) {
-    const result = await admin.auth.admin.listUsers({ page, perPage: 1000 })
-    if (result.error) throw result.error
-    users.push(...result.data.users)
-    if (result.data.users.length < 1000) return users
-  }
-}
 
 export const Route = createFileRoute('/api/members/manual')({
   server: {

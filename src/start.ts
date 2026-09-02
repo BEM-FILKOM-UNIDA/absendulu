@@ -1,11 +1,16 @@
 import { createMiddleware, createStart } from '@tanstack/react-start'
 
-const securityHeaders = {
+const securityHeaders: Record<string, string> = {
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(self), microphone=()',
   'Cross-Origin-Resource-Policy': 'same-origin',
+  'X-XSS-Protection': '0',
+}
+
+const productionOnlyHeaders: Record<string, string> = {
+  'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
 }
 
 type ApiRule = { pattern: RegExp; methods: readonly string[] }
@@ -13,7 +18,7 @@ type ApiRule = { pattern: RegExp; methods: readonly string[] }
 const apiRules: ApiRule[] = [
   { pattern: /^\/api\/health$/, methods: ['GET'] },
   { pattern: /^\/api\/events$/, methods: ['GET', 'POST'] },
-  { pattern: /^\/api\/events\/[^/]+$/, methods: ['GET', 'DELETE'] },
+  { pattern: /^\/api\/events\/[^/]+$/, methods: ['GET', 'PATCH', 'DELETE'] },
   { pattern: /^\/api\/events\/[^/]+\/session$/, methods: ['GET'] },
   { pattern: /^\/api\/events\/[^/]+\/session\/(open|close)$/, methods: ['POST'] },
   { pattern: /^\/api\/members\/manual$/, methods: ['POST'] },
@@ -26,6 +31,9 @@ const apiRules: ApiRule[] = [
 function withSecurityHeaders(response: Response) {
   const headers = new Headers(response.headers)
   for (const [name, value] of Object.entries(securityHeaders)) headers.set(name, value)
+  if (process.env.NODE_ENV === 'production') {
+    for (const [name, value] of Object.entries(productionOnlyHeaders)) headers.set(name, value)
+  }
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers })
 }
 

@@ -53,6 +53,29 @@ function EventDetailPage() {
     await navigate({ to: '/events' })
   }
 
+  async function updateStatus(newStatus: string) {
+    setLoading(true)
+    setError('')
+    try {
+      const response = await fetch(`/api/events/${event.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (!response.ok) {
+        const result = await response.json().catch(() => null)
+        setError(result?.error || 'Status gagal diperbarui.')
+        setLoading(false)
+        return
+      }
+      await navigate({ to: '/events/$id', params: { id: event.id }, replace: true })
+    } catch {
+      setError('Status gagal diperbarui. Periksa koneksi lalu coba lagi.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="max-w-5xl space-y-8">
       <Link to="/events" className="eyebrow inline-flex text-[var(--accent-strong)] hover:underline">← kembali ke acara</Link>
@@ -93,7 +116,21 @@ function EventDetailPage() {
       )}
 
       {error ? <p role="alert" className="border border-[#e7b6b6] bg-[#f8dddd] px-4 py-3 text-sm font-semibold text-[var(--danger)]">{error}</p> : null}
-      {isAdmin ? <button type="button" onClick={deleteEvent} disabled={loading} className="border-t border-[var(--border)] pt-6 text-sm font-bold text-[var(--danger)] disabled:opacity-50">{loading ? 'Memproses…' : 'Hapus acara ↗'}</button> : null}
+      {isAdmin ? (
+        <section className="space-y-4 border-t border-[var(--border)] pt-6">
+          <div className="flex flex-wrap gap-3">
+            {event.status === 'draft' ? (
+              <button type="button" onClick={() => updateStatus('active')} disabled={loading} className="min-h-9 rounded-[4px] bg-[var(--accent)] px-4 text-sm font-bold text-[var(--accent-foreground)] disabled:opacity-50">{loading ? 'Memproses…' : 'Aktifkan acara'}</button>
+            ) : event.status === 'active' ? (
+              <>
+                <button type="button" onClick={() => updateStatus('completed')} disabled={loading} className="min-h-9 rounded-[4px] bg-[var(--ink)] px-4 text-sm font-bold text-white disabled:opacity-50">{loading ? 'Memproses…' : 'Tandai selesai'}</button>
+                <button type="button" onClick={() => updateStatus('cancelled')} disabled={loading} className="min-h-9 rounded-[4px] border border-[var(--danger)] px-4 text-sm font-bold text-[var(--danger)] disabled:opacity-50">{loading ? 'Memproses…' : 'Batalkan acara'}</button>
+              </>
+            ) : null}
+          </div>
+          <button type="button" onClick={deleteEvent} disabled={loading} className="text-sm font-bold text-[var(--danger)] disabled:opacity-50">{loading ? 'Memproses…' : 'Hapus acara ↗'}</button>
+        </section>
+      ) : null}
     </div>
   )
 }

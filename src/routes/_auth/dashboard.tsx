@@ -1,5 +1,5 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
-import { getDashboardData } from '~/server/auth'
+import { getDashboardData } from '~/server/data'
 import { ButtonLink, Card } from '~/components/ui'
 
 type DashboardEvent = { id: string; name: string; event_date: string; start_time: string; status: string; location: string | null }

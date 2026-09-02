@@ -1,28 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { createAdminClient } from '~/server/supabase'
 import { normalizeProfileAccess } from '~/lib/auth/profile-access'
 import { getSchedulePosition } from '~/lib/events/schedule'
 import { isSameOrigin } from '~/lib/http/request-security'
-
-function readCookies(request: Request) {
-  return request.headers.get('cookie')?.split(';').filter(Boolean).map((item) => {
-    const index = item.indexOf('=')
-    return {
-      name: (index >= 0 ? item.slice(0, index) : item).trim(),
-      value: index >= 0 ? item.slice(index + 1).trim() : '',
-    }
-  }) ?? []
-}
-
-function serializeCookie(name: string, value: string, options: CookieOptions = {}) {
-  const parts = [`${name}=${value}`, `Path=${options.path ?? '/'}`, `SameSite=${options.sameSite ?? 'lax'}`]
-  if (options.maxAge !== undefined) parts.push(`Max-Age=${options.maxAge}`)
-  if (options.domain) parts.push(`Domain=${options.domain}`)
-  if (options.httpOnly ?? true) parts.push('HttpOnly')
-  if (options.secure ?? process.env.NODE_ENV === 'production') parts.push('Secure')
-  return parts.join('; ')
-}
+import { readCookies, serializeCookie } from '~/lib/http/cookies'
 
 function failure(error: string, status: number, errorCode: string, cookies: string[]) {
   const headers = new Headers({ 'Cache-Control': 'no-store' })
@@ -38,7 +20,7 @@ function getAuthenticatedClient(request: Request, responseCookies: string[]) {
       cookies: {
         getAll: () => readCookies(request),
         setAll: (cookies) => {
-          responseCookies.push(...cookies.map(({ name, value, options }) => serializeCookie(name, value, options)))
+          responseCookies.push(...cookies.map(({ name, value, options }) => serializeCookie(name, value, options as Record<string, unknown>)))
         },
       },
     },

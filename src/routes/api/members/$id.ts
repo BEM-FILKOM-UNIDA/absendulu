@@ -20,6 +20,9 @@ export const Route = createFileRoute('/api/members/$id')({ server: { handlers: {
   const status = body && typeof body === 'object' && 'account_status' in body ? (body as { account_status?: unknown }).account_status : null
   if (!isAdminMutableAccountStatus(status)) return responseWithCookies({ error: 'Status akun tidak valid.' }, 400, cookies)
   if (params.id === user.id && status !== 'active') return responseWithCookies({ error: 'Akun admin yang sedang digunakan tidak dapat dinonaktifkan.' }, 400, cookies)
+  // Prevent admins from disabling other admin accounts
+  const { data: targetRole } = await admin.from('profiles').select('role').eq('id', params.id).maybeSingle()
+  if (targetRole && isAdminRole(targetRole.role) && status === 'disabled') return responseWithCookies({ error: 'Akun admin lain tidak dapat dinonaktifkan dari panel ini.' }, 400, cookies)
   const { data: target, error: targetError } = await admin.from('profiles').select('id, user_type, full_name, nim').eq('id', params.id).maybeSingle()
   if (targetError) return responseWithCookies({ error: 'Gagal membaca akun.' }, 500, cookies)
   if (!target) return responseWithCookies({ error: 'Akun tidak ditemukan.' }, 404, cookies)

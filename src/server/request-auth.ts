@@ -1,22 +1,7 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { createAdminClient } from './supabase'
 import { isAdminRole } from '~/lib/auth/roles'
-
-function readCookies(request: Request) {
-  return request.headers.get('cookie')?.split(';').filter(Boolean).map((item) => {
-    const index = item.indexOf('=')
-    return { name: (index >= 0 ? item.slice(0, index) : item).trim(), value: index >= 0 ? item.slice(index + 1).trim() : '' }
-  }) ?? []
-}
-
-function serializeCookie(name: string, value: string, options: CookieOptions = {}) {
-  const parts = [`${name}=${value}`, `Path=${options.path ?? '/'}`, `SameSite=${options.sameSite ?? 'lax'}`]
-  if (options.maxAge !== undefined) parts.push(`Max-Age=${options.maxAge}`)
-  if (options.domain) parts.push(`Domain=${options.domain}`)
-  if (options.httpOnly ?? true) parts.push('HttpOnly')
-  if (options.secure ?? process.env.NODE_ENV === 'production') parts.push('Secure')
-  return parts.join('; ')
-}
+import { readCookies, serializeCookie } from '~/lib/http/cookies'
 
 export function createRequestSupabase(request: Request, responseCookies: string[]) {
   return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
