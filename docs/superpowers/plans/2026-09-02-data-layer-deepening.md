@@ -96,6 +96,8 @@ export function createServerSupabase(request?: Request) {
   )
   return { supabase, responseCookies }
 }
+
+> Note: `createServerSupabase` accepts an optional `request` parameter because the TanStack Start import-protection plugin blocks `@tanstack/react-start/server` imports in files reachable from client bundles unless those imports are used directly in the file body. Passing `getRequest()` from `auth.ts` satisfies the plugin while preserving centralization.
 ```
 
 - [ ] **Step 3: Update `src/server/auth.ts` to use the new module**
