@@ -1,18 +1,7 @@
-import { createServerClient } from '@supabase/ssr'
-import { createAdminClient } from './supabase'
+import { createAdminClient, createRequestSupabase } from './supabase-context'
 import { isAdminRole } from '~/lib/auth/roles'
-import { readCookies, serializeCookie } from '~/lib/http/cookies'
 
-export function createRequestSupabase(request: Request, responseCookies: string[]) {
-  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    cookies: {
-      getAll: () => readCookies(request),
-      setAll: (cookies) => {
-        responseCookies.push(...cookies.map(({ name, value, options }) => serializeCookie(name, value, options)))
-      },
-    },
-  })
-}
+export { createRequestSupabase }
 
 export async function getRequestUser(request: Request, responseCookies: string[]) {
   const supabase = createRequestSupabase(request, responseCookies)

@@ -1,30 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { createServerClient } from '@supabase/ssr'
 import { createAdminClient } from '~/server/supabase'
+import { createRequestSupabase } from '~/server/supabase-context'
 import { normalizeProfileAccess } from '~/lib/auth/profile-access'
 import { getSchedulePosition } from '~/lib/events/schedule'
 import { isSameOrigin } from '~/lib/http/request-security'
-import { readCookies, serializeCookie } from '~/lib/http/cookies'
 
 function failure(error: string, status: number, errorCode: string, cookies: string[]) {
   const headers = new Headers({ 'Cache-Control': 'no-store' })
   for (const cookie of cookies) headers.append('Set-Cookie', cookie)
   return Response.json({ error, errorCode }, { status, headers })
-}
-
-function getAuthenticatedClient(request: Request, responseCookies: string[]) {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => readCookies(request),
-        setAll: (cookies) => {
-          responseCookies.push(...cookies.map(({ name, value, options }) => serializeCookie(name, value, options as Record<string, unknown>)))
-        },
-      },
-    },
-  )
 }
 
 function getJakartaDateTime(now = new Date()) {
@@ -48,7 +32,7 @@ export const Route = createFileRoute('/api/attendance/check-in')({
         const responseCookies: string[] = []
         if (!isSameOrigin(request)) return failure('Origin request tidak valid.', 403, 'ORIGIN_INVALID', responseCookies)
 
-        const supabase = getAuthenticatedClient(request, responseCookies)
+        const supabase = createRequestSupabase(request, responseCookies)
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return failure('Sesi login tidak ditemukan. Silakan login ulang.', 401, 'UNAUTHENTICATED', responseCookies)
 
