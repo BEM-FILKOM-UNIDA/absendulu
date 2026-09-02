@@ -79,8 +79,8 @@ export function createAdminClient(): Client {
   return createClient(url, serviceRoleKey, { auth: { autoRefreshToken: false, persistSession: false } })
 }
 
-export function createServerSupabase() {
-  const request = getRequest()
+export function createServerSupabase(request?: Request) {
+  const _request = request ?? getRequest()
   const responseCookies: string[] = []
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -121,7 +121,7 @@ export type AuthSnapshot = {
 }
 
 async function readAuth(): Promise<AuthSnapshot> {
-  const { supabase, responseCookies } = createServerSupabase()
+  const { supabase, responseCookies } = createServerSupabase(getRequest())
   const { data: { user } } = await supabase.auth.getUser()
   const { data: profile } = user
     ? await supabase.from('profiles').select('role, account_status, is_active, nim').eq('id', user.id).maybeSingle()
