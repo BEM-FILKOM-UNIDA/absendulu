@@ -67,12 +67,12 @@ Confirm these three locations all reimplement the same `createServerClient` cook
 - [ ] **Step 2: Create `src/server/supabase-context.ts`**
 
 ```ts
-import { createClient, type Client } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
 import { getRequest } from '@tanstack/react-start/server'
 import { readCookies, serializeCookie } from '~/lib/http/cookies'
 
-export function createAdminClient(): Client {
+export function createAdminClient(): SupabaseClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !serviceRoleKey) throw new Error('Supabase server environment belum dikonfigurasi')
@@ -87,7 +87,7 @@ export function createServerSupabase(request?: Request) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll: () => readCookies(request),
+        getAll: () => readCookies(_request),
         setAll: (cookies) => {
           responseCookies.push(...cookies.map(({ name, value, options }) => serializeCookie(name, value, options)))
         },
