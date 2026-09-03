@@ -1,48 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { createAdminClient } from '~/server/supabase'
+import { createRequestSupabase } from '~/server/supabase-context'
 import { normalizeProfileAccess } from '~/lib/auth/profile-access'
 import { getSchedulePosition } from '~/lib/events/schedule'
 import { isSameOrigin } from '~/lib/http/request-security'
-
-function readCookies(request: Request) {
-  return request.headers.get('cookie')?.split(';').filter(Boolean).map((item) => {
-    const index = item.indexOf('=')
-    return {
-      name: (index >= 0 ? item.slice(0, index) : item).trim(),
-      value: index >= 0 ? item.slice(index + 1).trim() : '',
-    }
-  }) ?? []
-}
-
-function serializeCookie(name: string, value: string, options: CookieOptions = {}) {
-  const parts = [`${name}=${value}`, `Path=${options.path ?? '/'}`, `SameSite=${options.sameSite ?? 'lax'}`]
-  if (options.maxAge !== undefined) parts.push(`Max-Age=${options.maxAge}`)
-  if (options.domain) parts.push(`Domain=${options.domain}`)
-  if (options.httpOnly ?? true) parts.push('HttpOnly')
-  if (options.secure ?? process.env.NODE_ENV === 'production') parts.push('Secure')
-  return parts.join('; ')
-}
 
 function failure(error: string, status: number, errorCode: string, cookies: string[]) {
   const headers = new Headers({ 'Cache-Control': 'no-store' })
   for (const cookie of cookies) headers.append('Set-Cookie', cookie)
   return Response.json({ error, errorCode }, { status, headers })
-}
-
-function getAuthenticatedClient(request: Request, responseCookies: string[]) {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => readCookies(request),
-        setAll: (cookies) => {
-          responseCookies.push(...cookies.map(({ name, value, options }) => serializeCookie(name, value, options)))
-        },
-      },
-    },
-  )
 }
 
 function getJakartaDateTime(now = new Date()) {
@@ -66,7 +32,7 @@ export const Route = createFileRoute('/api/attendance/check-in')({
         const responseCookies: string[] = []
         if (!isSameOrigin(request)) return failure('Origin request tidak valid.', 403, 'ORIGIN_INVALID', responseCookies)
 
-        const supabase = getAuthenticatedClient(request, responseCookies)
+        const supabase = createRequestSupabase(request, responseCookies)
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return failure('Sesi login tidak ditemukan. Silakan login ulang.', 401, 'UNAUTHENTICATED', responseCookies)
 

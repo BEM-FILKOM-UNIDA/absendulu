@@ -1,3 +1,5 @@
+import { isValidEventTimeRange } from './time-utils'
+
 const DATE_PATTERN = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/
 const TIME_PATTERN = /^[0-9]{2}:[0-9]{2}$/
 const EVENT_STATUSES = new Set(['draft', 'active', 'completed', 'cancelled'])
@@ -26,15 +28,6 @@ function isValidTime(value: string) {
   return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59
 }
 
-function toMinutes(time: string) {
-  const [hour, minute] = time.slice(0, 5).split(':').map(Number)
-  return hour * 60 + minute
-}
-
-export function isValidEventTimeRange(startTime: string, endTime: string | null) {
-  return endTime === null || toMinutes(startTime) !== toMinutes(endTime)
-}
-
 export function parseEventInput(value: unknown): EventInput | null {
   if (!value || typeof value !== 'object') return null
   const body = value as Record<string, unknown>
@@ -48,5 +41,8 @@ export function parseEventInput(value: unknown): EventInput | null {
   if (!name || name.length > 160 || (description && description.length > 5000) || (location && location.length > 200)) return null
   if (!isValidDate(event_date) || !isValidTime(start_time) || (end_time && !isValidTime(end_time))) return null
   if (!isValidEventTimeRange(start_time, end_time)) return null
+  // Reject events with dates in the past (allow same-day events)
+  const today = new Date().toISOString().slice(0, 10)
+  if (event_date < today) return null
   return { name, description, event_date, start_time, end_time, location, status }
 }

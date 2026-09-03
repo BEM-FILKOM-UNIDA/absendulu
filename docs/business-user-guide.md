@@ -377,7 +377,7 @@ Absendulu stores identity and attendance information. Organization operators sho
 - Avoid exporting full attendance data to personal devices.
 - Avoid sharing QR tokens publicly.
 - Use production Supabase and Vercel access controls.
-- Keep `SUPABASE_SERVICE_ROLE_KEY` out of GitHub, browser code, screenshots, and chat messages.
+- Keep `SUPABASE_SECRET_KEY` out of GitHub, browser code, screenshots, and chat messages.
 - Review disabled accounts promptly.
 - Retain attendance records according to the organization's policy.
 - Use backups and migration history when making database changes.
@@ -405,7 +405,7 @@ SQL in the repository provides:
 Never commit:
 
 - `.env.local`.
-- `SUPABASE_SERVICE_ROLE_KEY`.
+- `SUPABASE_SECRET_KEY`.
 - Database passwords or connection strings containing passwords.
 - Supabase access tokens.
 - Personal access tokens.

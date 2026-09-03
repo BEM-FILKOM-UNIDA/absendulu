@@ -10,9 +10,10 @@
     "start": "node --env-file-if-exists=.env.local .output/server/index.mjs",
     "preview": "vite preview",
     "test:schedule": "node scripts/test-schedule.mjs",
+    "test:auth": "node scripts/test-auth.mjs",
     "lint": "eslint src vite.config.ts",
     "typecheck": "tsc --noEmit",
-    "check": "bun run test:schedule && bun run lint && bun run typecheck && bun run build"
+    "check": "bun run test:schedule && bun run test:auth && bun run lint && bun run typecheck && bun run build"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.5",

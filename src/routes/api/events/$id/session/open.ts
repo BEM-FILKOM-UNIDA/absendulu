@@ -1,15 +1,14 @@
 import crypto from 'node:crypto'
 import { createFileRoute } from '@tanstack/react-router'
 import { createAdminClient } from '~/server/supabase'
-import { isSameOrigin } from '~/lib/http/request-security'
-import { getRequestAdmin, responseWithCookies } from '~/server/request-auth'
+import { responseWithCookies } from '~/server/request-auth'
+import { withAdminApi } from '~/server/api-middleware'
 
 export const Route = createFileRoute('/api/events/$id/session/open')({
   server: { handlers: { POST: async ({ request, params }) => {
-    const cookies: string[] = []
-    if (!isSameOrigin(request)) return responseWithCookies({ error: 'Origin request tidak valid.' }, 403, cookies)
-    const { user, isAdmin } = await getRequestAdmin(request, cookies)
-    if (!isAdmin) return responseWithCookies({ error: 'Akses ditolak' }, 403, cookies)
+    const guard = await withAdminApi(request, { parseBody: false })
+    if (guard instanceof Response) return guard
+    const { user, cookies } = guard
     const admin = createAdminClient()
     const { data: event, error: eventError } = await admin.from('events').select('id, status').eq('id', params.id).maybeSingle()
     if (eventError) return responseWithCookies({ error: 'Gagal memeriksa acara.' }, 500, cookies)

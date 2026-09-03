@@ -6,16 +6,27 @@ import * as ts from 'typescript'
 
 const directory = path.dirname(fileURLToPath(import.meta.url))
 const sourcePath = path.join(directory, '..', 'src', 'lib', 'events', 'schedule.ts')
-const source = fs.readFileSync(sourcePath, 'utf8')
-const output = ts.transpileModule(source, {
-  compilerOptions: {
-    module: ts.ModuleKind.CommonJS,
-    target: ts.ScriptTarget.ES2019,
-  },
-}).outputText
-const scheduleModule = { exports: {} }
-new Function('module', 'exports', output)(scheduleModule, scheduleModule.exports)
-const { getSchedulePosition, isValidEventTimeRange } = scheduleModule.exports
+const timeUtilsPath = path.join(directory, '..', 'src', 'lib', 'events', 'time-utils.ts')
+
+function loadCommonJs(sourcePath, require = () => { throw new Error('Unexpected module dependency') }) {
+  const source = fs.readFileSync(sourcePath, 'utf8')
+  const output = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2019,
+    },
+  }).outputText
+  const module = { exports: {} }
+  new Function('module', 'exports', 'require', output)(module, module.exports, require)
+  return module.exports
+}
+
+const timeUtilsModule = loadCommonJs(timeUtilsPath)
+const scheduleModule = loadCommonJs(sourcePath, (specifier) => {
+  if (specifier === './time-utils') return timeUtilsModule
+  throw new Error(`Unexpected module dependency: ${specifier}`)
+})
+const { getSchedulePosition, isValidEventTimeRange } = scheduleModule
 
 assert.equal(isValidEventTimeRange('23:48', '00:36'), true)
 assert.equal(isValidEventTimeRange('09:00', '10:00'), true)

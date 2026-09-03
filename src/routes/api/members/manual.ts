@@ -1,39 +1,26 @@
 import { createFileRoute } from '@tanstack/react-router'
-import type { SupabaseClient, User } from '@supabase/supabase-js'
+import type { User } from '@supabase/supabase-js'
 import { createAdminClient } from '~/server/supabase'
-import { isSameOrigin } from '~/lib/http/request-security'
 import { isValidStaffIdentifier, isValidStudentNim } from '~/lib/auth/identity'
-import { getRequestAdmin, responseWithCookies } from '~/server/request-auth'
+import { responseWithCookies } from '~/server/request-auth'
+import { withAdminApi } from '~/server/api-middleware'
+import { listAllAuthUsers } from '~/lib/members/auth-users'
 
 type UserType = 'mahasiswa' | 'dosen' | 'tata_usaha'
 const USER_TYPES = new Set<UserType>(['mahasiswa', 'dosen', 'tata_usaha'])
-
-async function listAllAuthUsers(admin: SupabaseClient) {
-  const users: User[] = []
-  for (let page = 1; ; page += 1) {
-    const result = await admin.auth.admin.listUsers({ page, perPage: 1000 })
-    if (result.error) throw result.error
-    users.push(...result.data.users)
-    if (result.data.users.length < 1000) return users
-  }
-}
 
 export const Route = createFileRoute('/api/members/manual')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const cookies: string[] = []
-        if (!isSameOrigin(request)) return responseWithCookies({ error: 'Origin request tidak valid.' }, 403, cookies)
-        const { isAdmin } = await getRequestAdmin(request, cookies)
-        if (!isAdmin) return responseWithCookies({ error: 'Akses ditolak.' }, 403, cookies)
-        let body: Record<string, unknown>
-        try {
-          const parsed: unknown = await request.json()
-          if (!parsed || typeof parsed !== 'object') throw new Error()
-          body = parsed as Record<string, unknown>
-        } catch {
-          return responseWithCookies({ error: 'Data pendaftaran tidak valid.' }, 400, cookies)
-        }
+        const guard = await withAdminApi(request, {
+          forbiddenMessage: 'Akses ditolak.',
+          invalidBodyMessage: 'Data pendaftaran tidak valid.',
+        })
+        if (guard instanceof Response) return guard
+        const { body: parsedBody, cookies } = guard
+        if (!parsedBody || typeof parsedBody !== 'object') return responseWithCookies({ error: 'Data pendaftaran tidak valid.' }, 400, cookies)
+        const body = parsedBody as Record<string, unknown>
         const fullName = typeof body.full_name === 'string' ? body.full_name.trim() : ''
         const nim = typeof body.nim === 'string' ? body.nim.trim().toUpperCase() : ''
         const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : ''

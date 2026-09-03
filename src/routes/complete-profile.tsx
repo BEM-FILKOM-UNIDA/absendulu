@@ -51,22 +51,22 @@ function CompleteProfilePage() {
   }
 
   async function signOut() { await createClient().auth.signOut(); await navigate({ to: '/login' }) }
-  if (!auth.user) return <main className="grid min-h-screen place-items-center bg-[var(--paper)] p-6"><p className="text-sm text-[var(--muted)]">Mengarahkan ke login…</p></main>
+  if (!auth.user) return <main className="grid min-h-screen place-items-center bg-(--paper) p-6"><p className="text-sm text-(--muted)">Mengarahkan ke login…</p></main>
 
   return (
-    <main className="paper-noise grid min-h-[100dvh] place-items-center bg-[var(--paper)] px-5 py-10">
-      <Card className="w-full max-w-md overflow-hidden border-[var(--ink)] shadow-[8px_10px_0_var(--accent)]">
-        <div className="bg-[var(--ink)] p-7 text-[#f7f4ed] sm:p-8"><p className="eyebrow text-[var(--accent)]">satu langkah lagi</p><h1 className="display-type pt-3 text-4xl leading-none tracking-[-.06em]">Lengkapi<br /><em>profilmu.</em></h1><p className="pt-4 text-sm leading-6 text-white/55">Data ini dipakai untuk mencatat kehadiranmu dengan benar.</p></div>
+    <main className="paper-noise grid min-h-dvh place-items-center bg-(--paper) px-5 py-10">
+      <Card className="w-full max-w-md overflow-hidden border-(--ink) shadow-[8px_10px_0_var(--accent)]">
+        <div className="bg-(--ink) p-7 text-[#f7f4ed] sm:p-8"><p className="eyebrow text-(--accent)">satu langkah lagi</p><h1 className="display-type pt-3 text-4xl leading-none tracking-[-.06em]">Lengkapi<br /><em>profilmu.</em></h1><p className="pt-4 text-sm leading-6 text-white/55">Data ini dipakai untuk mencatat kehadiranmu dengan benar.</p></div>
         <div className="p-7 sm:p-8">
           <form onSubmit={submit} className="space-y-5">
-            <label className="block space-y-2"><span className="text-sm font-bold">Nama lengkap</span><input value={fullName} onChange={(event) => setFullName(event.target.value)} className="h-12 w-full border border-[var(--border)] bg-[var(--surface-strong)] px-4 text-sm" autoComplete="name" required maxLength={100} /></label>
-            <label className="block space-y-2"><span className="text-sm font-bold">{identifierLabel}</span><input value={nim} onChange={(event) => setNim(event.target.value.toUpperCase())} className="h-12 w-full border border-[var(--border)] bg-[var(--surface-strong)] px-4 text-sm" placeholder={userType === 'mahasiswa' ? 'I.2410036' : 'Nomor identitas'} required maxLength={64} /><span className="block text-xs text-[var(--muted)]">{userType === 'mahasiswa' ? 'Format wajib: I. diikuti 7 angka.' : 'Gunakan nomor identitas resmi.'}</span>{nim && !identifierValid ? <span className="block text-xs text-[var(--danger)]">{userType === 'mahasiswa' ? 'Contoh format: I.2410036.' : 'Nomor identitas belum valid.'}</span> : null}</label>
-            <label className="block space-y-2"><span className="text-sm font-bold">Tipe pengguna</span><input value={userTypeLabels[userType]} readOnly disabled className="h-12 w-full border border-[var(--border)] bg-[var(--surface-muted)] px-4 text-sm" /></label>
-            <label className="block space-y-2"><span className="text-sm font-bold">Fakultas</span><input value="Fakultas Ilmu Komputer" readOnly disabled className="h-12 w-full border border-[var(--border)] bg-[var(--surface-muted)] px-4 text-sm" /></label>
-            {error ? <p role="alert" className="border border-[#e7b6b6] bg-[#f8dddd] px-3 py-3 text-sm font-semibold text-[var(--danger)]">{error}</p> : null}
-            <button type="submit" disabled={loading} className="min-h-11 w-full bg-[var(--accent)] px-5 text-sm font-bold text-[var(--accent-foreground)] disabled:opacity-50">{loading ? 'Menyimpan…' : 'Simpan profil'} ↗</button>
+            <label className="block space-y-2"><span className="text-sm font-bold">Nama lengkap</span><input value={fullName} onChange={(event) => setFullName(event.target.value)} className="h-12 w-full border border-(--border) bg-(--surface-strong) px-4 text-sm" autoComplete="name" required maxLength={100} /></label>
+            <label className="block space-y-2"><span className="text-sm font-bold">{identifierLabel}</span><input value={nim} onChange={(event) => setNim(event.target.value.toUpperCase())} className="h-12 w-full border border-(--border) bg-(--surface-strong) px-4 text-sm" placeholder={userType === 'mahasiswa' ? 'I.2410036' : 'Nomor identitas'} required maxLength={64} /><span className="block text-xs text-(--muted)">{userType === 'mahasiswa' ? 'Format wajib: I. diikuti 7 angka.' : 'Gunakan nomor identitas resmi.'}</span>{nim && !identifierValid ? <span className="block text-xs text-(--danger)">{userType === 'mahasiswa' ? 'Contoh format: I.2410036.' : 'Nomor identitas belum valid.'}</span> : null}</label>
+            <label className="block space-y-2"><span className="text-sm font-bold">Tipe pengguna</span><input value={userTypeLabels[userType]} readOnly disabled className="h-12 w-full border border-(--border) bg-(--surface-muted) px-4 text-sm" /></label>
+            <label className="block space-y-2"><span className="text-sm font-bold">Fakultas</span><input value="Fakultas Ilmu Komputer" readOnly disabled className="h-12 w-full border border-(--border) bg-(--surface-muted) px-4 text-sm" /></label>
+            {error ? <p role="alert" className="border border-[#e7b6b6] bg-[#f8dddd] px-3 py-3 text-sm font-semibold text-(--danger)">{error}</p> : null}
+            <button type="submit" disabled={loading} className="min-h-11 w-full bg-(--accent) px-5 text-sm font-bold text-(--accent-foreground) disabled:opacity-50">{loading ? 'Menyimpan…' : 'Simpan profil'} ↗</button>
           </form>
-          <button type="button" onClick={signOut} className="mt-5 w-full text-center text-xs font-bold uppercase tracking-[.1em] text-[var(--muted)] hover:text-[var(--accent-strong)]">Keluar</button>
+          <button type="button" onClick={signOut} className="mt-5 w-full text-center text-xs font-bold uppercase tracking-widest text-(--muted) hover:text-(--accent-strong)">Keluar</button>
         </div>
       </Card>
     </main>

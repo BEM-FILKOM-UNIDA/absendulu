@@ -29,11 +29,13 @@ Set these variables in the Vercel **Production** environment, not in GitHub Acti
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<publishable-or-anon-key>
-SUPABASE_SERVICE_ROLE_KEY=<server-only-service-role-key>
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-key>
+SUPABASE_SECRET_KEY=<server-only-secret-key>
 ```
 
-`SUPABASE_SERVICE_ROLE_KEY` must never be used in client code, GitHub logs, or public repository files. The CI workflow uses placeholders and cannot access production data.
+`SUPABASE_SECRET_KEY` must never be used in client code, GitHub logs, or public repository files. The CI workflow uses placeholders and cannot access production data.
+
+After the production deployment is confirmed to use the modern keys, deactivate the leaked legacy keys in Supabase **Settings → API Keys**. The equivalent Management API operation is `PUT /v1/projects/<project-ref>/api-keys/legacy?enabled=false` and requires a Management API token with `api_gateway_keys_write`. Do not run this operation until Vercel Production has the modern variables and the application smoke test passes; re-enable the legacy keys only as a controlled rollback if an undiscovered legacy client still depends on them.
 
 ## Vercel setup
 

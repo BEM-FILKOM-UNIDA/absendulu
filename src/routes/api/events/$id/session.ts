@@ -1,14 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { createAdminClient } from '~/server/supabase'
-import { getRequestAdmin, responseWithCookies } from '~/server/request-auth'
+import { responseWithCookies } from '~/server/request-auth'
+import { withAdminApi } from '~/server/api-middleware'
 
 export const Route = createFileRoute('/api/events/$id/session')({
   server: {
     handlers: {
       GET: async ({ request, params }) => {
-        const cookies: string[] = []
-        const { isAdmin } = await getRequestAdmin(request, cookies)
-        if (!isAdmin) return responseWithCookies({ error: 'Akses ditolak' }, 403, cookies)
+        const guard = await withAdminApi(request, { parseBody: false, requireSameOrigin: false })
+        if (guard instanceof Response) return guard
+        const { cookies } = guard
         const admin = createAdminClient()
         const { data, error } = await admin.from('attendance_sessions').select('id, event_id, is_open, qr_token, opened_by, opened_at, closed_at, attendances(id, user_id, status, method, check_in_at)').eq('event_id', params.id).eq('is_open', true).maybeSingle()
         if (error) return responseWithCookies({ error: 'Gagal memuat sesi absensi.' }, 500, cookies)

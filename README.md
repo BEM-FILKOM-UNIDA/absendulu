@@ -435,7 +435,7 @@ Absendulu is designed for an internal organization deployment with approximately
 - CSV uploads are limited to 2 MB and 500 rows.
 - User input is validated again on the server.
 - Duplicate check-ins are blocked in application code and at the database level.
-- `SUPABASE_SERVICE_ROLE_KEY` is never used in client code or browser bundles.
+- `SUPABASE_SECRET_KEY` is never used in client code or browser bundles.
 
 ### CAPTCHA decision
 
@@ -471,18 +471,18 @@ Create `.env.local` in the project root. This file must not be committed.
 | Variable                        | Required      | Purpose                                                        |
 | --------------------------------- | --------------- | ------------------------------------------------------------------ |
 | `NEXT_PUBLIC_SUPABASE_URL`      | Yes           | Supabase project URL; safe to expose to the browser            |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes           | Publishable/legacy anon key used by browser and server clients |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Yes on server | Privileged server-only key used by admin route handlers        |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Yes           | Publishable key used by browser and user-scoped server clients |
+| `SUPABASE_SECRET_KEY`                 | Yes on server | Privileged server-only key used by admin route handlers       |
 
 Example:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<publishable-or-anon-key>
-SUPABASE_SERVICE_ROLE_KEY=<server-only-service-role-key>
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-key>
+SUPABASE_SECRET_KEY=<server-only-secret-key>
 ```
 
-> Never expose `SUPABASE_SERVICE_ROLE_KEY` through `NEXT_PUBLIC_*`, client components, GitHub logs, Vercel client-side code, or committed files.
+> Never expose `SUPABASE_SECRET_KEY` through `NEXT_PUBLIC_*`, client components, GitHub logs, Vercel client-side code, or committed files.
 
 ---
 
@@ -600,8 +600,8 @@ Set these variables in the Vercel **Production** environment:
 
 ```text
 NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
-SUPABASE_SERVICE_ROLE_KEY
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+SUPABASE_SECRET_KEY
 ```
 
 Deploy only after:
@@ -609,6 +609,8 @@ Deploy only after:
 ```bash
 bun run check
 ```
+
+Before disabling any legacy Supabase API key, confirm that Vercel Production contains `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and `SUPABASE_SECRET_KEY`, deploy the current commit, and pass the production smoke tests. Supabase's reversible Management API switch is `PUT /v1/projects/<project-ref>/api-keys/legacy?enabled=false` with the `api_gateway_keys_write` permission.
 
 The production workflow validates:
 
@@ -696,7 +698,7 @@ The `v0.1.0` tag is the previous remote release. The current `v0.1.1` tag points
 | Admin page redirects to student workspace | Check that the profile role is exactly `admin` or `admin_bem` and account is active                             |
 | Check-in is rejected                      | Confirm event status, QR session status, event schedule, account status, and duplicate history                  |
 | Realtime counter does not update          | Confirm `attendances` is enabled in Supabase Realtime publication and the session ID is correct                 |
-| `/api/health` returns `degraded`          | Check `NEXT_PUBLIC_SUPABASE_URL` and server-side `SUPABASE_SERVICE_ROLE_KEY`                                    |
+| `/api/health` returns `degraded`          | Check `NEXT_PUBLIC_SUPABASE_URL` and server-side `SUPABASE_SECRET_KEY`                                  |
 | CSV import fails                          | Check file size, CSV headers, identifier format, duplicate emails, duplicate identifiers, and the 500-row limit |
 | Production deploy fails                   | Run `bun run check`, verify Vercel environment variables, and inspect the protected workflow logs               |
 
