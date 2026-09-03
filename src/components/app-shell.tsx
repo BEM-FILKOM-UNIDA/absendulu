@@ -39,7 +39,7 @@ function shortLabel(label: string) {
 function DesktopNavItem({ href, label, code, pathname }: { href: string; label: string; code: string; pathname: string }) {
   const active = isActive(pathname, href)
   return (
-    <Link to={href} aria-current={active ? 'page' : undefined} className={`flex items-center justify-between border-l-2 px-3 py-3 text-sm font-bold ${active ? 'border-[var(--accent)] bg-white/10 text-[var(--lime)]' : 'border-transparent text-white/55 hover:bg-white/[.05] hover:text-white'}`}>
+    <Link to={href} aria-current={active ? 'page' : undefined} className={`flex items-center justify-between border-l-2 px-3 py-3 text-sm font-bold ${active ? 'border-(--accent) bg-white/10 text-(--lime)' : 'border-transparent text-white/55 hover:bg-white/5 hover:text-white'}`}>
       <span>{label}</span>
       <span className="font-mono text-[10px]">{code}</span>
     </Link>
@@ -49,7 +49,7 @@ function DesktopNavItem({ href, label, code, pathname }: { href: string; label: 
 function MobileNavItem({ href, label, code, pathname }: { href: string; label: string; code: string; pathname: string }) {
   const active = isActive(pathname, href)
   return (
-    <Link to={href} aria-current={active ? 'page' : undefined} className={`flex min-h-[68px] flex-col items-center justify-center gap-1 text-center text-[9px] font-black uppercase ${active ? 'text-[var(--lime)]' : 'text-white/45'}`}>
+    <Link to={href} aria-current={active ? 'page' : undefined} className={`flex min-h-17 flex-col items-center justify-center gap-1 text-center text-[9px] font-black uppercase ${active ? 'text-(--lime)' : 'text-white/45'}`}>
       <span className="font-mono text-[10px]">{code}</span>
       <span>{shortLabel(label)}</span>
     </Link>
@@ -70,8 +70,8 @@ export function AppShell({ isAdmin }: { isAdmin: boolean }) {
   }
 
   return (
-    <div className="flex min-h-[100dvh] bg-[var(--background)] lg:h-[100dvh] lg:overflow-hidden">
-      <aside className="hidden h-full w-[268px] shrink-0 flex-col bg-[var(--ink)] text-[#f7f4ed] lg:flex">
+    <div className="flex min-h-dvh bg-(--background) lg:h-dvh lg:overflow-hidden">
+      <aside className="hidden h-full w-67 shrink-0 flex-col bg-(--ink) text-[#f7f4ed] lg:flex">
         <Link to={isAdmin ? '/dashboard' : '/mahasiswa'} className="flex h-24 shrink-0 items-center gap-3 border-b border-white/10 px-7">
           <img src="/logo/Absendulu.webp" alt="Absendulu" width="68" height="40" className="h-9 w-auto" />
           <span className="eyebrow text-white/35">FILKOM UNIDA</span>
@@ -90,17 +90,17 @@ export function AppShell({ isAdmin }: { isAdmin: boolean }) {
         </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col lg:min-h-0 lg:overflow-hidden">
-        <header className="flex min-h-24 shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--paper)] px-5 sm:px-8">
+        <header className="flex min-h-24 shrink-0 items-center justify-between border-b border-(--border) bg-(--paper) px-5 sm:px-8">
           <div>
-            <p className="eyebrow text-[var(--accent-strong)] lg:hidden">absendulu/</p>
+            <p className="eyebrow text-(--accent-strong) lg:hidden">absendulu/</p>
             <h1 className="mt-1 text-2xl font-black tracking-[-.06em]">{titleFor(location.pathname)}</h1>
           </div>
-          <Link to="/profile" className="grid h-10 w-10 place-items-center bg-[var(--ink)] text-sm font-black text-[var(--lime)]" aria-label="Lihat profil akun">A</Link>
+          <Link to="/profile" className="grid h-10 w-10 place-items-center bg-(--ink) text-sm font-black text-(--lime)" aria-label="Lihat profil akun">A</Link>
         </header>
         <main className="min-h-0 flex-1 px-5 py-7 pb-28 sm:px-8 sm:py-9 lg:overflow-y-auto lg:pb-9">
           <div className="mx-auto w-full max-w-7xl"><Outlet /></div>
         </main>
-        <nav className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-white/10 bg-[var(--ink)] px-1 pb-[max(env(safe-area-inset-bottom),.5rem)] lg:hidden" aria-label="Navigasi dashboard">
+        <nav className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-white/10 bg-(--ink) px-1 pb-[max(env(safe-area-inset-bottom),.5rem)] lg:hidden" aria-label="Navigasi dashboard">
           {items.map(([href, label, code]) => <MobileNavItem key={href} href={href} label={label} code={code} pathname={location.pathname} />)}
         </nav>
       </div>

@@ -1,5 +1,5 @@
 import { createAdminClient, createRequestSupabase } from './supabase-context'
-import { isAdminRole } from '~/lib/auth/roles'
+import { isActiveAdminProfile } from '~/lib/auth/roles'
 
 export { createRequestSupabase }
 
@@ -12,8 +12,8 @@ export async function getRequestUser(request: Request, responseCookies: string[]
 export async function getRequestAdmin(request: Request, responseCookies: string[]) {
   const { supabase, user } = await getRequestUser(request, responseCookies)
   if (!user) return { supabase, user: null, isAdmin: false }
-  const { data: profile } = await createAdminClient().from('profiles').select('role').eq('id', user.id).maybeSingle()
-  return { supabase, user, isAdmin: isAdminRole(profile?.role) }
+  const { data: profile } = await createAdminClient().from('profiles').select('role, account_status, is_active').eq('id', user.id).maybeSingle()
+  return { supabase, user, isAdmin: isActiveAdminProfile(profile) }
 }
 
 export function responseWithCookies(body: unknown, status: number, responseCookies: string[]) {

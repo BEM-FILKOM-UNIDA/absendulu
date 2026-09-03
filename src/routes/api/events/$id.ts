@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { createAdminClient } from '~/server/supabase'
-import { isSameOrigin } from '~/lib/http/request-security'
-import { getRequestAdmin, responseWithCookies } from '~/server/request-auth'
+import { responseWithCookies } from '~/server/request-auth'
+import { withAdminApi } from '~/server/api-middleware'
 import type { EventStatus } from '~/lib/events/validation'
 
 const VALID_TRANSITIONS: Record<EventStatus, EventStatus[]> = {
@@ -15,21 +15,18 @@ export const Route = createFileRoute('/api/events/$id')({
   server: {
     handlers: {
       GET: async ({ request, params }) => {
-        const cookies: string[] = []
-        const { isAdmin } = await getRequestAdmin(request, cookies)
-        if (!isAdmin) return responseWithCookies({ error: 'Akses ditolak' }, 403, cookies)
+        const guard = await withAdminApi(request, { parseBody: false, requireSameOrigin: false })
+        if (guard instanceof Response) return guard
+        const { cookies } = guard
         const { data, error } = await createAdminClient().from('events').select('id, name, description, event_date, start_time, end_time, location, status').eq('id', params.id).maybeSingle()
         if (error) return responseWithCookies({ error: 'Gagal memuat acara.' }, 500, cookies)
         if (!data) return responseWithCookies({ error: 'Acara tidak ditemukan.' }, 404, cookies)
         return responseWithCookies(data, 200, cookies)
       },
       PATCH: async ({ request, params }) => {
-        const cookies: string[] = []
-        if (!isSameOrigin(request)) return responseWithCookies({ error: 'Origin request tidak valid.' }, 403, cookies)
-        const { isAdmin } = await getRequestAdmin(request, cookies)
-        if (!isAdmin) return responseWithCookies({ error: 'Akses ditolak' }, 403, cookies)
-        let body: unknown
-        try { body = await request.json() } catch { return responseWithCookies({ error: 'Body request tidak valid.' }, 400, cookies) }
+        const guard = await withAdminApi(request)
+        if (guard instanceof Response) return guard
+        const { body, cookies } = guard
         const status = body && typeof body === 'object' && 'status' in body ? (body as { status?: unknown }).status : null
         if (typeof status !== 'string' || !['active', 'completed', 'cancelled', 'draft'].includes(status)) {
           return responseWithCookies({ error: 'Status tidak valid.' }, 400, cookies)
@@ -46,10 +43,9 @@ export const Route = createFileRoute('/api/events/$id')({
         return responseWithCookies(data, 200, cookies)
       },
       DELETE: async ({ request, params }) => {
-        const cookies: string[] = []
-        if (!isSameOrigin(request)) return responseWithCookies({ error: 'Origin request tidak valid.' }, 403, cookies)
-        const { isAdmin } = await getRequestAdmin(request, cookies)
-        if (!isAdmin) return responseWithCookies({ error: 'Akses ditolak' }, 403, cookies)
+        const guard = await withAdminApi(request, { parseBody: false })
+        if (guard instanceof Response) return guard
+        const { cookies } = guard
         const admin = createAdminClient()
         const { data: event } = await admin.from('events').select('id').eq('id', params.id).maybeSingle()
         if (!event) return responseWithCookies({ error: 'Acara tidak ditemukan.' }, 404, cookies)

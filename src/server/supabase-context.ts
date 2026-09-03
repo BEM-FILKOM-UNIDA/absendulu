@@ -5,9 +5,9 @@ import { readCookies, serializeCookie } from '~/lib/http/cookies'
 
 export function createAdminClient(): SupabaseClient {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !serviceRoleKey) throw new Error('Supabase server environment belum dikonfigurasi')
-  return createClient(url, serviceRoleKey, { auth: { autoRefreshToken: false, persistSession: false } })
+  const secretKey = process.env.SUPABASE_SECRET_KEY
+  if (!url || !secretKey) throw new Error('Supabase server environment belum dikonfigurasi')
+  return createClient(url, secretKey, { auth: { autoRefreshToken: false, persistSession: false } })
 }
 
 export function createServerSupabase(request?: Request) {
@@ -15,7 +15,7 @@ export function createServerSupabase(request?: Request) {
   const responseCookies: string[] = []
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
       cookies: {
         getAll: () => readCookies(_request),
@@ -31,7 +31,7 @@ export function createServerSupabase(request?: Request) {
 export function createRequestSupabase(request: Request, responseCookies: string[]) {
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
       cookies: {
         getAll: () => readCookies(request),

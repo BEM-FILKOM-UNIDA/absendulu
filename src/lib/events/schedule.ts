@@ -1,3 +1,7 @@
+import { toMinutes } from './time-utils'
+
+export { isValidEventTimeRange } from './time-utils'
+
 const MINUTES_PER_DAY = 24 * 60
 
 type SchedulePosition = {
@@ -6,20 +10,11 @@ type SchedulePosition = {
   endMinutes: number | null
 }
 
-function toMinutes(time: string): number {
-  const [hour, minute] = time.slice(0, 5).split(':').map(Number)
-  return hour * 60 + minute
-}
-
 function dateDifference(startDate: string, currentDate: string): number | null {
   const start = new Date(`${startDate}T00:00:00Z`)
   const current = new Date(`${currentDate}T00:00:00Z`)
   if (Number.isNaN(start.getTime()) || Number.isNaN(current.getTime())) return null
   return Math.round((current.getTime() - start.getTime()) / (24 * 60 * 60 * 1000))
-}
-
-export function isValidEventTimeRange(startTime: string, endTime: string | null): boolean {
-  return endTime === null || toMinutes(startTime) !== toMinutes(endTime)
 }
 
 export function getSchedulePosition(

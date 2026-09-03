@@ -3,20 +3,14 @@ import { createAdminClient } from '~/server/supabase'
 import { isAdminRole } from '~/lib/auth/roles'
 import { isProfileComplete } from '~/lib/auth/identity'
 import { isAdminMutableAccountStatus } from '~/lib/auth/account-status'
-import { isSameOrigin } from '~/lib/http/request-security'
-import { createRequestSupabase, responseWithCookies } from '~/server/request-auth'
+import { responseWithCookies } from '~/server/request-auth'
+import { withAdminApi } from '~/server/api-middleware'
 
 export const Route = createFileRoute('/api/members/$id')({ server: { handlers: { PATCH: async ({ request, params }) => {
-  const cookies: string[] = []
-  if (!isSameOrigin(request)) return responseWithCookies({ error: 'Origin request tidak valid.' }, 403, cookies)
-  const supabase = createRequestSupabase(request, cookies)
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return responseWithCookies({ error: 'Akses ditolak.' }, 403, cookies)
+  const guard = await withAdminApi(request, { forbiddenMessage: 'Akses ditolak.' })
+  if (guard instanceof Response) return guard
+  const { user, body, cookies } = guard
   const admin = createAdminClient()
-  const { data: actor } = await admin.from('profiles').select('role').eq('id', user.id).maybeSingle()
-  if (!actor || !isAdminRole(actor.role)) return responseWithCookies({ error: 'Akses ditolak.' }, 403, cookies)
-  let body: unknown
-  try { body = await request.json() } catch { return responseWithCookies({ error: 'Body request tidak valid.' }, 400, cookies) }
   const status = body && typeof body === 'object' && 'account_status' in body ? (body as { account_status?: unknown }).account_status : null
   if (!isAdminMutableAccountStatus(status)) return responseWithCookies({ error: 'Status akun tidak valid.' }, 400, cookies)
   if (params.id === user.id && status !== 'active') return responseWithCookies({ error: 'Akun admin yang sedang digunakan tidak dapat dinonaktifkan.' }, 400, cookies)

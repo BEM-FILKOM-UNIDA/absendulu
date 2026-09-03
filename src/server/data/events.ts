@@ -29,7 +29,7 @@ export const getEventDetailData = createServerFn({ method: 'GET' })
 export const getQrData = createServerFn({ method: 'GET' })
   .validator((data: { id: string }) => data)
   .handler(async ({ data }) => {
-  const auth = await requireAdminAuth()
+  await requireAdminAuth()
   const admin = createAdminClient()
   const { data: event } = await admin.from('events').select('id, name, event_date, start_time, end_time, location, status').eq('id', data.id).maybeSingle()
   if (!event) throw new Error('Event not found')

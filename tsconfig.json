@@ -15,7 +15,6 @@
     "jsx": "react-jsx",
     "verbatimModuleSyntax": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
       "~/*": ["./src/*"]

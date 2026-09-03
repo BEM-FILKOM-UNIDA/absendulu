@@ -1,9 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import type { User } from '@supabase/supabase-js'
 import { createAdminClient } from '~/server/supabase'
-import { isSameOrigin } from '~/lib/http/request-security'
 import { isValidStaffIdentifier, isValidStudentNim } from '~/lib/auth/identity'
-import { getRequestAdmin, responseWithCookies } from '~/server/request-auth'
+import { responseWithCookies } from '~/server/request-auth'
+import { withAdminApi } from '~/server/api-middleware'
 import { listAllAuthUsers } from '~/lib/members/auth-users'
 
 type ImportRow = { full_name: string; nim: string; email: string; user_type: 'mahasiswa' | 'dosen' | 'tata_usaha'; division: string | null; phone: string | null }
@@ -49,10 +49,9 @@ export const Route = createFileRoute('/api/members/import')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const cookies: string[] = []
-        if (!isSameOrigin(request)) return responseWithCookies({ error: 'Origin request tidak valid.' }, 403, cookies)
-        const { isAdmin } = await getRequestAdmin(request, cookies)
-        if (!isAdmin) return responseWithCookies({ error: 'Akses ditolak.' }, 403, cookies)
+        const guard = await withAdminApi(request, { parseBody: false, forbiddenMessage: 'Akses ditolak.' })
+        if (guard instanceof Response) return guard
+        const { cookies } = guard
         const contentLength = Number(request.headers.get('content-length') ?? '')
         if (Number.isFinite(contentLength) && contentLength > MAX_MULTIPART_BYTES) return responseWithCookies({ error: 'Ukuran CSV maksimal 2 MB.' }, 413, cookies)
         let formData: FormData

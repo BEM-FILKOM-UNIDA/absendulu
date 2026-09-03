@@ -1,3 +1,5 @@
+import { isValidEventTimeRange } from './time-utils'
+
 const DATE_PATTERN = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/
 const TIME_PATTERN = /^[0-9]{2}:[0-9]{2}$/
 const EVENT_STATUSES = new Set(['draft', 'active', 'completed', 'cancelled'])
@@ -24,15 +26,6 @@ function isValidTime(value: string) {
   if (!TIME_PATTERN.test(value)) return false
   const [hour, minute] = value.split(':').map(Number)
   return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59
-}
-
-function toMinutes(time: string) {
-  const [hour, minute] = time.slice(0, 5).split(':').map(Number)
-  return hour * 60 + minute
-}
-
-export function isValidEventTimeRange(startTime: string, endTime: string | null) {
-  return endTime === null || toMinutes(startTime) !== toMinutes(endTime)
 }
 
 export function parseEventInput(value: unknown): EventInput | null {
