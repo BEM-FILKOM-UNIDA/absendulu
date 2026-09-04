@@ -14,15 +14,20 @@ const signalCells = new Set([0, 1, 2, 6, 8, 13, 14, 20, 22, 24, 28, 30, 34, 35, 
 
 export const Route = createFileRoute('/')({
   loader: async () => {
-    const auth = await getCurrentAuth()
-    if (!auth.user || !auth.profile) return null
-    if (auth.profile.account_status === 'disabled' || !auth.profile.is_active) {
-      throw redirect({ to: '/account-disabled' })
+    try {
+      const auth = await getCurrentAuth()
+      if (!auth.user || !auth.profile) return null
+      if (auth.profile.account_status === 'disabled' || !auth.profile.is_active) {
+        throw redirect({ to: '/account-disabled' })
+      }
+      if (auth.profile.account_status !== 'active') {
+        throw redirect({ to: '/complete-profile' })
+      }
+      throw redirect({ to: auth.profile.role === 'admin' || auth.profile.role === 'admin_bem' ? '/dashboard' : '/mahasiswa' })
+    } catch (error) {
+      console.error('Failed to get current auth on root route:', error)
+      return null
     }
-    if (auth.profile.account_status !== 'active') {
-      throw redirect({ to: '/complete-profile' })
-    }
-    throw redirect({ to: auth.profile.role === 'admin' || auth.profile.role === 'admin_bem' ? '/dashboard' : '/mahasiswa' })
   },
   component: LandingPage,
 })

@@ -5,14 +5,19 @@ import { GENERATED_IDENTIFIER_PATTERN } from '~/lib/auth/identity'
 
 export const Route = createFileRoute('/_auth')({
   beforeLoad: async ({ location }) => {
-    const auth = await getCurrentAuth()
-    if (!auth.user) throw redirect({ to: '/login', search: { next: location.href } })
-    if (!auth.profile || auth.profile.account_status === 'disabled' || !auth.profile.is_active) throw redirect({ to: '/account-disabled' })
-    if (auth.profile.account_status !== 'active') {
-      if (GENERATED_IDENTIFIER_PATTERN.test(auth.profile.nim ?? '')) throw redirect({ to: '/login', search: { error: 'unprovisioned' } })
-      throw redirect({ to: '/complete-profile' })
+    try {
+      const auth = await getCurrentAuth()
+      if (!auth.user) throw redirect({ to: '/login', search: { next: location.href } })
+      if (!auth.profile || auth.profile.account_status === 'disabled' || !auth.profile.is_active) throw redirect({ to: '/account-disabled' })
+      if (auth.profile.account_status !== 'active') {
+        if (GENERATED_IDENTIFIER_PATTERN.test(auth.profile.nim ?? '')) throw redirect({ to: '/login', search: { error: 'unprovisioned' } })
+        throw redirect({ to: '/complete-profile' })
+      }
+      return { auth }
+    } catch (error) {
+      console.error('Failed to get current auth on auth layout:', error)
+      throw redirect({ to: '/login', search: { next: location.href } })
     }
-    return { auth }
   },
   component: AuthLayout,
 })
