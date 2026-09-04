@@ -16,19 +16,24 @@ export type AuthSnapshot = {
 }
 
 async function readAuth(): Promise<AuthSnapshot> {
-  const { supabase, responseCookies } = createServerSupabase(getRequest())
-  const { data: { user } } = await supabase.auth.getUser()
-  const { data: profile } = user
-    ? await supabase.from('profiles').select('role, account_status, is_active, nim').eq('id', user.id).maybeSingle()
-    : { data: null }
+  try {
+    const { supabase, responseCookies } = createServerSupabase(getRequest())
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: profile } = user
+      ? await supabase.from('profiles').select('role, account_status, is_active, nim').eq('id', user.id).maybeSingle()
+      : { data: null }
 
-  if (responseCookies.length > 0) {
-    setResponseHeader('Set-Cookie', responseCookies)
-  }
+    if (responseCookies.length > 0) {
+      setResponseHeader('Set-Cookie', responseCookies)
+    }
 
-  return {
-    user: user ? { id: user.id, email: user.email ?? null } : null,
-    profile: normalizeProfileAccess(profile) ? { ...normalizeProfileAccess(profile)!, nim: profile?.nim ?? null } : null,
+    return {
+      user: user ? { id: user.id, email: user.email ?? null } : null,
+      profile: normalizeProfileAccess(profile) ? { ...normalizeProfileAccess(profile)!, nim: profile?.nim ?? null } : null,
+    }
+  } catch (error) {
+    console.error('readAuth failed:', error)
+    throw error
   }
 }
 
