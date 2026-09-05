@@ -51,17 +51,21 @@ function LandingPage() {
     const supabase = createClient()
 
     async function redirectAuthenticatedUser() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user || cancelled) return
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user || cancelled) return
 
-      const auth = await getCurrentAuth()
-      if (!auth.user || !auth.profile || cancelled) return
-      if (auth.profile.account_status === 'disabled' || !auth.profile.is_active) {
-        await navigate({ to: '/account-disabled', replace: true })
-      } else if (auth.profile.account_status !== 'active') {
-        await navigate({ to: '/complete-profile', replace: true })
-      } else {
-        await navigate({ to: isAdminRole(auth.profile.role) ? '/dashboard' : '/mahasiswa', replace: true })
+        const auth = await getCurrentAuth()
+        if (!auth.user || !auth.profile || cancelled) return
+        if (auth.profile.account_status === 'disabled' || !auth.profile.is_active) {
+          await navigate({ to: '/account-disabled', replace: true })
+        } else if (auth.profile.account_status !== 'active') {
+          await navigate({ to: '/complete-profile', replace: true })
+        } else {
+          await navigate({ to: isAdminRole(auth.profile.role) ? '/dashboard' : '/mahasiswa', replace: true })
+        }
+      } catch (error) {
+        console.error('Failed to redirect authenticated user:', error)
       }
     }
 
