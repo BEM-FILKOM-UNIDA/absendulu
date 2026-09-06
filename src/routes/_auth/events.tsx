@@ -4,25 +4,25 @@ import { getEventsData } from '~/server/data'
 import { Badge, Card } from '~/components/ui'
 
 type EventItem = { id: string; name: string; description: string | null; event_date: string; start_time: string; end_time: string | null; location: string | null; status: string }
+type EventsData = Awaited<ReturnType<typeof getEventsData>>
 
 export const Route = createFileRoute('/_auth/events')({
-  // ponytail: defer so navbar switch feels instant
-  loader: () => defer({ data: getEventsData() } as never),
+  loader: () => ({ data: defer(getEventsData()) }),
   component: EventsPage,
 })
 
 function EventsPage() {
-  const { data } = Route.useLoaderData() as { data: Promise<Awaited<ReturnType<typeof getEventsData>>> }
+  const { data } = Route.useLoaderData()
   return (
-    <Suspense fallback={<EventsPending />}>
-      <Await promise={data} fallback={<EventsPending />}>
-        {({ events, isAdmin }) => <EventsContent events={events} isAdmin={isAdmin} />}
+    <Suspense fallback={<EventsShellPending />}>
+      <Await promise={data} fallback={<EventsShellPending />}>
+        {({ events, isAdmin }: EventsData) => <EventsContent events={events} isAdmin={isAdmin} />}
       </Await>
     </Suspense>
   )
 }
 
-function EventsContent({ events, isAdmin }: { events: Awaited<ReturnType<typeof getEventsData>>['events']; isAdmin: boolean }) {
+function EventsContent({ events, isAdmin }: { events: EventsData['events']; isAdmin: boolean }) {
   const eyebrow = isAdmin ? 'agenda organisasi / FILKOM UNIDA' : 'agenda publik / FILKOM UNIDA'
   const description = isAdmin ? 'Lihat kegiatan organisasi dan kelola status absensinya.' : 'Lihat acara aktif yang dapat kamu ikuti.'
   return (
@@ -52,16 +52,23 @@ function EventCard({ event }: { event: EventItem }) {
 
 function EventsPending() {
   return (
-    <div aria-label="Memuat acara" role="status">
-      <div className="mb-4 flex items-center gap-2">
-        <span className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-200 border-t-(--accent-strong)" aria-hidden="true" />
-        <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">Memuat acara…</span>
+    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3" aria-label="Memuat acara" role="status">
+      {Array.from({ length: 3 }, (_, i) => (
+        <div key={i} className="h-48 animate-pulse border border-(--border) bg-(--surface-muted)" />
+      ))}
+    </div>
+  )
+}
+
+function EventsShellPending() {
+  return (
+    <div className="space-y-8" aria-label="Memuat acara" role="status">
+      <div className="space-y-4 border-b border-(--border) pb-8">
+        <div className="h-3 w-40 animate-pulse bg-(--surface-muted)" />
+        <div className="h-12 w-56 animate-pulse bg-(--surface-muted)" />
+        <div className="h-4 w-full max-w-md animate-pulse bg-(--surface-muted)" />
       </div>
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {Array.from({ length: 3 }, (_, i) => (
-          <div key={i} className="h-48 animate-pulse border border-zinc-200 bg-zinc-100" />
-        ))}
-      </div>
+      <EventsPending />
     </div>
   )
 }

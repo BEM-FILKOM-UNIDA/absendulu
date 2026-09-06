@@ -26,29 +26,22 @@ export function RouteError({ error, reset }: { error: Error; reset: () => void }
   )
 }
 
+/** Content-area skeleton shown immediately after navbar switch (pendingMs: 0). */
 export function RoutePending() {
   return (
-    <main className="mx-auto w-full max-w-7xl space-y-8 px-5 py-7 sm:px-8 sm:py-9" aria-label="Memuat halaman" role="status">
-      {/* ponytail: native CSS only — shimmer + spinner, no dep */}
-      <div className="pointer-events-none fixed inset-x-0 top-0 z-50 h-1 overflow-hidden bg-transparent">
-        <div className="h-full w-1/3 animate-[shimmer_1s_ease-in-out_infinite] bg-(--accent) [animation-delay:0s]" style={{ animation: 'route-progress 1s ease-in-out infinite' }} />
-      </div>
+    <div className="space-y-8" aria-label="Memuat halaman" role="status">
       <div className="space-y-4 border-b border-(--border) pb-8">
-        <div className="flex items-center gap-3">
-          <span className="h-5 w-5 animate-spin rounded-full border-2 border-(--border) border-t-(--accent-strong)" aria-hidden="true" />
-          <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">Memuat…</span>
-        </div>
-        <div className="h-3 w-40 animate-pulse bg-(--surface-muted)" />
-        <div className="h-20 w-72 animate-pulse bg-(--surface-muted) [animation-duration:1.2s]" />
-        <div className="h-4 w-full max-w-lg animate-pulse bg-(--surface-muted) [animation-duration:1.4s]" />
+        <div className="h-3 w-36 animate-pulse bg-(--surface-muted)" />
+        <div className="h-14 w-64 max-w-full animate-pulse bg-(--surface-muted) [animation-delay:60ms]" />
+        <div className="h-4 w-full max-w-md animate-pulse bg-(--surface-muted) [animation-delay:120ms]" />
       </div>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }, (_, index) => (
-          <div key={index} className="h-36 animate-pulse bg-(--surface-muted)" />
+          <div key={index} className="h-32 animate-pulse bg-(--surface-muted)" style={{ animationDelay: `${index * 70}ms` }} />
         ))}
       </div>
-      <style>{`@keyframes route-progress{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}`}</style>
-    </main>
+      <div className="h-56 animate-pulse bg-(--surface-muted) [animation-delay:200ms]" />
+    </div>
   )
 }
 

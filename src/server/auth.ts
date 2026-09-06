@@ -2,6 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { getRequest, setResponseHeader } from '@tanstack/react-start/server'
 import { normalizeProfileAccess } from '~/lib/auth/profile-access'
 import { isAdminRole } from '~/lib/auth/roles'
+import { cached } from '~/lib/cache'
 import { createServerSupabase } from './supabase-context'
 
 export type AuthProfile = {
@@ -20,16 +21,21 @@ async function readAuth(): Promise<AuthSnapshot> {
   try {
     const { supabase, responseCookies } = createServerSupabase(getRequest())
     const { data: { user } } = await supabase.auth.getUser()
-    const { data: profile } = user
-      ? await supabase.from('profiles').select('role, account_status, is_active, nim').eq('id', user.id).maybeSingle()
-      : { data: null }
 
     if (responseCookies.length > 0) {
       setResponseHeader('Set-Cookie', responseCookies)
     }
 
+    if (!user) return { user: null, profile: null }
+
+    // Short TTL: navbar tab switches hit beforeLoad + page loaders repeatedly.
+    const profile = await cached(`auth-profile:${user.id}`, 10_000, async () => {
+      const { data } = await supabase.from('profiles').select('role, account_status, is_active, nim').eq('id', user.id).maybeSingle()
+      return data
+    })
+
     return {
-      user: user ? { id: user.id, email: user.email ?? null } : null,
+      user: { id: user.id, email: user.email ?? null },
       profile: normalizeProfileAccess(profile) ? { ...normalizeProfileAccess(profile)!, nim: profile?.nim ?? null } : null,
     }
   } catch (error) {
