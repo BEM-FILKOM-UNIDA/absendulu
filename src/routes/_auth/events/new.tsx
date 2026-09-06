@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 
 const initialForm = { name: '', description: '', event_date: '', start_time: '', end_time: '', location: '' }
@@ -7,6 +7,7 @@ export const Route = createFileRoute('/_auth/events/new')({ component: NewEventP
 
 function NewEventPage() {
   const navigate = useNavigate()
+  const router = useRouter()
   const [form, setForm] = useState(initialForm)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -17,6 +18,7 @@ function NewEventPage() {
       const response = await fetch('/api/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, status: 'active' }) })
       const result = await response.json().catch(() => null)
       if (!response.ok) { setError(result?.error || 'Gagal membuat acara.'); return }
+      await router.invalidate()
       await navigate({ to: '/events/$id', params: { id: result.id } })
     } catch { setError('Gagal membuat acara. Periksa koneksi lalu coba lagi.') } finally { setLoading(false) }
   }

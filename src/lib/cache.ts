@@ -11,9 +11,13 @@ export function cached<T>(key: string, ttlMs: number, fn: () => Promise<T>): Pro
   })
 }
 
-// for per-request cache (Vercel serverless) — 30s is enough for 70+ concurrent dashboard hits
+export function invalidate(prefix: string) {
+  for (const key of store.keys()) if (key.startsWith(prefix)) store.delete(key)
+}
+
+// for per-request cache (Vercel serverless) — 5s for dashboard so new data appears without manual refresh, still 12x fewer DB hits for 70+ burst
 export const TTL = {
-  dashboard: 30_000,
-  events: 20_000,
-  members: 60_000,
+  dashboard: 5_000,
+  events: 5_000,
+  members: 30_000,
 }

@@ -4,6 +4,7 @@ import { createRequestSupabase } from '~/server/supabase-context'
 import { normalizeProfileAccess } from '~/lib/auth/profile-access'
 import { getSchedulePosition } from '~/lib/events/schedule'
 import { isSameOrigin } from '~/lib/http/request-security'
+import { invalidate } from '~/lib/cache'
 
 function failure(error: string, status: number, errorCode: string, cookies: string[]) {
   const headers = new Headers({ 'Cache-Control': 'no-store' })
@@ -71,6 +72,9 @@ export const Route = createFileRoute('/api/attendance/check-in')({
           return failure('Gagal mencatat kehadiran.', 500, 'ATTENDANCE_INSERT_FAILED', responseCookies)
         }
 
+        invalidate('dashboard')
+        invalidate('history')
+        invalidate('events')
         const headers = new Headers({ 'Cache-Control': 'no-store' })
         for (const cookie of responseCookies) headers.append('Set-Cookie', cookie)
         return Response.json({ success: true, status, eventName: event.name }, { headers })
