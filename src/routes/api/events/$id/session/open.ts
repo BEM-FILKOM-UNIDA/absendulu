@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { createAdminClient } from '~/server/supabase-context'
 import { responseWithCookies } from '~/server/request-auth'
 import { withAdminApi } from '~/server/api-middleware'
+import { invalidate } from '~/lib/cache'
 
 export const Route = createFileRoute('/api/events/$id/session/open')({
   server: { handlers: { POST: async ({ request, params }) => {
@@ -18,6 +19,8 @@ export const Route = createFileRoute('/api/events/$id/session/open')({
     if (existing) return Response.redirect(new URL(`/events/${params.id}/qr`, request.url), 303)
     const { error } = await admin.from('attendance_sessions').insert({ event_id: params.id, qr_token: crypto.randomBytes(24).toString('base64url'), opened_by: user?.id ?? null, is_open: true })
     if (error) return error.code === '23505' ? Response.redirect(new URL(`/events/${params.id}/qr`, request.url), 303) : responseWithCookies({ error: 'Gagal membuka sesi absensi.' }, 500, cookies)
+    invalidate('dashboard')
+    invalidate('events')
     return Response.redirect(new URL(`/events/${params.id}/qr`, request.url), 303)
   } } },
 })

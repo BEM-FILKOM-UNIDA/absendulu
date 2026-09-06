@@ -3,6 +3,7 @@ import { createAdminClient } from '~/server/supabase-context'
 import { parseEventInput } from '~/lib/events/validation'
 import { responseWithCookies } from '~/server/request-auth'
 import { withAdminApi } from '~/server/api-middleware'
+import { invalidate } from '~/lib/cache'
 
 export const Route = createFileRoute('/api/events')({
   server: {
@@ -23,6 +24,8 @@ export const Route = createFileRoute('/api/events')({
         if (!input) return responseWithCookies({ error: 'Data acara tidak valid. Periksa nama, tanggal, waktu, dan panjang teks.' }, 400, cookies)
         const { data, error } = await createAdminClient().from('events').insert({ ...input, created_by: user?.id ?? null }).select('id, name, description, event_date, start_time, end_time, location, status').single()
         if (error) return responseWithCookies({ error: 'Gagal membuat acara.' }, 500, cookies)
+        invalidate('events')
+        invalidate('dashboard')
         return responseWithCookies(data, 201, cookies)
       },
     },
