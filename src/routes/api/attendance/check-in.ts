@@ -26,6 +26,14 @@ function getJakartaDateTime(now = new Date()) {
   return { date: `${values.year}-${values.month}-${values.day}`, time: `${values.hour}:${values.minute}` }
 }
 
+// RATE LIMITING: This endpoint is intentionally unthrottled at the application layer.
+// During a large event, many users scan at the same time and a hard per-IP limit would
+// block legitimate traffic. Defense-in-depth is provided by:
+//   1. Supabase Auth session validation on every request (unauthenticated calls → 401)
+//   2. The duplicate-attendance DB trigger which serialises concurrent inserts per user
+//   3. Vercel's built-in DDoS mitigation and Edge Network
+// If abuse is detected, add an IP-based rate limit rule in the Vercel dashboard
+// (Project → Security → Attack Challenge Mode) without a code deploy.
 export const Route = createFileRoute('/api/attendance/check-in')({
   server: {
     handlers: {

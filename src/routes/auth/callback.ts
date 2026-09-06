@@ -3,8 +3,9 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { getSafeNextPath } from '~/lib/http/navigation'
 import { isAdminRole } from '~/lib/auth/roles'
 import { GENERATED_IDENTIFIER_PATTERN } from '~/lib/auth/identity'
-import { serializeCookie } from '~/lib/http/cookies'
+import { readCookies, serializeCookie } from '~/lib/http/cookies'
 import { getServerPublishableKey, getServerUrl } from '~/lib/supabase/env'
+import { createAdminClient } from '~/server/supabase-context'
 
 export const Route = createFileRoute('/auth/callback')({
   server: {
@@ -24,10 +25,7 @@ export const Route = createFileRoute('/auth/callback')({
         }
         const supabase = createServerClient(getServerUrl(), getServerPublishableKey(), {
             cookies: {
-              getAll: () => request.headers.get('cookie')?.split('; ').filter(Boolean).map((item) => {
-                const index = item.indexOf('=')
-                return { name: index >= 0 ? item.slice(0, index) : item, value: index >= 0 ? item.slice(index + 1) : '' }
-              }) ?? [],
+              getAll: () => readCookies(request),
               setAll: (items, headers) => {
                 cookies.push(...items)
                 Object.assign(responseHeaders, headers)
@@ -43,7 +41,16 @@ export const Route = createFileRoute('/auth/callback')({
         if (exchangeError) return redirectTo('/login', { error: 'expired' })
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return redirectTo('/login', { error: 'invalid' })
-        const { data: profile } = await supabase.from('profiles').select('role, account_status, is_active, nim').eq('id', user.id).maybeSingle()
+
+        // Use the admin client to read the profile — avoids dependency on the user's
+        // session cookies being fully propagated within this same request, and avoids
+        // RLS being evaluated with a potentially stale auth.uid() during the callback.
+        const { data: profile } = await createAdminClient()
+          .from('profiles')
+          .select('role, account_status, is_active, nim')
+          .eq('id', user.id)
+          .maybeSingle()
+
         if (!profile || GENERATED_IDENTIFIER_PATTERN.test(profile.nim ?? '')) {
           return redirectTo('/login', { error: 'unprovisioned' })
         }

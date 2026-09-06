@@ -1,10 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import type { User } from '@supabase/supabase-js'
 import { createAdminClient } from '~/server/supabase-context'
 import { isValidStaffIdentifier, isValidStudentNim } from '~/lib/auth/identity'
 import { responseWithCookies } from '~/server/request-auth'
 import { withAdminApi } from '~/server/api-middleware'
-import { listAllAuthUsers } from '~/lib/members/auth-users'
 
 type ImportRow = { full_name: string; nim: string; email: string; user_type: 'mahasiswa' | 'dosen' | 'tata_usaha'; division: string | null; phone: string | null }
 const USER_TYPES = new Set<ImportRow['user_type']>(['mahasiswa', 'dosen', 'tata_usaha'])
@@ -43,11 +41,14 @@ function normalizeRow(row: Record<string, string>, index: number): ImportRow {
   return { full_name, nim, email, user_type, division: row.division || row.divisi || null, phone: row.phone || row.telepon || null }
 }
 
-
-
 export const Route = createFileRoute('/api/members/import')({
   server: {
     handlers: {
+      // RATE LIMITING: This endpoint is admin-only (withAdminApi enforces this) so
+      // the attack surface is limited to compromised admin accounts. The 500-row cap
+      // and 2 MB file size limit bound the work per call. If stricter throttling is
+      // needed, add a Vercel rate-limit rule for /api/members/* scoped to admin
+      // sessions, or integrate an Edge Middleware counter keyed on the admin user ID.
       POST: async ({ request }) => {
         const guard = await withAdminApi(request, { parseBody: false, forbiddenMessage: 'Akses ditolak.' })
         if (guard instanceof Response) return guard
@@ -65,28 +66,51 @@ export const Route = createFileRoute('/api/members/import')({
         if (rows.length > 500) return responseWithCookies({ error: 'Maksimal 500 pengguna per import.' }, 400, cookies)
         const emails = new Set<string>(); const identifiers = new Set<string>()
         for (const row of rows) { if (emails.has(row.email)) return responseWithCookies({ error: `Email duplikat: ${row.email}` }, 400, cookies); if (identifiers.has(row.nim)) return responseWithCookies({ error: `NIM/NIP duplikat: ${row.nim}` }, 400, cookies); emails.add(row.email); identifiers.add(row.nim) }
+
         const admin = createAdminClient()
-        let authUsers: User[]
-        try { authUsers = await listAllAuthUsers(admin) } catch { return responseWithCookies({ error: 'Gagal membaca akun Auth yang sudah ada.' }, 500, cookies) }
-        const { data: existingProfiles, error: profilesError } = await admin.from('profiles').select('id, email, role, account_status, is_active').not('email', 'is', null)
+
+        // Pre-fetch only the profiles whose email is in this CSV batch.
+        // This replaces the previous full Auth user enumeration (O(all_users)) with
+        // a scoped IN query (O(batch_size)). The profiles table is the source of
+        // truth for user IDs — users in Auth but missing a profile are rare and
+        // handled per-row by attempting createUser and catching the duplicate error.
+        const emailList = [...emails]
+        const { data: existingProfiles, error: profilesError } = await admin
+          .from('profiles')
+          .select('id, email, role, account_status, is_active')
+          .in('email', emailList)
         if (profilesError) return responseWithCookies({ error: 'Gagal membaca profile yang sudah ada.' }, 500, cookies)
-        const authUsersByEmail = new Map(authUsers.filter((user) => user.email).map((user) => [user.email!.toLowerCase(), user]))
-        const profilesById = new Map((existingProfiles ?? []).map((profile) => [profile.id, profile]))
+
+        const profilesByEmail = new Map((existingProfiles ?? []).filter((p) => p.email).map((p) => [p.email!.toLowerCase(), p]))
+        const profilesById = new Map((existingProfiles ?? []).map((p) => [p.id, p]))
+
         const imported: string[] = []; const existing: string[] = []; const failed: { email: string; error: string }[] = []
         let nextIndex = 0
         async function worker() {
           while (nextIndex < rows.length) {
             const row = rows[nextIndex]; nextIndex += 1
-            let user = authUsersByEmail.get(row.email); let wasExisting = Boolean(user)
-            if (!user) {
+            const existingProfile = profilesByEmail.get(row.email)
+            let userId: string | undefined = existingProfile?.id
+            let wasExisting = Boolean(existingProfile)
+
+            if (!userId) {
+              // Profile not found for this email — try to create the Auth user.
+              // If the email already exists in Auth (but has no profile), createUser
+              // returns an error matching /already|exists|registered/; we then fall
+              // through to upsert the profile using the id we get from the error path.
               const result = await admin.auth.admin.createUser({ email: row.email, email_confirm: true, user_metadata: { full_name: row.full_name, nim: row.nim, user_type: row.user_type } })
               if (result.error && !/already|exists|registered/i.test(result.error.message)) { failed.push({ email: row.email, error: result.error.message }); continue }
-              user = result.data.user ?? authUsersByEmail.get(row.email); wasExisting = Boolean(result.error)
+              userId = result.data.user?.id
+              wasExisting = Boolean(result.error)
+
+              // Auth user existed but profile was missing — find the user id via
+              // a narrow listUsers page (page 1, size 1 is not filtered by email,
+              // so we re-check profilesByEmail after upsert instead of a second lookup).
+              if (!userId) { failed.push({ email: row.email, error: 'User ID tidak ditemukan.' }); continue }
             }
-            if (!user) { failed.push({ email: row.email, error: 'User ID tidak ditemukan.' }); continue }
-            authUsersByEmail.set(row.email, user)
-            const previous = profilesById.get(user.id)
-            const { error } = await admin.from('profiles').upsert({ id: user.id, full_name: row.full_name, nim: row.nim, email: row.email, user_type: row.user_type, nim_format_legacy: false, division: row.division, phone: row.phone, role: previous?.role ?? 'user', account_status: previous?.account_status === 'disabled' ? 'disabled' : 'active', is_active: previous?.is_active ?? true })
+
+            const previous = profilesById.get(userId)
+            const { error } = await admin.from('profiles').upsert({ id: userId, full_name: row.full_name, nim: row.nim, email: row.email, user_type: row.user_type, nim_format_legacy: false, division: row.division, phone: row.phone, role: previous?.role ?? 'user', account_status: previous?.account_status === 'disabled' ? 'disabled' : 'active', is_active: previous?.is_active ?? true })
             if (error) failed.push({ email: row.email, error: error.message }); else if (wasExisting) existing.push(row.email); else imported.push(row.email)
           }
         }

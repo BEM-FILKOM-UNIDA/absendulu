@@ -11,10 +11,12 @@ export type ProfileAccess = {
 export function normalizeProfileAccess(profile: ProfileRecord): ProfileAccess | null {
   if (!profile) return null
   const rawStatus = profile.account_status
-  const account_status = rawStatus === 'invited' || rawStatus === 'disabled' || rawStatus === 'active' ? rawStatus : 'active'
+  // Unknown status values must not silently grant access — return null so callers
+  // treat the profile as absent and redirect to login or deny the request.
+  if (rawStatus !== 'invited' && rawStatus !== 'disabled' && rawStatus !== 'active') return null
   return {
     role: typeof profile.role === 'string' ? profile.role : null,
-    account_status,
+    account_status: rawStatus,
     is_active: profile.is_active !== false,
   }
 }

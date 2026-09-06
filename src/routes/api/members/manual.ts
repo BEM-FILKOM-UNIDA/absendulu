@@ -1,10 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import type { User } from '@supabase/supabase-js'
 import { createAdminClient } from '~/server/supabase-context'
 import { isValidStaffIdentifier, isValidStudentNim } from '~/lib/auth/identity'
 import { responseWithCookies } from '~/server/request-auth'
 import { withAdminApi } from '~/server/api-middleware'
-import { listAllAuthUsers } from '~/lib/members/auth-users'
 
 type UserType = 'mahasiswa' | 'dosen' | 'tata_usaha'
 const USER_TYPES = new Set<UserType>(['mahasiswa', 'dosen', 'tata_usaha'])
@@ -12,6 +10,9 @@ const USER_TYPES = new Set<UserType>(['mahasiswa', 'dosen', 'tata_usaha'])
 export const Route = createFileRoute('/api/members/manual')({
   server: {
     handlers: {
+      // RATE LIMITING: Admin-only via withAdminApi. Single-user creation is low-volume
+      // by design. If a compromised admin account is suspected, revoke it in the
+      // Supabase dashboard; no application-layer throttle is required for normal ops.
       POST: async ({ request }) => {
         const guard = await withAdminApi(request, {
           forbiddenMessage: 'Akses ditolak.',
@@ -33,29 +34,36 @@ export const Route = createFileRoute('/api/members/manual')({
         if ((userType === 'mahasiswa' && !isValidStudentNim(nim)) || (userType !== 'mahasiswa' && !isValidStaffIdentifier(nim))) return responseWithCookies({ error: userType === 'mahasiswa' ? 'NIM mahasiswa harus berformat I.#######, contoh I.2410036.' : 'NIP/NIK tidak valid.' }, 400, cookies)
 
         const admin = createAdminClient()
-        let authUsers: User[]
-        try { authUsers = await listAllAuthUsers(admin) } catch { return responseWithCookies({ error: 'Gagal membaca akun Auth yang sudah ada.' }, 500, cookies) }
-        let user = authUsers.find((candidate) => candidate.email?.toLowerCase() === email)
-        const wasExisting = Boolean(user)
-        const { data: conflictingProfile, error: conflictError } = await admin.from('profiles').select('id').eq('nim', nim).maybeSingle()
-        if (conflictError) return responseWithCookies({ error: 'Gagal memeriksa NIM/NIP.' }, 500, cookies)
-        if (conflictingProfile && (!user || conflictingProfile.id !== user.id)) return responseWithCookies({ error: 'NIM/NIP tersebut sudah dipakai akun lain.' }, 409, cookies)
 
-        const createdUser = !user
-        if (!user) {
+        // Use profiles table as the source of truth for existing users — avoids
+        // enumerating all Auth users. The profiles.email column is indexed and
+        // covers both Auth-registered users and pre-provisioned accounts.
+        const [{ data: profileByEmail, error: emailLookupError }, { data: conflictingProfile, error: conflictError }] = await Promise.all([
+          admin.from('profiles').select('id, role').eq('email', email).maybeSingle(),
+          admin.from('profiles').select('id').eq('nim', nim).maybeSingle(),
+        ])
+        if (emailLookupError) return responseWithCookies({ error: 'Gagal memeriksa email.' }, 500, cookies)
+        if (conflictError) return responseWithCookies({ error: 'Gagal memeriksa NIM/NIP.' }, 500, cookies)
+
+        const existingUserId: string | undefined = profileByEmail?.id
+        const wasExisting = Boolean(existingUserId)
+
+        if (conflictingProfile && (!existingUserId || conflictingProfile.id !== existingUserId)) return responseWithCookies({ error: 'NIM/NIP tersebut sudah dipakai akun lain.' }, 409, cookies)
+
+        const createdUser = !existingUserId
+        let userId = existingUserId
+        if (!userId) {
+          // New user: create Auth account then let handle_new_user trigger create the profile stub.
           const result = await admin.auth.admin.createUser({ email, email_confirm: true, user_metadata: { full_name: fullName, nim, user_type: userType } })
           if (result.error) return responseWithCookies({ error: result.error.message }, 400, cookies)
-          user = result.data.user ?? undefined
+          userId = result.data.user?.id
         }
-        if (!user) return responseWithCookies({ error: 'User ID tidak ditemukan.' }, 500, cookies)
-        const { data: existingProfile, error: existingProfileError } = await admin.from('profiles').select('role').eq('id', user.id).maybeSingle()
-        if (existingProfileError) {
-          if (createdUser) await admin.auth.admin.deleteUser(user.id)
-          return responseWithCookies({ error: 'Gagal membaca profile pengguna.' }, 500, cookies)
-        }
-        const { error: profileError } = await admin.from('profiles').upsert({ id: user.id, full_name: fullName, nim, email, user_type: userType, nim_format_legacy: false, division: division || null, phone: phone || null, role: existingProfile?.role ?? 'user', account_status: 'active', is_active: true })
+        if (!userId) return responseWithCookies({ error: 'User ID tidak ditemukan.' }, 500, cookies)
+
+        const existingRole = profileByEmail?.role
+        const { error: profileError } = await admin.from('profiles').upsert({ id: userId, full_name: fullName, nim, email, user_type: userType, nim_format_legacy: false, division: division || null, phone: phone || null, role: existingRole ?? 'user', account_status: 'active', is_active: true })
         if (profileError) {
-          if (createdUser) await admin.auth.admin.deleteUser(user.id)
+          if (createdUser) await admin.auth.admin.deleteUser(userId)
           return responseWithCookies({ error: profileError.message }, 500, cookies)
         }
         return responseWithCookies({ email, status: wasExisting ? 'updated' : 'created' }, 200, cookies)

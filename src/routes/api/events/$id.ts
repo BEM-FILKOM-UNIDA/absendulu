@@ -49,10 +49,11 @@ export const Route = createFileRoute('/api/events/$id')({
         const admin = createAdminClient()
         const { data: event } = await admin.from('events').select('id').eq('id', params.id).maybeSingle()
         if (!event) return responseWithCookies({ error: 'Acara tidak ditemukan.' }, 404, cookies)
+        // attendances.event_id has no ON DELETE CASCADE, so remove those rows first.
+        // attendance_sessions and any other child tables of events use ON DELETE CASCADE
+        // and are cleaned up automatically when the event row is deleted below.
         const attendance = await admin.from('attendances').delete().eq('event_id', params.id)
         if (attendance.error) return responseWithCookies({ error: 'Data absensi acara gagal dihapus.' }, 500, cookies)
-        const sessions = await admin.from('attendance_sessions').delete().eq('event_id', params.id)
-        if (sessions.error) return responseWithCookies({ error: 'Sesi QR acara gagal dihapus.' }, 500, cookies)
         const deleted = await admin.from('events').delete().eq('id', params.id)
         if (deleted.error) return responseWithCookies({ error: 'Acara gagal dihapus.' }, 500, cookies)
         return new Response(null, { status: 204 })
