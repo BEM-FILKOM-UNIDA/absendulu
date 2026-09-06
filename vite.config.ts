@@ -13,19 +13,6 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
-  nitro: {
-    routeRules: {
-      '/**': {
-        headers: {
-          'X-Content-Type-Options': 'nosniff',
-          'X-Frame-Options': 'DENY',
-          'Referrer-Policy': 'strict-origin-when-cross-origin',
-          'Permissions-Policy': 'camera=(self), microphone=()',
-          'Cross-Origin-Resource-Policy': 'same-origin',
-        },
-      },
-    },
-  },
   plugins: [
     tailwindcss(),
     tanstackStart({

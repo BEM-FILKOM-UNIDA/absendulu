@@ -1,3 +1,4 @@
+// ponytail: html5-qrcode kept — native BarcodeDetector covers modern Chrome/Edge but iOS Safari <17 lacks it; switch when baseline supports it
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
 

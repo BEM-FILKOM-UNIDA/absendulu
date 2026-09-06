@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import type { User } from '@supabase/supabase-js'
-import { createAdminClient } from '~/server/supabase'
+import { createAdminClient } from '~/server/supabase-context'
 import { isValidStaffIdentifier, isValidStudentNim } from '~/lib/auth/identity'
 import { responseWithCookies } from '~/server/request-auth'
 import { withAdminApi } from '~/server/api-middleware'
