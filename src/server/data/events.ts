@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { createAdminClient } from '../supabase-context'
 import { requireActiveAuth, requireAdminAuth } from '../auth-guard'
+import { cached, TTL } from '~/lib/cache'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 // ponytail: deep Events module — single seam for all event queries, error not swallowed
@@ -18,16 +19,18 @@ export type EventRow = {
 }
 
 export async function listEvents(supabase: SupabaseClient, isAdmin: boolean) {
-  let query = supabase
-    .from('events')
-    .select('id, name, description, event_date, start_time, end_time, location, status')
-    .order('event_date', { ascending: !isAdmin })
-    .order('start_time', { ascending: true })
-    .limit(100)
-  if (!isAdmin) query = query.eq('status', 'active')
-  const { data, error } = await query
-  if (error) throw new Error(`Gagal memuat acara: ${error.message}`)
-  return data ?? []
+  return cached(`events:${isAdmin ? 'admin' : 'user'}`, TTL.events, async () => {
+    let query = supabase
+      .from('events')
+      .select('id, name, description, event_date, start_time, end_time, location, status')
+      .order('event_date', { ascending: !isAdmin })
+      .order('start_time', { ascending: true })
+      .limit(100)
+    if (!isAdmin) query = query.eq('status', 'active')
+    const { data, error } = await query
+    if (error) throw new Error(`Gagal memuat acara: ${error.message}`)
+    return (data ?? []) as EventRow[]
+  })
 }
 
 export async function getEventRow(supabase: SupabaseClient, id: string, isAdmin: boolean) {
