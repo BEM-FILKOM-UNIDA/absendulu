@@ -32,6 +32,10 @@ function LoginPage() {
                 : ''
 
   function callbackUrl() {
+    // callbackUrl is only ever called from click/submit handlers, so
+    // window is guaranteed to be available. The guard here makes this
+    // explicit and prevents an accidental SSR crash if the call site moves.
+    if (typeof window === 'undefined') return '/auth/callback'
     const callback = new URL('/auth/callback', window.location.origin)
     callback.searchParams.set('next', getSafeNextPath(search.next))
     return callback.toString()

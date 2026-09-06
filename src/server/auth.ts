@@ -3,7 +3,7 @@ import { getRequest, setResponseHeader } from '@tanstack/react-start/server'
 import { normalizeProfileAccess } from '~/lib/auth/profile-access'
 import { isAdminRole } from '~/lib/auth/roles'
 import { cached } from '~/lib/cache'
-import { createServerSupabase } from './supabase-context'
+import { createAdminClient, createServerSupabase } from './supabase-context'
 
 export type AuthProfile = {
   role: string | null
@@ -28,9 +28,12 @@ async function readAuth(): Promise<AuthSnapshot> {
 
     if (!user) return { user: null, profile: null }
 
-    // Short TTL: navbar tab switches hit beforeLoad + page loaders repeatedly.
+    // Use admin client for the profile query — the user client is subject to RLS
+    // and can silently return null if the session JWT hasn't propagated to PostgREST
+    // yet (e.g. immediately after sign-in) or if there is any policy evaluation edge
+    // case. The admin client bypasses RLS and reliably returns the profile row.
     const profile = await cached(`auth-profile:${user.id}`, 10_000, async () => {
-      const { data } = await supabase.from('profiles').select('role, account_status, is_active, nim').eq('id', user.id).maybeSingle()
+      const { data } = await createAdminClient().from('profiles').select('role, account_status, is_active, nim').eq('id', user.id).maybeSingle()
       return data
     })
 
