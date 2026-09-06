@@ -1,4 +1,4 @@
-import { Link, createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { Link, createFileRoute, isRedirect, redirect, useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { createClient } from '~/lib/supabase/client'
 import { isAdminRole } from '~/lib/auth/roles'
@@ -25,6 +25,7 @@ export const Route = createFileRoute('/')({
       }
       throw redirect({ to: auth.profile.role === 'admin' || auth.profile.role === 'admin_bem' ? '/dashboard' : '/mahasiswa' })
     } catch (error) {
+      if (isRedirect(error)) throw error
       console.error('Failed to get current auth on root route:', error)
       return null
     }
