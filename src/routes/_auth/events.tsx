@@ -1,13 +1,28 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { Await, createFileRoute, defer, Link } from '@tanstack/react-router'
+import { Suspense } from 'react'
 import { getEventsData } from '~/server/data'
 import { Badge, Card } from '~/components/ui'
 
 type EventItem = { id: string; name: string; description: string | null; event_date: string; start_time: string; end_time: string | null; location: string | null; status: string }
 
-export const Route = createFileRoute('/_auth/events')({ loader: () => getEventsData(), component: EventsPage })
+export const Route = createFileRoute('/_auth/events')({
+  // ponytail: defer so navbar switch feels instant
+  loader: () => defer({ data: getEventsData() } as never),
+  component: EventsPage,
+})
 
 function EventsPage() {
-  const { events, isAdmin } = Route.useLoaderData()
+  const { data } = Route.useLoaderData() as { data: Promise<Awaited<ReturnType<typeof getEventsData>>> }
+  return (
+    <Suspense fallback={<EventsPending />}>
+      <Await promise={data} fallback={<EventsPending />}>
+        {({ events, isAdmin }) => <EventsContent events={events} isAdmin={isAdmin} />}
+      </Await>
+    </Suspense>
+  )
+}
+
+function EventsContent({ events, isAdmin }: { events: Awaited<ReturnType<typeof getEventsData>>['events']; isAdmin: boolean }) {
   const eyebrow = isAdmin ? 'agenda organisasi / FILKOM UNIDA' : 'agenda publik / FILKOM UNIDA'
   const description = isAdmin ? 'Lihat kegiatan organisasi dan kelola status absensinya.' : 'Lihat acara aktif yang dapat kamu ikuti.'
   return (
@@ -32,5 +47,21 @@ function EventCard({ event }: { event: EventItem }) {
       <div className="flex items-start justify-between gap-4 border-b border-(--border) p-6"><div><p className="eyebrow text-(--accent-strong)">{event.event_date}</p><h2 className="mt-3 text-xl font-black tracking-[-.04em]">{event.name}</h2></div><Badge variant={variant}>{event.status}</Badge></div>
       <div className="flex flex-1 flex-col p-6"><p className="text-sm leading-6 text-(--muted)">{eventDescription}</p><div className="mt-6 space-y-2 text-xs font-bold text-(--muted)"><p>Waktu: {time}</p><p>Lokasi: {location}</p></div><Link to="/events/$id" params={{ id: event.id }} className="mt-7 text-xs font-black uppercase tracking-widest text-(--accent-strong) hover:underline">Lihat detail ↗</Link></div>
     </Card>
+  )
+}
+
+function EventsPending() {
+  return (
+    <div aria-label="Memuat acara" role="status">
+      <div className="mb-4 flex items-center gap-2">
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-200 border-t-(--accent-strong)" aria-hidden="true" />
+        <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">Memuat acara…</span>
+      </div>
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {Array.from({ length: 3 }, (_, i) => (
+          <div key={i} className="h-48 animate-pulse border border-zinc-200 bg-zinc-100" />
+        ))}
+      </div>
+    </div>
   )
 }

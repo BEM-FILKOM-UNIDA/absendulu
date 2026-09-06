@@ -1,4 +1,5 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { Await, createFileRoute, defer, Link, redirect } from '@tanstack/react-router'
+import { Suspense } from 'react'
 import { getDashboardData } from '~/server/data'
 import { ButtonLink, Card } from '~/components/ui'
 
@@ -10,12 +11,15 @@ export const Route = createFileRoute('/_auth/dashboard')({
     const role = context.auth.profile?.role
     if (role !== 'admin' && role !== 'admin_bem') throw redirect({ to: '/mahasiswa' })
   },
-  loader: () => getDashboardData(),
+  loader: () => {
+    // ponytail: defer so navbar switch feels instant — shell renders, data streams
+    return defer({ data: getDashboardData() } as never)
+  },
   component: DashboardPage,
 })
 
 function DashboardPage() {
-  const data = Route.useLoaderData()
+  const { data } = Route.useLoaderData() as { data: Promise<Awaited<ReturnType<typeof getDashboardData>>> }
   return (
     <div className="space-y-10">
       <section className="flex flex-col justify-between gap-6 border-b border-(--border) pb-8 sm:flex-row sm:items-end">
@@ -26,9 +30,35 @@ function DashboardPage() {
         </div>
         <ButtonLink href="/scan" variant="accent">Scan untuk hadir <span aria-hidden="true">↗</span></ButtonLink>
       </section>
-      <Stats stats={data.stats} />
-      <EventSummary events={data.events} />
+      <Suspense fallback={<StatsPending />}>
+        <Await promise={data} fallback={<StatsPending />}>
+          {(resolved) => (
+            <>
+              <Stats stats={resolved.stats} />
+              <EventSummary events={resolved.events} />
+            </>
+          )}
+        </Await>
+      </Suspense>
     </div>
+  )
+}
+
+function StatsPending() {
+  return (
+    <section className="grid border-y border-(--border) sm:grid-cols-2 xl:grid-cols-4" aria-label="Memuat statistik" role="status">
+      <div className="col-span-full flex items-center gap-2 border-b border-(--border) px-5 py-3">
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-(--border) border-t-(--accent-strong)" aria-hidden="true" />
+        <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">Memuat data…</span>
+      </div>
+      {Array.from({ length: 4 }, (_, i) => (
+        <div key={i} className="border-b border-(--border) px-5 py-6 sm:border-r xl:border-b-0">
+          <div className="h-3 w-20 animate-pulse bg-zinc-200" />
+          <div className="mt-7 h-12 w-16 animate-pulse bg-zinc-200" />
+          <div className="mt-2 h-3 w-24 animate-pulse bg-zinc-100" />
+        </div>
+      ))}
+    </section>
   )
 }
 
