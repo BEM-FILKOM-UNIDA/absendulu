@@ -51,5 +51,17 @@ function EventCard({ event }: { event: EventItem }) {
 }
 
 function EventsPending() {
-  return <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 3 }, (_, i) => <div key={i} className="h-48 animate-pulse bg-zinc-100 border border-zinc-200" />)}</div>
+  return (
+    <div aria-label="Memuat acara" role="status">
+      <div className="mb-4 flex items-center gap-2">
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-200 border-t-(--accent-strong)" aria-hidden="true" />
+        <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">Memuat acara…</span>
+      </div>
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {Array.from({ length: 3 }, (_, i) => (
+          <div key={i} className="h-48 animate-pulse border border-zinc-200 bg-zinc-100" />
+        ))}
+      </div>
+    </div>
+  )
 }

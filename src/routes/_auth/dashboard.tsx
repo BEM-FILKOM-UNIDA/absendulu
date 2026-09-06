@@ -46,7 +46,11 @@ function DashboardPage() {
 
 function StatsPending() {
   return (
-    <section className="grid border-y border-(--border) sm:grid-cols-2 xl:grid-cols-4">
+    <section className="grid border-y border-(--border) sm:grid-cols-2 xl:grid-cols-4" aria-label="Memuat statistik" role="status">
+      <div className="col-span-full flex items-center gap-2 border-b border-(--border) px-5 py-3">
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-(--border) border-t-(--accent-strong)" aria-hidden="true" />
+        <span className="text-xs font-bold uppercase tracking-widest text-(--muted)">Memuat data…</span>
+      </div>
       {Array.from({ length: 4 }, (_, i) => (
         <div key={i} className="border-b border-(--border) px-5 py-6 sm:border-r xl:border-b-0">
           <div className="h-3 w-20 animate-pulse bg-zinc-200" />
