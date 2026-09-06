@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createFileRoute, isRedirect, redirect } from '@tanstack/react-router'
 import { AppShell } from '~/components/app-shell'
 import { getCurrentAuth } from '~/server/auth'
 import { GENERATED_IDENTIFIER_PATTERN } from '~/lib/auth/identity'
@@ -15,6 +15,7 @@ export const Route = createFileRoute('/_auth')({
       }
       return { auth }
     } catch (error) {
+      if (isRedirect(error)) throw error
       console.error('Failed to get current auth on auth layout:', error)
       throw redirect({ to: '/login', search: { next: location.href } })
     }
