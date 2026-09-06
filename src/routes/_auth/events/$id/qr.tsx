@@ -1,5 +1,4 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import QRCode from 'qrcode'
 import { useEffect, useState } from 'react'
 import { getQrData } from '~/server/data'
 import { Card } from '~/components/ui'
@@ -20,12 +19,11 @@ function QrPage() {
 
   useEffect(() => {
     if (!session?.qr_token) return
-    QRCode.toDataURL(session.qr_token, {
-      width: 1200,
-      margin: 4,
-      errorCorrectionLevel: 'M',
-      color: { dark: '#000000', light: '#ffffff' },
-    }).then(setQrDataUrl).catch(() => setError('QR gagal dibuat.'))
+    // ponytail: lazy qrcode — 76KB only for /events/$id/qr, not dashboard
+    import('qrcode')
+      .then((m) => m.default.toDataURL(session.qr_token, { width: 1200, margin: 4, errorCorrectionLevel: 'M', color: { dark: '#000000', light: '#ffffff' } }))
+      .then(setQrDataUrl)
+      .catch(() => setError('QR gagal dibuat.'))
   }, [session?.qr_token])
 
   async function closeSession() {
