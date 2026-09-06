@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { invalidate } from '~/lib/cache'
 import { createAdminClient } from '~/server/supabase-context'
 import { isAdminRole } from '~/lib/auth/roles'
 import { isProfileComplete } from '~/lib/auth/identity'
@@ -24,5 +25,8 @@ export const Route = createFileRoute('/api/members/$id')({ server: { handlers: {
   const { data, error } = await admin.from('profiles').update({ account_status: status, is_active: status !== 'disabled' }).eq('id', params.id).select('id, account_status, is_active').maybeSingle()
   if (error) return responseWithCookies({ error: 'Status akun gagal diperbarui.' }, 500, cookies)
   if (!data) return responseWithCookies({ error: 'Akun tidak ditemukan.' }, 404, cookies)
+  invalidate(`auth-profile:${params.id}`)
+  invalidate('members')
+  invalidate('dashboard')
   return responseWithCookies(data, 200, cookies)
 } } } })

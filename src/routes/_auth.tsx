@@ -4,6 +4,7 @@ import { getCurrentAuth } from '~/server/auth'
 import { GENERATED_IDENTIFIER_PATTERN } from '~/lib/auth/identity'
 
 export const Route = createFileRoute('/_auth')({
+  staleTime: 30_000,
   beforeLoad: async ({ location }) => {
     try {
       const auth = await getCurrentAuth()

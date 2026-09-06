@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { Await, createFileRoute, defer } from '@tanstack/react-router'
+import { Suspense, useState } from 'react'
 import { MemberImportForm } from '~/components/member-import-form'
 import { getMembersData } from '~/server/data'
 import { Badge, Card } from '~/components/ui'
@@ -10,18 +10,38 @@ const typeLabels: Record<string, string> = {
   tata_usaha: 'Tata Usaha',
 }
 
+type MembersData = Awaited<ReturnType<typeof getMembersData>>
+type Member = MembersData['members'][number]
+
 export const Route = createFileRoute('/_auth/members')({
-  loader: () => getMembersData(),
+  loader: () => ({ data: defer(getMembersData()) }),
   component: MembersPage,
 })
 
 function MembersPage() {
-  const { members } = Route.useLoaderData()
+  const { data } = Route.useLoaderData()
+  return (
+    <div className="space-y-8">
+      <section className="border-b border-(--border) pb-8">
+        <p className="eyebrow text-(--accent-strong)">data mahasiswa / admin FILKOM</p>
+        <h1 className="display-type mt-3 text-4xl leading-none tracking-[-.07em] sm:text-5xl">Siapa saja<br /><em>yang terdaftar.</em></h1>
+        <p className="mt-4 max-w-md text-sm leading-6 text-(--muted)">Kelola akun yang dapat mengikuti absensi acara FILKOM.</p>
+      </section>
+      <Suspense fallback={<MembersPending />}>
+        <Await promise={data} fallback={<MembersPending />}>
+          {(resolved: MembersData) => <MembersContent members={resolved.members} />}
+        </Await>
+      </Suspense>
+    </div>
+  )
+}
+
+function MembersContent({ members }: { members: Member[] }) {
   const [rows, setRows] = useState(members)
   const [error, setError] = useState('')
   const [loadingId, setLoadingId] = useState<string | null>(null)
 
-  async function toggleMember(member: (typeof members)[number]) {
+  async function toggleMember(member: Member) {
     const active = member.account_status === 'active' && member.is_active
     if (active && !window.confirm('Nonaktifkan akun ini?')) return
     setLoadingId(member.id)
@@ -46,12 +66,7 @@ function MembersPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <section className="border-b border-(--border) pb-8">
-        <p className="eyebrow text-(--accent-strong)">data mahasiswa / admin FILKOM</p>
-        <h1 className="display-type mt-3 text-4xl leading-none tracking-[-.07em] sm:text-5xl">Siapa saja<br /><em>yang terdaftar.</em></h1>
-        <p className="mt-4 max-w-md text-sm leading-6 text-(--muted)">Kelola akun yang dapat mengikuti absensi acara FILKOM.</p>
-      </section>
+    <>
       <MemberImportForm />
       <Card className="overflow-hidden">
         <div className="flex items-center justify-between border-b border-(--border) px-5 py-5">
@@ -82,6 +97,15 @@ function MembersPage() {
           </div>
         ) : <div className="px-6 py-16 text-center text-sm text-(--muted)">Belum ada pengguna.</div>}
       </Card>
+    </>
+  )
+}
+
+function MembersPending() {
+  return (
+    <div className="space-y-4" aria-label="Memuat data mahasiswa" role="status">
+      <div className="h-40 animate-pulse bg-(--surface-muted)" />
+      <div className="h-72 animate-pulse bg-(--surface-muted)" />
     </div>
   )
 }

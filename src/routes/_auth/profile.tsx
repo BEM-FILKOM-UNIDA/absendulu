@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { Await, createFileRoute, defer } from '@tanstack/react-router'
+import { Suspense, useState } from 'react'
 import { getProfileData } from '~/server/data'
 import { Badge, Card } from '~/components/ui'
 
@@ -9,15 +9,35 @@ const typeLabels: Record<string, string> = {
   tata_usaha: 'Tata Usaha',
 }
 
+type ProfileData = Awaited<ReturnType<typeof getProfileData>>
 type ProfileForm = { full_name: string; nim: string; division: string }
 
 export const Route = createFileRoute('/_auth/profile')({
-  loader: () => getProfileData(),
+  loader: () => ({ data: defer(getProfileData()) }),
   component: ProfilePage,
 })
 
 function ProfilePage() {
-  const { auth, profile, isAdmin } = Route.useLoaderData()
+  const { data } = Route.useLoaderData()
+  return (
+    <div className="max-w-3xl space-y-8">
+      <section className="border-b border-(--border) pb-8">
+        <p className="eyebrow text-(--accent-strong)">profil akun / FILKOM</p>
+        <h1 className="display-type mt-3 text-4xl leading-none tracking-[-.07em] sm:text-5xl">
+          Profil<br /><em>Absendulu.</em>
+        </h1>
+      </section>
+      <Suspense fallback={<ProfilePending />}>
+        <Await promise={data} fallback={<ProfilePending />}>
+          {(resolved: ProfileData) => <ProfileContent data={resolved} />}
+        </Await>
+      </Suspense>
+    </div>
+  )
+}
+
+function ProfileContent({ data }: { data: ProfileData }) {
+  const { auth, profile, isAdmin } = data
   const displayName = profile.full_name || 'Pengguna'
   const identifierLabel = profile.user_type === 'mahasiswa' ? 'NIM' : 'NIP/NIK'
   const [form, setForm] = useState<ProfileForm>({
@@ -61,14 +81,7 @@ function ProfilePage() {
   }
 
   return (
-    <div className="max-w-3xl space-y-8">
-      <section className="border-b border-(--border) pb-8">
-        <p className="eyebrow text-(--accent-strong)">profil akun / FILKOM</p>
-        <h1 className="display-type mt-3 text-4xl leading-none tracking-[-.07em] sm:text-5xl">
-          Profil<br /><em>Absendulu.</em>
-        </h1>
-      </section>
-
+    <>
       <Card className="overflow-hidden">
         <div className="flex items-center gap-5 border-b border-(--border) bg-(--ink) p-6 text-[#f7f4ed] sm:p-8">
           <div className="grid h-16 w-16 shrink-0 place-items-center bg-(--accent) text-2xl font-black text-(--ink)">
@@ -134,6 +147,15 @@ function ProfilePage() {
           </form>
         </div>
       </Card>
+    </>
+  )
+}
+
+function ProfilePending() {
+  return (
+    <div className="space-y-4" aria-label="Memuat profil" role="status">
+      <div className="h-48 animate-pulse bg-(--surface-muted)" />
+      <div className="h-72 animate-pulse bg-(--surface-muted)" />
     </div>
   )
 }

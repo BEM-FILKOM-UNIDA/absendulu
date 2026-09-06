@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { invalidate } from '~/lib/cache'
 import { createAdminClient } from '~/server/supabase-context'
 import { isAdminRole } from '~/lib/auth/roles'
 import { GENERATED_IDENTIFIER_PATTERN, isValidStaffIdentifier, isValidStudentNim } from '~/lib/auth/identity'
@@ -31,5 +32,6 @@ export const Route = createFileRoute('/api/profile')({ server: { handlers: { PAT
   const { data, error } = await admin.from('profiles').update(update).eq('id', user.id).select('full_name, nim, division').maybeSingle()
   if (error) return responseWithCookies({ error: error.code === '23505' ? 'NIM tersebut sudah digunakan akun lain.' : 'Profil gagal disimpan. Coba lagi.' }, error.code === '23505' ? 409 : 500, cookies)
   if (!data) return responseWithCookies({ error: 'Profil tidak ditemukan.' }, 404, cookies)
+  invalidate(`auth-profile:${user.id}`)
   return responseWithCookies(data, 200, cookies)
 } } } })
