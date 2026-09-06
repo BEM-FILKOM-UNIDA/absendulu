@@ -34,6 +34,7 @@ function withSecurityHeaders(response: Response) {
   if (process.env.NODE_ENV === 'production') {
     for (const [name, value] of Object.entries(productionOnlyHeaders)) headers.set(name, value)
   }
+  // ponytail: body may be null for redirects/204, new Response handles it
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers })
 }
 
@@ -53,6 +54,7 @@ const requestMiddleware = createMiddleware().server(async ({ next, request, path
   }
 
   const result = await next()
+  if (!result.response) return result
   return { ...result, response: withSecurityHeaders(result.response) }
 })
 
