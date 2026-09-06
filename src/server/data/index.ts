@@ -1,0 +1,5 @@
+export { getEventsData, getEventDetailData, getQrData } from './events'
+export { getMembersData } from './members'
+export { getHistoryData } from './attendance'
+export { getDashboardData } from './dashboard'
+export { getOnboardingData, getStudentHomeData, getProfileData } from './onboarding'

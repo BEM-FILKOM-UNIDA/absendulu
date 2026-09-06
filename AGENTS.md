@@ -18,6 +18,10 @@ Issues and PRDs live in GitHub Issues. Use `gh` for tracker operations. See `doc
 
 Use the default labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, and `wontfix`. See `docs/agents/triage-labels.md`.
 
+### Coding standards
+
+Before writing or modifying TypeScript, React, Tailwind, configuration, or UI code, read [`docs/agents/code-standards.md`](docs/agents/code-standards.md). These rules are mandatory for AI agents and include the required TypeScript and Tailwind v4 conventions plus validation commands.
+
 ### Domain docs
 
 This is a single-context repo. Read `CONTEXT.md` and relevant decisions under `docs/adr/` when they exist. See `docs/agents/domain.md`.
