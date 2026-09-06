@@ -4,6 +4,7 @@ import { getSafeNextPath } from '~/lib/http/navigation'
 import { isAdminRole } from '~/lib/auth/roles'
 import { GENERATED_IDENTIFIER_PATTERN } from '~/lib/auth/identity'
 import { serializeCookie } from '~/lib/http/cookies'
+import { getServerPublishableKey, getServerUrl } from '~/lib/supabase/env'
 
 export const Route = createFileRoute('/auth/callback')({
   server: {
@@ -21,10 +22,7 @@ export const Route = createFileRoute('/auth/callback')({
           for (const cookie of cookies) headers.append('Set-Cookie', serializeCookie(cookie.name, cookie.value, cookie.options))
           return new Response(null, { status: 302, headers })
         }
-        const supabase = createServerClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)!,
-          {
+        const supabase = createServerClient(getServerUrl(), getServerPublishableKey(), {
             cookies: {
               getAll: () => request.headers.get('cookie')?.split('; ').filter(Boolean).map((item) => {
                 const index = item.indexOf('=')

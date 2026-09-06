@@ -1,6 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest, setResponseHeader } from '@tanstack/react-start/server'
 import { normalizeProfileAccess } from '~/lib/auth/profile-access'
+import { isAdminRole } from '~/lib/auth/roles'
 import { createServerSupabase } from './supabase-context'
 
 export type AuthProfile = {
@@ -38,3 +39,18 @@ async function readAuth(): Promise<AuthSnapshot> {
 }
 
 export const getCurrentAuth = createServerFn({ method: 'GET' }).handler(readAuth)
+
+// ponytail: deep Auth module — guards live with readAuth for locality, single import for routes
+export async function requireActiveAuth() {
+  const auth = await getCurrentAuth()
+  if (!auth.user || !auth.profile || auth.profile.account_status !== 'active' || !auth.profile.is_active) {
+    throw new Error('Unauthorized')
+  }
+  return { ...auth, user: auth.user, profile: auth.profile }
+}
+
+export async function requireAdminAuth() {
+  const auth = await requireActiveAuth()
+  if (!isAdminRole(auth.profile.role)) throw new Error('Forbidden')
+  return auth
+}

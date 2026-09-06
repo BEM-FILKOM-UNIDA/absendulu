@@ -2,20 +2,15 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
 import { getRequest } from '@tanstack/react-start/server'
 import { readCookies, serializeCookie } from '~/lib/http/cookies'
+import { getSecretKey, getServerPublishableKey, getServerUrl } from '~/lib/supabase/env'
 
 export function createAdminClient(): SupabaseClient {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  // ponytail: fallback to service_role for envs not yet migrated to secret key
-  const secretKey = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !secretKey) throw new Error('Supabase server environment belum dikonfigurasi')
-  return createClient(url, secretKey, { auth: { autoRefreshToken: false, persistSession: false } })
+  return createClient(getServerUrl(), getSecretKey(), { auth: { autoRefreshToken: false, persistSession: false } })
 }
 
 // ponytail: unified cookie helper — single createSupabase replaces duplicated getAll/setAll in 2 wrappers
 function createSupabase(request: Request, responseCookies: string[]) {
-  const publishableKey =
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, publishableKey!, {
+  return createServerClient(getServerUrl(), getServerPublishableKey(), {
     cookies: {
       getAll: () => readCookies(request),
       setAll: (cookies) => {
