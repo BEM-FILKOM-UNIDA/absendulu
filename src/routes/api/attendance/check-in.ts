@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { createAdminClient } from '~/server/supabase'
+import { createAdminClient } from '~/server/supabase-context'
 import { createRequestSupabase } from '~/server/supabase-context'
 import { normalizeProfileAccess } from '~/lib/auth/profile-access'
 import { getSchedulePosition } from '~/lib/events/schedule'

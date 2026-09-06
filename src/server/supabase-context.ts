@@ -10,35 +10,24 @@ export function createAdminClient(): SupabaseClient {
   return createClient(url, secretKey, { auth: { autoRefreshToken: false, persistSession: false } })
 }
 
+// ponytail: unified cookie helper — single createSupabase replaces duplicated getAll/setAll in 2 wrappers
+function createSupabase(request: Request, responseCookies: string[]) {
+  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
+    cookies: {
+      getAll: () => readCookies(request),
+      setAll: (cookies) => {
+        responseCookies.push(...cookies.map(({ name, value, options }) => serializeCookie(name, value, options)))
+      },
+    },
+  })
+}
+
 export function createServerSupabase(request?: Request) {
   const _request = request ?? getRequest()
   const responseCookies: string[] = []
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll: () => readCookies(_request),
-        setAll: (cookies) => {
-          responseCookies.push(...cookies.map(({ name, value, options }) => serializeCookie(name, value, options)))
-        },
-      },
-    },
-  )
-  return { supabase, responseCookies }
+  return { supabase: createSupabase(_request, responseCookies), responseCookies }
 }
 
 export function createRequestSupabase(request: Request, responseCookies: string[]) {
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll: () => readCookies(request),
-        setAll: (cookies) => {
-          responseCookies.push(...cookies.map(({ name, value, options }) => serializeCookie(name, value, options)))
-        },
-      },
-    },
-  )
+  return createSupabase(request, responseCookies)
 }

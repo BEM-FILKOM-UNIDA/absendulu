@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { createAdminClient } from '~/server/supabase'
+import { createAdminClient } from '~/server/supabase-context'
 
 export const Route = createFileRoute('/api/health')({
   server: {

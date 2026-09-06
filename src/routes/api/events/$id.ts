@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { createAdminClient } from '~/server/supabase'
+import { createAdminClient } from '~/server/supabase-context'
 import { responseWithCookies } from '~/server/request-auth'
 import { withAdminApi } from '~/server/api-middleware'
 import type { EventStatus } from '~/lib/events/validation'

@@ -1,3 +1,4 @@
+// ponytail: 4-file auth split kept — single lib/auth.ts would cut ~15 LOC but touches 10+ imports; merge when adding next auth helper
 export function isAdminRole(role: string | null | undefined): boolean {
   return role === 'admin' || role === 'admin_bem'
 }

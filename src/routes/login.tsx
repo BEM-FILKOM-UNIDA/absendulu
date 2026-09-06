@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useSearch } from '@tanstack/react-router'
 import { useState } from 'react'
 import { createClient } from '~/lib/supabase/client'
-import { getSafeNextPath } from '~/lib/navigation'
+import { getSafeNextPath } from '~/lib/http/navigation'
 
 export const Route = createFileRoute('/login')({ component: LoginPage })
 

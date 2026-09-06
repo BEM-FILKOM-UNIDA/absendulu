@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { createAdminClient } from '~/server/supabase'
+import { createAdminClient } from '~/server/supabase-context'
 import { isAdminRole } from '~/lib/auth/roles'
 import { isProfileComplete } from '~/lib/auth/identity'
 import { isAdminMutableAccountStatus } from '~/lib/auth/account-status'

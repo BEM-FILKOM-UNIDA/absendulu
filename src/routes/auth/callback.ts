@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { getSafeNextPath } from '~/lib/navigation'
+import { getSafeNextPath } from '~/lib/http/navigation'
 import { isAdminRole } from '~/lib/auth/roles'
 import { GENERATED_IDENTIFIER_PATTERN } from '~/lib/auth/identity'
 import { serializeCookie } from '~/lib/http/cookies'
