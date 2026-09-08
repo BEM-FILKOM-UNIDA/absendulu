@@ -17,7 +17,7 @@ export const Route = createFileRoute('/_auth/dashboard')({
 })
 
 function DashboardPage() {
-  const { data } = Route.useLoaderData()
+  const { data } = Route.useLoaderData() as { data: Promise<Awaited<ReturnType<typeof getDashboardData>>> }
   return (
     <div className="space-y-10">
       <section className="flex flex-col justify-between gap-6 border-b border-(--border) pb-8 sm:flex-row sm:items-end">
@@ -26,7 +26,10 @@ function DashboardPage() {
           <h2 className="display-type mt-3 text-5xl leading-none tracking-[-.07em] sm:text-6xl">Siap hadir<br /><em>di acara.</em></h2>
           <p className="mt-5 max-w-lg text-sm leading-6 text-(--muted)">Pantau acara organisasi FILKOM, buka absensi, dan lihat siapa saja yang sudah hadir—semua dalam satu tempat.</p>
         </div>
-        <ButtonLink href="/scan" variant="accent">Scan untuk hadir <span aria-hidden="true">↗</span></ButtonLink>
+        <div className="flex flex-wrap gap-3">
+          <ButtonLink href="/events/new" variant="primary">Buat acara ↗</ButtonLink>
+          <ButtonLink href="/scan" variant="accent">Scan untuk hadir <span aria-hidden="true">↗</span></ButtonLink>
+        </div>
       </section>
       <Suspense fallback={<StatsPending />}>
         <Await promise={data} fallback={<StatsPending />}>

@@ -2,7 +2,7 @@ import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { createClient } from '~/lib/supabase/client'
 import { getOnboardingData } from '~/server/data'
-import { GENERATED_IDENTIFIER_PATTERN, isValidStaffIdentifier, isValidStudentNim } from '~/lib/auth/identity'
+import { isValidStaffIdentifier, isValidStudentNim } from '~/lib/auth/identity'
 import { Card } from '~/components/ui'
 
 type UserType = 'mahasiswa' | 'dosen' | 'tata_usaha'
@@ -12,9 +12,8 @@ export const Route = createFileRoute('/complete-profile')({
   loader: async () => {
     const data = await getOnboardingData()
     if (!data.auth.user) throw redirect({ to: '/login', search: { next: '/complete-profile' } })
-    if (!data.profile || GENERATED_IDENTIFIER_PATTERN.test(data.profile.nim ?? '')) {
-      throw redirect({ to: '/login', search: { error: 'unprovisioned' } })
-    }
+    // ponytail: B — self-register, allow generated NIM to complete profile
+    if (!data.profile) return data
     return data
   },
   component: CompleteProfilePage,
