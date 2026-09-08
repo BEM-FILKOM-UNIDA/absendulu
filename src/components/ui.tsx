@@ -8,7 +8,8 @@ const styles = {
 } as const
 
 export function ButtonLink({ href, children, variant = 'primary', className = '' }: { href: string; children: ReactNode; variant?: keyof typeof styles; className?: string }) {
-  return <Link to={href} className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-sm px-5 text-sm font-bold transition-[color,background-color,transform] hover:-translate-y-0.5 ${styles[variant]} ${className}`}>{children}</Link>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return <Link to={href as any} className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-sm px-5 text-sm font-bold transition-[color,background-color,transform] hover:-translate-y-0.5 ${styles[variant]} ${className}`}>{children}</Link>
 }
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
