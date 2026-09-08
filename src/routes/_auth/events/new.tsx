@@ -15,7 +15,7 @@ function NewEventPage() {
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setLoading(true); setError('')
     try {
-      const response = await fetch('/api/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, status: 'active' }) })
+      const response = await fetch('/api/events', { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: window.location.origin }, body: JSON.stringify({ ...form, status: 'active' }) })
       const result = await response.json().catch(() => null)
       if (!response.ok) { setError(result?.error || 'Gagal membuat acara.'); return }
       await router.invalidate()

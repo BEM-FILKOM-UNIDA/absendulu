@@ -26,7 +26,7 @@ function EventDetailPage() {
     setLoading(true)
     setError('')
     try {
-      const response = await fetch(`/api/events/${event.id}/session/open`, { method: 'POST' })
+      const response = await fetch(`/api/events/${event.id}/session/open`, { method: 'POST', headers: { Origin: window.location.origin } })
       if (!response.ok && response.status !== 303) {
         const result = await response.json().catch(() => null)
         setError(result?.error || 'Sesi gagal dibuka.')
@@ -43,7 +43,7 @@ function EventDetailPage() {
   async function deleteEvent() {
     if (!window.confirm(`Hapus acara “${event.name}”? Data absensi dan sesi QR juga akan dihapus.`)) return
     setLoading(true)
-    const response = await fetch(`/api/events/${event.id}`, { method: 'DELETE' })
+    const response = await fetch(`/api/events/${event.id}`, { method: 'DELETE', headers: { Origin: window.location.origin } })
     if (!response.ok) {
       const result = await response.json().catch(() => null)
       setError(result?.error || 'Acara gagal dihapus.')
@@ -59,7 +59,7 @@ function EventDetailPage() {
     try {
       const response = await fetch(`/api/events/${event.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Origin: window.location.origin },
         body: JSON.stringify({ status: newStatus }),
       })
       if (!response.ok) {

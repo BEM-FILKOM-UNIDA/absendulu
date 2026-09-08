@@ -30,7 +30,7 @@ function QrPage() {
     setClosing(true)
     setError('')
     try {
-      const response = await fetch(`/api/events/${event.id}/session/close`, { method: 'POST' })
+      const response = await fetch(`/api/events/${event.id}/session/close`, { method: 'POST', headers: { Origin: window.location.origin } })
       if (!response.ok) {
         const result = await response.json().catch(() => null)
         setError(result?.error || 'Sesi gagal ditutup.')

@@ -18,7 +18,7 @@ function ScanPage() {
     setLoading(true)
     setResult(null)
     try {
-      const response = await fetch('/api/attendance/check-in', { method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store', body: JSON.stringify({ qrToken }) })
+      const response = await fetch('/api/attendance/check-in', { method: 'POST', headers: { 'Content-Type': 'application/json', Origin: window.location.origin }, cache: 'no-store', body: JSON.stringify({ qrToken }) })
       const data = await response.json().catch(() => ({ error: 'Respons server tidak valid.' }))
       setResult({ ...data, httpStatus: response.status })
     } catch { setResult({ error: 'Tidak dapat terhubung ke server. Periksa koneksi lalu coba lagi.' }) } finally { setLoading(false) }
