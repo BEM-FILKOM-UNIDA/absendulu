@@ -14,9 +14,10 @@ function getCameraScanConfig(facingMode: 'environment' | 'user') {
   return {
     ...scanConfig,
     videoConstraints: {
-      facingMode: { exact: facingMode },
-      width: { ideal: 1920 },
-      height: { ideal: 1440 },
+      // ponytail: ideal dulu (relaxed) — exact gagal di HP murah tanpa label 'environment'
+      facingMode: { ideal: facingMode },
+      width: { ideal: 1280 },
+      height: { ideal: 960 },
       aspectRatio: { ideal: 4 / 3 },
     },
   }
@@ -78,6 +79,8 @@ export default function QRScanner({ onScan }: { onScan: (token: string) => void 
       let lastCameraError: unknown
       const cameraSources: Array<{ source: MediaTrackConstraints; facingMode: 'environment' | 'user' }> = [
         { source: { facingMode: { exact: 'environment' } }, facingMode: 'environment' },
+        // ponytail: ideal fallback — HP murah/label tidak standard gagal di exact
+        { source: { facingMode: { ideal: 'environment' } } as unknown as MediaTrackConstraints, facingMode: 'environment' },
         { source: { facingMode: 'user' }, facingMode: 'user' },
       ]
       for (const { source, facingMode } of cameraSources) {

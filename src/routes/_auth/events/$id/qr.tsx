@@ -22,7 +22,7 @@ function QrPage() {
     if (!session?.qr_token) return
     // ponytail: lazy qrcode — 76KB only for /events/$id/qr, not dashboard
     import('qrcode')
-      .then((m) => m.default.toDataURL(session.qr_token, { width: 1200, margin: 4, errorCorrectionLevel: 'M', color: { dark: '#000000', light: '#ffffff' } }))
+      .then((m) => m.default.toDataURL(session.qr_token, { width: 1200, margin: 4, errorCorrectionLevel: 'Q', color: { dark: '#000000', light: '#ffffff' } }))
       .then(setQrDataUrl)
       .catch(() => setError('QR gagal dibuat.'))
   }, [session?.qr_token])
