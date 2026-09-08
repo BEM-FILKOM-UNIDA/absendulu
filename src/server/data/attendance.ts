@@ -2,11 +2,12 @@ import { createServerFn } from '@tanstack/react-start'
 import { createAdminClient } from '../supabase-context'
 import { requireActiveAuth } from '../auth-guard'
 import { cached } from '~/lib/cache'
+import { isAdminRole } from '~/lib/auth/roles'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 // ponytail: deep Attendance module — pure fetchHistory with injected client, per-user cache 20s
 export async function fetchHistory(supabase: SupabaseClient, auth: Awaited<ReturnType<typeof requireActiveAuth>>) {
-  const isAdmin = auth.profile.role === 'admin' || auth.profile.role === 'admin_bem'
+  const isAdmin = isAdminRole(auth.profile.role)
   const key = `history:${isAdmin ? 'admin' : auth.user.id}`
   return cached(key, 20_000, async () => {
     let query = supabase.from('attendances').select('id, user_id, status, method, check_in_at, notes, events(name)').order('check_in_at', { ascending: false }).limit(isAdmin ? 100 : 50)

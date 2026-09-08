@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { invalidate } from '~/lib/cache'
 import { createAdminClient } from '~/server/supabase-context'
 import { isValidStaffIdentifier, isValidStudentNim } from '~/lib/auth/identity'
 import { responseWithCookies } from '~/server/request-auth'
@@ -66,6 +67,8 @@ export const Route = createFileRoute('/api/members/manual')({
           if (createdUser) await admin.auth.admin.deleteUser(userId)
           return responseWithCookies({ error: profileError.message }, 500, cookies)
         }
+        invalidate('members')
+        invalidate('dashboard')
         return responseWithCookies({ email, status: wasExisting ? 'updated' : 'created' }, 200, cookies)
       },
     },

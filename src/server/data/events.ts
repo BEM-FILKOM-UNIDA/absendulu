@@ -2,6 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { createAdminClient } from '../supabase-context'
 import { requireActiveAuth, requireAdminAuth } from '../auth-guard'
 import { cached, TTL } from '~/lib/cache'
+import { isAdminRole } from '~/lib/auth/roles'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 // ponytail: deep Events module — single seam for all event queries, error not swallowed
@@ -43,7 +44,7 @@ export async function getEventRow(supabase: SupabaseClient, id: string, isAdmin:
 
 export const getEventsData = createServerFn({ method: 'GET' }).handler(async () => {
   const auth = await requireActiveAuth()
-  const isAdmin = auth.profile.role === 'admin' || auth.profile.role === 'admin_bem'
+  const isAdmin = isAdminRole(auth.profile.role)
   const events = await listEvents(createAdminClient(), isAdmin)
   return { isAdmin, events }
 })
@@ -52,7 +53,7 @@ export const getEventDetailData = createServerFn({ method: 'GET' })
   .validator((data: { id: string }) => data)
   .handler(async ({ data }) => {
     const auth = await requireActiveAuth()
-    const isAdmin = auth.profile.role === 'admin' || auth.profile.role === 'admin_bem'
+    const isAdmin = isAdminRole(auth.profile.role)
     const admin = createAdminClient()
     const event = await getEventRow(admin, data.id, isAdmin)
     if (!event) throw new Error('Event not found')

@@ -1,19 +1,33 @@
 // ponytail: one-line memo with TTL — no dep, no abstraction for later
+// ponytail: LRU cap 500 + evict expired on read/write so Nitro long-lived process tidak bocor
 type CacheEntry<T> = { data: T; expires: number }
+const MAX_ENTRIES = 500
 const store = new Map<string, CacheEntry<unknown>>()
 // Inflight map: concurrent callers with the same key share one in-flight Promise
 // instead of each firing a separate DB query. The entry is removed once the
 // Promise settles so a subsequent call after settlement re-evaluates normally.
 const inflight = new Map<string, Promise<unknown>>()
 
+function evictIfNeeded() {
+  if (store.size < MAX_ENTRIES) return
+  // Map iteration order = insertion order; delete oldest until 10% free
+  const toDelete = store.size - MAX_ENTRIES + 50
+  let i = 0
+  for (const key of store.keys()) { store.delete(key); if (++i >= toDelete) break }
+}
+
 export function cached<T>(key: string, ttlMs: number, fn: () => Promise<T>): Promise<T> {
   const hit = store.get(key) as CacheEntry<T> | undefined
-  if (hit && Date.now() < hit.expires) return Promise.resolve(hit.data)
+  if (hit) {
+    if (Date.now() < hit.expires) return Promise.resolve(hit.data)
+    store.delete(key) // expired
+  }
 
   const existing = inflight.get(key) as Promise<T> | undefined
   if (existing) return existing
 
   const promise = fn().then((data) => {
+    evictIfNeeded()
     store.set(key, { data, expires: Date.now() + ttlMs })
     inflight.delete(key)
     return data

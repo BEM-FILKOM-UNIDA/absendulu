@@ -2,12 +2,13 @@ import { createServerFn } from '@tanstack/react-start'
 import { createAdminClient } from '../supabase-context'
 import { requireActiveAuth } from '../auth-guard'
 import { cached, TTL } from '~/lib/cache'
+import { isAdminRole } from '~/lib/auth/roles'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 // ponytail: deep Dashboard module — pure fetchDashboard with injected client, error not swallowed
 // ponytail: global cache 30s for 70+ concurrent hits — per-instance, no dep
 export async function fetchDashboard(supabase: SupabaseClient, auth: Awaited<ReturnType<typeof requireActiveAuth>>) {
-  const isAdmin = auth.profile.role === 'admin' || auth.profile.role === 'admin_bem'
+  const isAdmin = isAdminRole(auth.profile.role)
   // cache global parts (same for all users of same role) — auth is per-request
   const global = await cached(`dashboard:${isAdmin ? 'admin' : 'user'}`, TTL.dashboard, async () => {
     const [eventsResult, profilesResult, sessionsResult] = await Promise.all([

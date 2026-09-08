@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { invalidate } from '~/lib/cache'
 import { createAdminClient } from '~/server/supabase-context'
 import { isValidStaffIdentifier, isValidStudentNim } from '~/lib/auth/identity'
 import { responseWithCookies } from '~/server/request-auth'
@@ -115,6 +116,8 @@ export const Route = createFileRoute('/api/members/import')({
           }
         }
         await Promise.all(Array.from({ length: Math.min(8, rows.length) }, () => worker()))
+        invalidate('members')
+        invalidate('dashboard')
         return responseWithCookies({ imported, existing, failed }, 200, cookies)
       },
     },

@@ -2,6 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { createAdminClient } from '../supabase-context'
 import { getCurrentAuth } from '../auth'
 import { requireActiveAuth } from '../auth-guard'
+import { isAdminRole } from '~/lib/auth/roles'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 // ponytail: deep Onboarding module — pure functions with injected client
@@ -42,5 +43,5 @@ export const getProfileData = createServerFn({ method: 'GET' }).handler(async ()
   const { data: profile, error } = await createAdminClient().from('profiles').select('role, full_name, nim, user_type, division, account_status, is_active').eq('id', auth.user.id).maybeSingle()
   if (error) throw new Error(`Gagal memuat profil: ${error.message}`)
   if (!profile) throw new Error('Profile not found')
-  return { auth, profile, isAdmin: profile.role === 'admin' || profile.role === 'admin_bem' }
+  return { auth, profile, isAdmin: isAdminRole(profile.role) }
 })
