@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getQrData } from '~/server/data'
 import { Card } from '~/components/ui'
 import { QrRouteError } from '~/components/route-fallbacks'
@@ -16,12 +16,13 @@ function QrPage() {
   const [qrDataUrl, setQrDataUrl] = useState('')
   const [closing, setClosing] = useState(false)
   const [error, setError] = useState('')
+  const qrRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!session?.qr_token) return
     // ponytail: lazy qrcode — 76KB only for /events/$id/qr, not dashboard
     import('qrcode')
-      .then((m) => m.default.toDataURL(session.qr_token, { width: 1200, margin: 4, errorCorrectionLevel: 'M', color: { dark: '#000000', light: '#ffffff' } }))
+      .then((m) => m.default.toDataURL(session.qr_token, { width: 1200, margin: 4, errorCorrectionLevel: 'Q', color: { dark: '#000000', light: '#ffffff' } }))
       .then(setQrDataUrl)
       .catch(() => setError('QR gagal dibuat.'))
   }, [session?.qr_token])
@@ -49,7 +50,17 @@ function QrPage() {
     const link = document.createElement('a')
     link.href = qrDataUrl
     link.download = `qr-absensi-${event.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'acara'}.png`
+    document.body.appendChild(link)
     link.click()
+    link.remove()
+  }
+
+  function toggleFullscreen() {
+    // ponytail: native Fullscreen API cukup — no dep, catch iOS reject
+    const el = qrRef.current
+    if (!el) return
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
+    else el.requestFullscreen().catch(() => setError('Fullscreen tidak didukung di browser ini.'))
   }
 
   if (!session) {
@@ -79,12 +90,12 @@ function QrPage() {
             <div className="text-center">
               <p className="eyebrow text-(--accent-strong)">QR absensi</p>
               <h1 className="mt-3 wrap-break-word text-xl font-black sm:text-2xl">{event.name}</h1>
-              <div className="mx-auto mt-6 flex aspect-square w-full max-w-110 items-center justify-center border-4 border-black bg-white p-3 sm:p-5">
-                {qrDataUrl ? <img src={qrDataUrl} alt={`QR absensi ${event.name}`} className="h-full w-full" /> : <span className="text-xs font-bold uppercase tracking-[.12em] text-(--muted)">Menyiapkan QR…</span>}
+              <div ref={qrRef} className="mx-auto mt-6 flex aspect-square w-full max-w-110 items-center justify-center border-4 border-black bg-white p-3 sm:p-5 [&:fullscreen]:aspect-auto [&:fullscreen]:max-w-none [&:fullscreen]:h-screen [&:fullscreen]:w-screen [&:fullscreen]:max-h-screen [&:fullscreen]:border-0 [&:fullscreen]:p-8">
+                {qrDataUrl ? <img src={qrDataUrl} alt={`QR absensi ${event.name}`} className="h-full w-full object-contain [&:fullscreen]:h-full [&:fullscreen]:w-auto" /> : <span className="text-xs font-bold uppercase tracking-[.12em] text-(--muted)">Menyiapkan QR…</span>}
               </div>
               <div className="mx-auto mt-5 flex w-full max-w-110 flex-col gap-3 sm:flex-row">
                 <button type="button" onClick={downloadQr} disabled={!qrDataUrl} className="min-h-11 flex-1 bg-(--ink) px-4 text-sm font-bold text-white disabled:opacity-50">Download QR ↓</button>
-                <button type="button" onClick={() => document.documentElement.requestFullscreen?.()} className="min-h-11 flex-1 border-2 border-(--ink) px-4 text-sm font-bold text-(--ink)">Fullscreen ↗</button>
+                <button type="button" onClick={toggleFullscreen} className="min-h-11 flex-1 border-2 border-(--ink) px-4 text-sm font-bold text-(--ink)">Fullscreen ↗</button>
               </div>
             </div>
           </Card>

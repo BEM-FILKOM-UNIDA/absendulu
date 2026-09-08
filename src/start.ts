@@ -28,12 +28,18 @@ const apiRules: ApiRule[] = [
   { pattern: /^\/api\/attendance\/check-in$/, methods: ['POST'] },
 ]
 
-function withSecurityHeaders(response: Response) {
+function withSecurityHeaders(response: Response, pathname?: string) {
   const headers = new Headers(response.headers)
   for (const [name, value] of Object.entries(securityHeaders)) headers.set(name, value)
   if (process.env.NODE_ENV === 'production') {
     for (const [name, value] of Object.entries(productionOnlyHeaders)) headers.set(name, value)
   }
+  // ponytail: CSP minimal tanpa break inline data: img for QR — satu header, 1 line
+  if (!headers.has('Content-Security-Policy')) {
+    headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co; media-src 'self' blob:; frame-ancestors 'none'")
+  }
+  // ponytail: API no-store — pathname dari middleware lebih reliable dari response.url
+  if (pathname?.startsWith('/api/')) headers.set('Cache-Control', 'no-store')
   // ponytail: body may be null for redirects/204, new Response handles it
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers })
 }
@@ -55,7 +61,7 @@ const requestMiddleware = createMiddleware().server(async ({ next, request, path
 
   const result = await next()
   if (!result.response) return result
-  return { ...result, response: withSecurityHeaders(result.response) }
+  return { ...result, response: withSecurityHeaders(result.response, pathname) }
 })
 
 export const startInstance = createStart(() => ({
