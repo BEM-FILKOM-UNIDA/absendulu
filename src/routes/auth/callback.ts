@@ -51,8 +51,27 @@ export const Route = createFileRoute('/auth/callback')({
           .eq('id', user.id)
           .maybeSingle()
 
-        if (!profile || GENERATED_IDENTIFIER_PATTERN.test(profile.nim ?? '')) {
-          return redirectTo('/login', { error: 'unprovisioned' })
+        // ponytail: B — self-register via Google, no magic-link limit for 70+ burst
+        if (!profile) {
+          const admin = createAdminClient()
+          const { error: insertError } = await admin.from('profiles').insert({
+            id: user.id,
+            email: user.email,
+            full_name: (user.user_metadata?.full_name as string) ?? user.email?.split('@')[0] ?? 'Pengguna',
+            nim: `AUTH-${user.id}`,
+            user_type: 'mahasiswa',
+            account_status: 'invited',
+            is_active: true,
+            role: 'user',
+            nim_format_legacy: true,
+          })
+          if (insertError && !insertError.message.includes('duplicate')) {
+            return redirectTo('/login', { error: 'profile' })
+          }
+          return redirectTo('/complete-profile')
+        }
+        if (GENERATED_IDENTIFIER_PATTERN.test(profile.nim ?? '')) {
+          return redirectTo('/complete-profile')
         }
         const destination = profile.account_status === 'disabled' || !profile.is_active
           ? '/account-disabled'

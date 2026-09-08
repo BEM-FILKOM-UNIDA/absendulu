@@ -9,8 +9,9 @@ export const Route = createFileRoute('/waiting-approval')({
   loader: async () => {
     const data = await getOnboardingData()
     if (!data.auth.user) throw redirect({ to: '/login', search: { next: '/waiting-approval' } })
-    if (!data.profile || GENERATED_IDENTIFIER_PATTERN.test(data.profile.nim ?? '')) {
-      throw redirect({ to: '/login', search: { error: 'unprovisioned' } })
+    if (!data.profile) throw redirect({ to: '/complete-profile' })
+    if (GENERATED_IDENTIFIER_PATTERN.test(data.profile.nim ?? '')) {
+      throw redirect({ to: '/complete-profile' })
     }
     return data
   },

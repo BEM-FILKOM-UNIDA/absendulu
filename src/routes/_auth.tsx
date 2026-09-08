@@ -11,7 +11,10 @@ export const Route = createFileRoute('/_auth')({
       if (!auth.user) throw redirect({ to: '/login', search: { next: location.href } })
       if (!auth.profile || auth.profile.account_status === 'disabled' || !auth.profile.is_active) throw redirect({ to: '/account-disabled' })
       if (auth.profile.account_status !== 'active') {
-        if (GENERATED_IDENTIFIER_PATTERN.test(auth.profile.nim ?? '')) throw redirect({ to: '/login', search: { error: 'unprovisioned' } })
+        // ponytail: B — self-register, generated NIM goes to complete-profile not login
+        throw redirect({ to: '/complete-profile' })
+      }
+      if (GENERATED_IDENTIFIER_PATTERN.test(auth.profile.nim ?? '')) {
         throw redirect({ to: '/complete-profile' })
       }
       return { auth }
