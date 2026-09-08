@@ -41,8 +41,10 @@ export function parseEventInput(value: unknown): EventInput | null {
   if (!name || name.length > 160 || (description && description.length > 5000) || (location && location.length > 200)) return null
   if (!isValidDate(event_date) || !isValidTime(start_time) || (end_time && !isValidTime(end_time))) return null
   if (!isValidEventTimeRange(start_time, end_time)) return null
-  // Reject events with dates in the past (allow same-day events)
-  const today = new Date().toISOString().slice(0, 10)
-  if (event_date < today) return null
+  // Reject events with dates in the past — compare against today in Asia/Jakarta
+  // (UTC+7). Using UTC here would incorrectly reject same-day events created before
+  // 07:00 WIB, because the server clock would still be on the previous UTC date.
+  const jakartaToday = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date())
+  if (event_date < jakartaToday) return null
   return { name, description, event_date, start_time, end_time, location, status }
 }
