@@ -96,5 +96,5 @@ function EventSummary({ events }: { events: DashboardEvent[] }) {
 
 function EventRow({ event }: { event: DashboardEvent }) {
   const details = `${event.event_date} · ${event.start_time}${event.location ? ` · ${event.location}` : ''}`
-  return <Link to="/events" className="flex items-center justify-between gap-4 px-6 py-5 hover:bg-(--surface-muted)"><div className="min-w-0"><p className="truncate text-sm font-black">{event.name}</p><p className="mt-2 text-xs text-(--muted)">{details}</p></div><span className="shrink-0 border border-(--border) px-2.5 py-1 text-[10px] font-black uppercase text-(--accent-strong)">{event.status}</span></Link>
+  return <Link to="/events/$id" params={{ id: event.id }} className="flex items-center justify-between gap-4 px-6 py-5 hover:bg-(--surface-muted)"><div className="min-w-0"><p className="truncate text-sm font-black">{event.name}</p><p className="mt-2 text-xs text-(--muted)">{details}</p></div><span className="shrink-0 border border-(--border) px-2.5 py-1 text-[10px] font-black uppercase text-(--accent-strong)">{event.status}</span></Link>
 }
