@@ -26,6 +26,7 @@ import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiProfileRouteImport } from './routes/api/profile'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AuthAttendanceHistoryRouteImport } from './routes/_auth/attendance/history'
+import { Route as AuthEventsIndexRouteImport } from './routes/_auth/events/index'
 import { Route as AuthEventsIdRouteImport } from './routes/_auth/events/$id'
 import { Route as AuthEventsNewRouteImport } from './routes/_auth/events/new'
 import { Route as ApiAttendanceCheckInRouteImport } from './routes/api/attendance/check-in'
@@ -33,6 +34,7 @@ import { Route as ApiEventsIdRouteImport } from './routes/api/events/$id'
 import { Route as ApiMembersIdRouteImport } from './routes/api/members/$id'
 import { Route as ApiMembersImportRouteImport } from './routes/api/members/import'
 import { Route as ApiMembersManualRouteImport } from './routes/api/members/manual'
+import { Route as AuthEventsIdIndexRouteImport } from './routes/_auth/events/$id/index'
 import { Route as AuthEventsIdQrRouteImport } from './routes/_auth/events/$id/qr'
 import { Route as ApiEventsIdSessionRouteImport } from './routes/api/events/$id/session'
 import { Route as ApiEventsIdSessionCloseRouteImport } from './routes/api/events/$id/session/close'
@@ -122,6 +124,11 @@ const AuthAttendanceHistoryRoute = AuthAttendanceHistoryRouteImport.update({
   path: '/attendance/history',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthEventsIndexRoute = AuthEventsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthEventsRoute,
+} as any)
 const AuthEventsIdRoute = AuthEventsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -156,6 +163,11 @@ const ApiMembersManualRoute = ApiMembersManualRouteImport.update({
   id: '/api/members/manual',
   path: '/api/members/manual',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthEventsIdIndexRoute = AuthEventsIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthEventsIdRoute,
 } as any)
 const AuthEventsIdQrRoute = AuthEventsIdQrRouteImport.update({
   id: '/qr',
@@ -202,8 +214,10 @@ export interface FileRoutesByFullPath {
   '/api/members/$id': typeof ApiMembersIdRoute
   '/api/members/import': typeof ApiMembersImportRoute
   '/api/members/manual': typeof ApiMembersManualRoute
+  '/events/': typeof AuthEventsIndexRoute
   '/events/$id/qr': typeof AuthEventsIdQrRoute
   '/api/events/$id/session': typeof ApiEventsIdSessionRouteWithChildren
+  '/events/$id/': typeof AuthEventsIdIndexRoute
   '/api/events/$id/session/close': typeof ApiEventsIdSessionCloseRoute
   '/api/events/$id/session/open': typeof ApiEventsIdSessionOpenRoute
 }
@@ -214,7 +228,6 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/waiting-approval': typeof WaitingApprovalRoute
   '/dashboard': typeof AuthDashboardRoute
-  '/events': typeof AuthEventsRouteWithChildren
   '/mahasiswa': typeof AuthMahasiswaRoute
   '/members': typeof AuthMembersRoute
   '/profile': typeof AuthProfileRoute
@@ -224,15 +237,16 @@ export interface FileRoutesByTo {
   '/api/profile': typeof ApiProfileRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/attendance/history': typeof AuthAttendanceHistoryRoute
-  '/events/$id': typeof AuthEventsIdRouteWithChildren
   '/events/new': typeof AuthEventsNewRoute
   '/api/attendance/check-in': typeof ApiAttendanceCheckInRoute
   '/api/events/$id': typeof ApiEventsIdRouteWithChildren
   '/api/members/$id': typeof ApiMembersIdRoute
   '/api/members/import': typeof ApiMembersImportRoute
   '/api/members/manual': typeof ApiMembersManualRoute
+  '/events': typeof AuthEventsIndexRoute
   '/events/$id/qr': typeof AuthEventsIdQrRoute
   '/api/events/$id/session': typeof ApiEventsIdSessionRouteWithChildren
+  '/events/$id': typeof AuthEventsIdIndexRoute
   '/api/events/$id/session/close': typeof ApiEventsIdSessionCloseRoute
   '/api/events/$id/session/open': typeof ApiEventsIdSessionOpenRoute
 }
@@ -262,8 +276,10 @@ export interface FileRoutesById {
   '/api/members/$id': typeof ApiMembersIdRoute
   '/api/members/import': typeof ApiMembersImportRoute
   '/api/members/manual': typeof ApiMembersManualRoute
+  '/_auth/events/': typeof AuthEventsIndexRoute
   '/_auth/events/$id/qr': typeof AuthEventsIdQrRoute
   '/api/events/$id/session': typeof ApiEventsIdSessionRouteWithChildren
+  '/_auth/events/$id/': typeof AuthEventsIdIndexRoute
   '/api/events/$id/session/close': typeof ApiEventsIdSessionCloseRoute
   '/api/events/$id/session/open': typeof ApiEventsIdSessionOpenRoute
 }
@@ -293,8 +309,10 @@ export interface FileRouteTypes {
     | '/api/members/$id'
     | '/api/members/import'
     | '/api/members/manual'
+    | '/events/'
     | '/events/$id/qr'
     | '/api/events/$id/session'
+    | '/events/$id/'
     | '/api/events/$id/session/close'
     | '/api/events/$id/session/open'
   fileRoutesByTo: FileRoutesByTo
@@ -305,7 +323,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/waiting-approval'
     | '/dashboard'
-    | '/events'
     | '/mahasiswa'
     | '/members'
     | '/profile'
@@ -315,15 +332,16 @@ export interface FileRouteTypes {
     | '/api/profile'
     | '/auth/callback'
     | '/attendance/history'
-    | '/events/$id'
     | '/events/new'
     | '/api/attendance/check-in'
     | '/api/events/$id'
     | '/api/members/$id'
     | '/api/members/import'
     | '/api/members/manual'
+    | '/events'
     | '/events/$id/qr'
     | '/api/events/$id/session'
+    | '/events/$id'
     | '/api/events/$id/session/close'
     | '/api/events/$id/session/open'
   id:
@@ -352,8 +370,10 @@ export interface FileRouteTypes {
     | '/api/members/$id'
     | '/api/members/import'
     | '/api/members/manual'
+    | '/_auth/events/'
     | '/_auth/events/$id/qr'
     | '/api/events/$id/session'
+    | '/_auth/events/$id/'
     | '/api/events/$id/session/close'
     | '/api/events/$id/session/open'
   fileRoutesById: FileRoutesById
@@ -496,6 +516,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAttendanceHistoryRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/events/': {
+      id: '/_auth/events/'
+      path: '/'
+      fullPath: '/events/'
+      preLoaderRoute: typeof AuthEventsIndexRouteImport
+      parentRoute: typeof AuthEventsRoute
+    }
     '/_auth/events/$id': {
       id: '/_auth/events/$id'
       path: '/$id'
@@ -545,6 +572,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMembersManualRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_auth/events/$id/': {
+      id: '/_auth/events/$id/'
+      path: '/'
+      fullPath: '/events/$id/'
+      preLoaderRoute: typeof AuthEventsIdIndexRouteImport
+      parentRoute: typeof AuthEventsIdRoute
+    }
     '/_auth/events/$id/qr': {
       id: '/_auth/events/$id/qr'
       path: '/qr'
@@ -578,10 +612,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthEventsIdRouteChildren {
   AuthEventsIdQrRoute: typeof AuthEventsIdQrRoute
+  AuthEventsIdIndexRoute: typeof AuthEventsIdIndexRoute
 }
 
 const AuthEventsIdRouteChildren: AuthEventsIdRouteChildren = {
   AuthEventsIdQrRoute: AuthEventsIdQrRoute,
+  AuthEventsIdIndexRoute: AuthEventsIdIndexRoute,
 }
 
 const AuthEventsIdRouteWithChildren = AuthEventsIdRoute._addFileChildren(
@@ -591,11 +627,13 @@ const AuthEventsIdRouteWithChildren = AuthEventsIdRoute._addFileChildren(
 interface AuthEventsRouteChildren {
   AuthEventsIdRoute: typeof AuthEventsIdRouteWithChildren
   AuthEventsNewRoute: typeof AuthEventsNewRoute
+  AuthEventsIndexRoute: typeof AuthEventsIndexRoute
 }
 
 const AuthEventsRouteChildren: AuthEventsRouteChildren = {
   AuthEventsIdRoute: AuthEventsIdRouteWithChildren,
   AuthEventsNewRoute: AuthEventsNewRoute,
+  AuthEventsIndexRoute: AuthEventsIndexRoute,
 }
 
 const AuthEventsRouteWithChildren = AuthEventsRoute._addFileChildren(
