@@ -88,7 +88,7 @@ function MembersContent({ members }: { members: Member[] }) {
                       <td className="px-5 py-4 text-(--muted)">{typeLabels[member.user_type] || member.user_type}</td>
                       <td className="px-5 py-4 text-(--muted)">{member.email || '-'}</td>
                       <td className="px-5 py-4"><Badge variant={active ? 'success' : 'danger'}>{active ? 'Aktif' : 'Nonaktif'}</Badge></td>
-                      <td className="px-5 py-4"><button type="button" disabled={loadingId === member.id} onClick={() => toggleMember(member)} className={`min-h-9 rounded-sm px-3 text-xs font-bold text-white disabled:opacity-50 ${active ? 'bg-(--danger)' : 'bg-(--accent-strong)'}`}>{loadingId === member.id ? 'Menyimpan…' : active ? 'Nonaktifkan' : 'Aktifkan'}</button></td>
+                      <td className="px-5 py-4"><button type="button" disabled={loadingId === member.id} onClick={() => toggleMember(member)} className={`min-h-11 min-w-20 rounded-sm px-3 text-xs font-bold text-white disabled:opacity-50 ${active ? 'bg-(--danger)' : 'bg-(--accent-strong)'}`}>{loadingId === member.id ? 'Menyimpan…' : active ? 'Nonaktifkan' : 'Aktifkan'}</button></td>
                     </tr>
                   )
                 })}
