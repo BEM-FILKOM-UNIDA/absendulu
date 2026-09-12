@@ -45,7 +45,7 @@ function CompleteProfilePage() {
       const response = await fetch('/api/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ full_name: fullName.trim(), nim: normalizedNim }) })
       const result = await response.json().catch(() => null)
       if (!response.ok) { setError(result?.error || 'Profil gagal disimpan.'); return }
-      await navigate({ to: '/waiting-approval' })
+      await navigate({ to: '/mahasiswa' })
     } catch { setError('Tidak dapat terhubung ke server. Coba lagi.') } finally { setLoading(false) }
   }
 

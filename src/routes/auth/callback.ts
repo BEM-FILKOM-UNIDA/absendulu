@@ -54,21 +54,22 @@ export const Route = createFileRoute('/auth/callback')({
         // ponytail: B — self-register via Google, no magic-link limit for 70+ burst
         if (!profile) {
           const admin = createAdminClient()
+          const emailNick = user.email?.split('@')[0]?.toUpperCase() ?? ''
+          const isValidNimEmail = /^I\.[0-9]{7}$/.test(emailNick)
+          const nimFromEmail = isValidNimEmail ? emailNick : `AUTH-${user.id}`
           const { error: insertError } = await admin.from('profiles').insert({
             id: user.id,
             email: user.email,
             full_name: (user.user_metadata?.full_name as string) ?? user.email?.split('@')[0] ?? 'Pengguna',
-            nim: `AUTH-${user.id}`,
+            nim: nimFromEmail,
             user_type: 'mahasiswa',
-            account_status: 'invited',
+            account_status: isValidNimEmail ? 'active' : 'invited',
             is_active: true,
             role: 'user',
-            nim_format_legacy: true,
+            nim_format_legacy: !isValidNimEmail,
           })
-          if (insertError && !insertError.message.includes('duplicate')) {
-            return redirectTo('/login', { error: 'profile' })
-          }
-          return redirectTo('/complete-profile')
+          if (insertError && !insertError.message.includes('duplicate')) return redirectTo('/login', { error: 'profile' })
+          return redirectTo(isValidNimEmail ? '/mahasiswa' : '/complete-profile')
         }
         if (GENERATED_IDENTIFIER_PATTERN.test(profile.nim ?? '')) {
           return redirectTo('/complete-profile')
