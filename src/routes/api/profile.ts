@@ -17,7 +17,8 @@ export const Route = createFileRoute('/api/profile')({ server: { handlers: { PAT
   const admin = createAdminClient()
   const { data: profile, error: profileError } = await admin.from('profiles').select('id, role, user_type, nim, nim_format_legacy, account_status, is_active').eq('id', user.id).maybeSingle()
   if (profileError) return responseWithCookies({ error: 'Profil gagal dibaca.' }, 500, cookies)
-  if (!profile || GENERATED_IDENTIFIER_PATTERN.test(profile.nim ?? '')) return responseWithCookies({ error: 'Akun belum didaftarkan panitia.' }, 403, cookies)
+  if (!profile) return responseWithCookies({ error: 'Akun belum didaftarkan panitia.' }, 403, cookies)
+  if (GENERATED_IDENTIFIER_PATTERN.test(profile.nim ?? '') && profile.account_status !== 'invited') return responseWithCookies({ error: 'Akun belum didaftarkan panitia.' }, 403, cookies)
   if (profile.account_status === 'disabled' || !profile.is_active) return responseWithCookies({ error: 'Akun tidak aktif.' }, 403, cookies)
   let body: unknown
   try { body = await request.json() } catch { return responseWithCookies({ error: 'Body request tidak valid.' }, 400, cookies) }
@@ -28,7 +29,7 @@ export const Route = createFileRoute('/api/profile')({ server: { handlers: { PAT
   const validIdentifier = profile.user_type === 'mahasiswa' ? isValidStudentNim(nim) : isValidStaffIdentifier(nim)
   const legacy = profile.nim_format_legacy === true && nim === profile.nim.trim().toUpperCase()
   if (!NAME_PATTERN.test(fullName) || nim.length > 64 || (!validIdentifier && !legacy) || (isAdminRole(profile.role) && division.length > 100)) return responseWithCookies({ error: profile.user_type === 'mahasiswa' ? 'Nama atau NIM tidak valid. Gunakan format NIM I.#######.' : 'Nama atau nomor identitas tidak valid.' }, 400, cookies)
-  const update = { full_name: fullName, nim, ...(isAdminRole(profile.role) ? { division: division || null } : {}), ...(profile.nim_format_legacy === true && nim !== profile.nim ? { nim_format_legacy: false } : {}) }
+  const update = { full_name: fullName, nim, ...(isAdminRole(profile.role) ? { division: division || null } : {}), ...(profile.nim_format_legacy === true && nim !== profile.nim ? { nim_format_legacy: false } : {}), ...(profile.account_status === 'invited' ? { account_status: 'active', is_active: true } : {}) }
   const { data, error } = await admin.from('profiles').update(update).eq('id', user.id).select('full_name, nim, division').maybeSingle()
   if (error) return responseWithCookies({ error: error.code === '23505' ? 'NIM tersebut sudah digunakan akun lain.' : 'Profil gagal disimpan. Coba lagi.' }, error.code === '23505' ? 409 : 500, cookies)
   if (!data) return responseWithCookies({ error: 'Profil tidak ditemukan.' }, 404, cookies)
