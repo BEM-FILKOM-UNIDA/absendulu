@@ -22,7 +22,7 @@ function LoginPage() {
         : search.error === 'invalid'
           ? 'Link tidak valid. Coba lagi.'
           : search.error === 'google'
-            ? 'Login Google bermasalah. Coba pakai email.'
+            ? 'Login Google bermasalah. Coba lagi.'
             : search.error === 'unprovisioned'
               ? 'Akun belum didaftarkan. Silakan masuk dengan Google untuk mendaftar.'
               : search.error === 'profile'
@@ -44,7 +44,7 @@ function LoginPage() {
     setError('')
     const { error: loginError } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: callbackUrl() } })
     if (loginError) {
-      setError('Login Google belum bisa dibuka. Coba pakai email.')
+      setError('Login Google belum bisa dibuka. Coba lagi.')
       setLoading(false)
     }
   }
