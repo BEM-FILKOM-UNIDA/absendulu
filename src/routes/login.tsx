@@ -9,9 +9,7 @@ type LoginSearch = { next?: string; sent?: string; pending?: string; disabled?: 
 
 function LoginPage() {
   const search = useSearch({ from: '/login' }) as LoginSearch
-  const [email, setEmail] = useState('')
   const [error, setError] = useState('')
-  const [sent, setSent] = useState(search.sent === '1')
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
 
@@ -51,20 +49,6 @@ function LoginPage() {
     }
   }
 
-  async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setLoading(true)
-    setError('')
-    setSent(false)
-    const { error: loginError } = await supabase.auth.signInWithOtp({ email: email.trim().toLowerCase(), options: { shouldCreateUser: true, emailRedirectTo: callbackUrl() } })
-    if (loginError) {
-      setError(loginError.message.toLowerCase().includes('rate limit') ? 'Tunggu sebentar, lalu coba lagi.' : 'Email tidak dapat diproses. Pastikan sudah didaftarkan panitia atau coba lagi nanti.')
-    } else {
-      setSent(true)
-    }
-    setLoading(false)
-  }
-
   return (
     <main className="paper-noise grid min-h-dvh place-items-center overflow-hidden bg-(--paper) px-5 py-10">
       <div className="pointer-events-none absolute left-0 top-0 h-1.5 w-full bg-(--accent)" />
@@ -76,15 +60,8 @@ function LoginPage() {
           <div className="p-7 sm:p-8">
             {notice && <p role="status" className="mb-5 border border-(--accent-strong) bg-(--accent-soft) px-3 py-3 text-sm font-semibold text-(--accent-strong)">{notice}</p>}
             <button type="button" disabled={loading} onClick={handleGoogleLogin} className="inline-flex min-h-11 w-full items-center justify-center gap-2 border border-(--border) bg-white px-5 text-sm font-bold hover:bg-(--surface-muted) disabled:opacity-50"><span className="text-base font-black">G</span>{loading ? 'Membuka Google…' : 'Masuk dengan Google'}</button>
+            {error && <p role="alert" className="mt-4 border border-[#e7b6b6] bg-[#f8dddd] px-3 py-3 text-sm font-semibold text-(--danger)">{error}</p>}
             <p className="mt-3 text-center text-xs leading-5 text-(--muted)">Akun baru otomatis dibuat, lalu lengkapi NIM di halaman berikutnya.</p>
-            <div className="my-6 flex items-center gap-3 text-[10px] font-black uppercase tracking-[.14em] text-(--muted-soft)"><span className="h-px flex-1 bg-(--border)" />atau email (fallback)<span className="h-px flex-1 bg-(--border)" /></div>
-            <form onSubmit={handleLogin} className="space-y-5">
-              {sent && <p role="status" className="border border-(--accent-strong) bg-(--accent-soft) px-3 py-3 text-sm leading-6 text-(--accent-strong)">Link sudah dikirim ke <strong>{email.trim().toLowerCase()}</strong>.</p>}
-              <div className="space-y-2"><label htmlFor="email" className="eyebrow text-(--muted)">Email</label><input id="email" type="email" name="email" spellCheck={false} placeholder="nama@gmail.com" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" className="h-12 w-full border border-(--border) bg-(--surface-strong) px-4 text-sm outline-none focus:border-(--accent-strong) focus:ring-4 focus:ring-(--accent-soft)" /></div>
-              {error && <p role="alert" className="border border-[#e7b6b6] bg-[#f8dddd] px-3 py-3 text-sm font-semibold text-(--danger)">{error}</p>}
-              <button type="submit" disabled={loading} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-sm border border-(--border) bg-white px-5 text-sm font-bold text-(--ink) hover:bg-(--surface-muted) disabled:opacity-50">{loading ? 'Mengirim…' : 'Kirim Link Email'} <span aria-hidden="true">↗</span></button>
-              <p className="text-center text-xs leading-5 text-(--muted-soft)">Magic Link kena limit kalau 70+ serentak — pakai Google untuk acara besar.</p>
-            </form>
             <p className="mt-7 border-t border-(--border) pt-5 text-center text-xs leading-5 text-(--muted)">Baru pertama kali? Masuk dengan Google, lalu isi NIM.</p>
           </div>
         </div>
