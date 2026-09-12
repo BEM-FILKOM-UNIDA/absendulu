@@ -62,16 +62,13 @@ export const Route = createFileRoute('/auth/callback')({
             full_name: (user.user_metadata?.full_name as string) ?? user.email?.split('@')[0] ?? 'Pengguna',
             nim: nimFromEmail,
             user_type: 'mahasiswa',
-            account_status: 'invited',
+            account_status: /^I\.[0-9]{7}$/.test(emailNick) ? 'active' : 'invited',
             is_active: true,
             role: 'user',
             nim_format_legacy: !/^I\.[0-9]{7}$/.test(emailNick),
           })
-          if (insertError && !insertError.message.includes('duplicate')) {
-            return redirectTo('/login', { error: 'profile' })
-          }
-          // if NIM already valid from email, go straight to waiting-approval, else complete-profile
-          return redirectTo(/^I\.[0-9]{7}$/.test(emailNick) ? '/waiting-approval' : '/complete-profile')
+          if (insertError && !insertError.message.includes('duplicate')) return redirectTo('/login', { error: 'profile' })
+          return redirectTo(/^I\.[0-9]{7}$/.test(emailNick) ? '/mahasiswa' : '/complete-profile')
         }
         if (GENERATED_IDENTIFIER_PATTERN.test(profile.nim ?? '')) {
           return redirectTo('/complete-profile')
