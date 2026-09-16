@@ -26,8 +26,17 @@ function WaitingApprovalPage() {
 
   async function refreshStatus() {
     setLoading(true)
-    await router.invalidate({ sync: true })
-    setLoading(false)
+    try {
+      // ponytail: baca fresh langsung, bukan loader cache — 1 call, langsung lanjut kalau sudah active
+      const fresh = await getOnboardingData()
+      if (fresh.auth.user && fresh.profile && fresh.profile.account_status === 'active' && fresh.profile.is_active) {
+        await navigate({ to: '/mahasiswa' })
+        return
+      }
+      await router.invalidate({ sync: true })
+    } finally {
+      setLoading(false)
+    }
   }
 
   async function signOut() {
