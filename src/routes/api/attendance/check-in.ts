@@ -70,10 +70,10 @@ export const Route = createFileRoute('/api/attendance/check-in')({
         const jakartaNow = getJakartaDateTime()
         const schedule = getSchedulePosition(event.event_date, event.start_time, event.end_time, jakartaNow.date, jakartaNow.time)
         if (!schedule || schedule.nowMinutes < schedule.startMinutes) return failure('Absensi belum dibuka. Tunggu sampai waktu acara dimulai.', 400, 'EVENT_NOT_STARTED', responseCookies)
-        if (schedule.endMinutes !== null && schedule.nowMinutes > schedule.endMinutes) return failure('Waktu absensi acara sudah berakhir.', 400, 'EVENT_ENDED', responseCookies)
         if (schedule.endMinutes === null && jakartaNow.date !== event.event_date) return failure('Waktu absensi acara sudah berakhir.', 400, 'EVENT_ENDED', responseCookies)
 
-        const status = schedule.nowMinutes - schedule.startMinutes > 15 ? 'terlambat' : 'hadir'
+        // ponytail: telat = lewat waktu selesai saja — lewat mulai tapi sebelum selesai tetap hadir
+        const status = schedule.endMinutes !== null && schedule.nowMinutes > schedule.endMinutes ? 'terlambat' : 'hadir'
         const { error } = await admin.from('attendances').insert({ session_id: session.id, event_id: session.event_id, user_id: user.id, status, method: 'QR_CODE', check_in_at: new Date().toISOString() })
         if (error) {
           if (error.code === '23505') return failure('Sudah melakukan absensi.', 409, 'ALREADY_CHECKED_IN', responseCookies)
