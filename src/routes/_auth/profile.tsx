@@ -1,6 +1,7 @@
-import { Await, createFileRoute, defer } from '@tanstack/react-router'
+import { Await, createFileRoute, defer, useNavigate } from '@tanstack/react-router'
 import { Suspense, useState } from 'react'
 import { getProfileData } from '~/server/data'
+import { createClient } from '~/lib/supabase/client'
 import { Badge, Card } from '~/components/ui'
 
 const typeLabels: Record<string, string> = {
@@ -38,6 +39,12 @@ function ProfilePage() {
 
 function ProfileContent({ data }: { data: ProfileData }) {
   const { auth, profile, isAdmin } = data
+  const navigate = useNavigate()
+  // ponytail: logout cuma di sidebar desktop — tombol ini satu-satunya jalan keluar di mobile
+  async function signOut() {
+    await createClient().auth.signOut()
+    await navigate({ to: '/login' })
+  }
   const displayName = profile.full_name || 'Pengguna'
   const identifierLabel = profile.user_type === 'mahasiswa' ? 'NIM' : 'NIP/NIK'
   const [form, setForm] = useState<ProfileForm>({
@@ -145,6 +152,7 @@ function ProfileContent({ data }: { data: ProfileData }) {
               {saving ? 'Menyimpan…' : 'Simpan perubahan'} ↗
             </button>
           </form>
+          <button type="button" onClick={signOut} className="mt-5 text-xs font-bold uppercase tracking-widest text-(--muted) hover:text-(--danger)">Keluar ↗</button>
         </div>
       </Card>
     </>
