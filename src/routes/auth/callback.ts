@@ -68,7 +68,7 @@ export const Route = createFileRoute('/auth/callback')({
             role: 'user',
             nim_format_legacy: !isValidNimEmail,
           })
-          if (insertError && !insertError.message.includes('duplicate')) return redirectTo('/login', { error: 'profile' })
+          if (insertError && insertError.code !== '23505') return redirectTo('/login', { error: 'profile' })
           return redirectTo(isValidNimEmail ? '/mahasiswa' : '/complete-profile')
         }
         if (GENERATED_IDENTIFIER_PATTERN.test(profile.nim ?? '')) {

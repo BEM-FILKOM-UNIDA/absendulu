@@ -27,7 +27,7 @@ function EventDetailPage() {
     setError('')
     try {
       const response = await fetch(`/api/events/${event.id}/session/open`, { method: 'POST', headers: { Origin: window.location.origin } })
-      if (!response.ok && response.status !== 303) {
+      if (!response.ok) {
         const result = await response.json().catch(() => null)
         setError(result?.error || 'Sesi gagal dibuka.')
         return
