@@ -84,7 +84,7 @@ function LandingPage() {
         </Link>
         <div className="flex items-center gap-3 sm:gap-5">
           <span className="hidden text-xs font-bold uppercase tracking-[.14em] text-(--muted) sm:inline">HADIR DALAM SATU SCAN</span>
-          <Link to="/login" className="border-b-2 border-(--ink) pb-1 text-sm font-black hover:border-(--accent-strong) hover:text-(--accent-strong)">Masuk <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></Link>
+          <Link to="/login" className="inline-flex items-center gap-1 border-b-2 border-(--ink) pb-1 text-sm font-black hover:border-(--accent-strong) hover:text-(--accent-strong)">Masuk <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></Link>
         </div>
       </nav>
 
