@@ -5,7 +5,8 @@ import { ArrowUpRight } from 'lucide-react'
 
 const scannerConfig = {
   verbose: false,
-  useBarCodeDetectorIfSupported: true,
+  // ponytail: decoder bawaan (ZXing) — BarcodeDetector native diam-diam gagal di sebagian HP Android
+  useBarCodeDetectorIfSupported: false,
   formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
 }
 
