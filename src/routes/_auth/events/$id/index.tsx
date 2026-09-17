@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowLeft, ArrowUpRight } from 'lucide-react'
 import { getEventDetailData } from '~/server/data'
 import { Badge, ButtonLink } from '~/components/ui'
@@ -21,7 +21,15 @@ function EventDetailPage() {
   const { event, isAdmin, session, attendanceCount } = Route.useLoaderData()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [confirming, setConfirming] = useState(false)
   const variant = event.status === 'active' ? 'success' : event.status === 'cancelled' ? 'danger' : 'muted'
+
+  useEffect(() => {
+    if (!confirming) return
+    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') setConfirming(false) }
+    window.addEventListener('keydown', close)
+    return () => window.removeEventListener('keydown', close)
+  }, [confirming])
 
   async function openSession() {
     setLoading(true)
@@ -42,7 +50,7 @@ function EventDetailPage() {
   }
 
   async function deleteEvent() {
-    if (!window.confirm(`Hapus acara “${event.name}”? Data absensi dan sesi QR juga akan dihapus.`)) return
+    setConfirming(false)
     setLoading(true)
     const response = await fetch(`/api/events/${event.id}`, { method: 'DELETE', headers: { Origin: window.location.origin } })
     if (!response.ok) {
@@ -129,8 +137,21 @@ function EventDetailPage() {
               </>
             ) : null}
           </div>
-          <button type="button" onClick={deleteEvent} disabled={loading} className="text-sm font-bold text-(--danger) disabled:opacity-50">{loading ? 'Memproses…' : 'Hapus acara'} <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></button>
+          <button type="button" onClick={() => setConfirming(true)} disabled={loading} className="text-sm font-bold text-(--danger) disabled:opacity-50">{loading ? 'Memproses…' : 'Hapus acara'} <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></button>
         </section>
+      ) : null}
+      {confirming ? (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 px-5" onClick={() => setConfirming(false)}>
+          <div role="alertdialog" aria-modal="true" aria-labelledby="hapus-acara-judul" aria-describedby="hapus-acara-deskripsi" className="w-full max-w-md border border-(--ink) bg-(--surface) p-7 shadow-[8px_10px_0_var(--accent)] sm:p-8" onClick={(event) => event.stopPropagation()}>
+            <p className="eyebrow text-(--danger)">hapus acara</p>
+            <h2 id="hapus-acara-judul" className="display-type mt-3 wrap-break-word text-3xl leading-none tracking-[-.06em]">Hapus acara <em>“{event.name}”?</em></h2>
+            <p id="hapus-acara-deskripsi" className="mt-4 text-sm leading-6 text-(--muted)">Data absensi dan sesi QR juga akan dihapus. Tindakan ini tidak bisa dibatalkan.</p>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <button type="button" autoFocus onClick={() => setConfirming(false)} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 border border-(--border) bg-white px-5 text-sm font-bold text-(--ink) hover:bg-(--surface-muted)">Batal</button>
+              <button type="button" onClick={deleteEvent} disabled={loading} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 bg-(--danger) px-5 text-sm font-bold text-white hover:bg-[#963b3b] disabled:opacity-50">{loading ? 'Menghapus…' : 'Ya, hapus'}</button>
+            </div>
+          </div>
+        </div>
       ) : null}
     </div>
   )
