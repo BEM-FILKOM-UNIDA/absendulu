@@ -54,8 +54,10 @@ export const Route = createFileRoute('/auth/callback')({
         // ponytail: B — self-register via Google, no magic-link limit for 70+ burst
         if (!profile) {
           const admin = createAdminClient()
-          const emailNick = user.email?.split('@')[0]?.toUpperCase() ?? ''
-          const isValidNimEmail = /^I\.[0-9]{7}$/.test(emailNick)
+          const emailLower = user.email?.toLowerCase() ?? ''
+          const emailNick = emailLower.split('@')[0]?.toUpperCase() ?? ''
+          // ponytail: NIM auto-aktif hanya untuk domain kampus — i.#######@gmail.com tetap via complete-profile
+          const isValidNimEmail = emailLower.endsWith('@unida.ac.id') && /^I\.[0-9]{7}$/.test(emailNick)
           const nimFromEmail = isValidNimEmail ? emailNick : `AUTH-${user.id}`
           const { error: insertError } = await admin.from('profiles').insert({
             id: user.id,

@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
+import { ArrowLeft, ArrowUpRight } from 'lucide-react'
 import { getEventDetailData } from '~/server/data'
 import { Badge, ButtonLink } from '~/components/ui'
 
@@ -78,7 +79,7 @@ function EventDetailPage() {
 
   return (
     <div className="max-w-5xl space-y-8">
-      <Link to="/events" className="eyebrow inline-flex text-(--accent-strong) hover:underline">← kembali ke acara</Link>
+      <Link to="/events" className="eyebrow inline-flex items-center gap-1 text-(--accent-strong) hover:underline"><ArrowLeft aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />kembali ke acara</Link>
       <section className="flex flex-col justify-between gap-6 border-b border-(--border) pb-8 sm:flex-row sm:items-start">
         <div className="min-w-0">
           <p className="eyebrow text-(--muted-soft)">detail acara / {event.event_date}</p>
@@ -101,7 +102,7 @@ function EventDetailPage() {
             <h2 className="mt-2 text-2xl font-black">{attendanceCount} mahasiswa sudah hadir</h2>
             <p className="mt-2 text-sm text-(--muted)">QR aktif—tampilkan kepada peserta.</p>
           </div>
-          <ButtonLink href={`/events/${event.id}/qr`} variant="primary">Lihat QR ↗</ButtonLink>
+          <ButtonLink href={`/events/${event.id}/qr`} variant="primary">Lihat QR <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></ButtonLink>
         </section>
       ) : isAdmin ? (
         <div className="border border-dashed border-(--border) bg-(--surface) p-8 text-center">
@@ -128,7 +129,7 @@ function EventDetailPage() {
               </>
             ) : null}
           </div>
-          <button type="button" onClick={deleteEvent} disabled={loading} className="text-sm font-bold text-(--danger) disabled:opacity-50">{loading ? 'Memproses…' : 'Hapus acara ↗'}</button>
+          <button type="button" onClick={deleteEvent} disabled={loading} className="text-sm font-bold text-(--danger) disabled:opacity-50">{loading ? 'Memproses…' : 'Hapus acara'} <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></button>
         </section>
       ) : null}
     </div>

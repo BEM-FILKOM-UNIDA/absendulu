@@ -1,5 +1,6 @@
 import { Await, createFileRoute, defer, useNavigate } from '@tanstack/react-router'
 import { Suspense, useState } from 'react'
+import { ArrowUpRight } from 'lucide-react'
 import { getProfileData } from '~/server/data'
 import { createClient } from '~/lib/supabase/client'
 import { Badge, Card } from '~/components/ui'
@@ -148,11 +149,11 @@ function ProfileContent({ data }: { data: ProfileData }) {
             ) : null}
             {message ? <p role="status" className="sm:col-span-2 border border-(--accent-strong) bg-(--accent-soft) px-4 py-3 text-sm font-semibold text-(--accent-strong)">{message}</p> : null}
             {error ? <p role="alert" className="sm:col-span-2 border border-[#e7b6b6] bg-[#f8dddd] px-4 py-3 text-sm font-semibold text-(--danger)">{error}</p> : null}
-            <button type="submit" disabled={saving} className="min-h-11 w-fit rounded-sm bg-(--ink) px-5 text-sm font-bold text-[#f7f4ed] disabled:opacity-50">
-              {saving ? 'Menyimpan…' : 'Simpan perubahan'} ↗
+            <button type="submit" disabled={saving} className="inline-flex min-h-11 w-fit items-center justify-center gap-2 rounded-sm bg-(--ink) px-5 text-sm font-bold text-[#f7f4ed] disabled:opacity-50">
+              {saving ? 'Menyimpan…' : 'Simpan perubahan'} <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" />
             </button>
           </form>
-          <button type="button" onClick={signOut} className="mt-5 text-xs font-bold uppercase tracking-widest text-(--muted) hover:text-(--danger)">Keluar ↗</button>
+          <button type="button" onClick={signOut} className="mt-5 text-xs font-bold uppercase tracking-widest text-(--muted) hover:text-(--danger)">Keluar <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /></button>
         </div>
       </Card>
     </>

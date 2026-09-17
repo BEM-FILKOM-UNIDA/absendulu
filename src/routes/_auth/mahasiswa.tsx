@@ -1,5 +1,6 @@
 import { Await, createFileRoute, defer, Link } from '@tanstack/react-router'
 import { Suspense } from 'react'
+import { ArrowUpRight } from 'lucide-react'
 import { getStudentHomeData } from '~/server/data'
 import { Badge, ButtonLink, Card } from '~/components/ui'
 
@@ -33,7 +34,7 @@ function StudentHomeContent({ data }: { data: StudentData }) {
           <h1 className="display-type mt-3 text-5xl leading-none tracking-[-.07em] sm:text-6xl">Halo,<br /><em>{firstName}.</em></h1>
           <p className="mt-5 max-w-lg text-sm leading-6 text-(--muted)">Lihat acara yang tersedia, scan QR saat hadir, dan pantau riwayat kehadiranmu sendiri.</p>
         </div>
-        <ButtonLink href="/scan" variant="accent">Scan sekarang <span aria-hidden="true">↗</span></ButtonLink>
+        <ButtonLink href="/scan" variant="accent">Scan sekarang <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></ButtonLink>
       </section>
       <StudentEvents events={data.events} openEventIds={data.openEventIds} />
       <StudentProfile email={data.auth.user?.email} nim={data.profile?.nim} />
@@ -51,7 +52,7 @@ function StudentEvents({ events, openEventIds }: { events: StudentEvent[]; openE
           <p className="eyebrow text-(--accent-strong)">agenda publik</p>
           <h2 className="mt-2 text-xl font-black">Acara FILKOM</h2>
         </div>
-        <Link to="/events" className="text-xs font-black uppercase tracking-widest text-(--accent-strong)">Lihat semua ↗</Link>
+        <Link to="/events" className="text-xs font-black uppercase tracking-widest text-(--accent-strong)">Lihat semua <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /></Link>
       </div>
       {events.length > 0 ? (
         <div className="divide-y divide-(--border)">
@@ -72,7 +73,7 @@ function StudentEventRow({ event, isOpen }: { event: StudentEvent; isOpen: boole
         <p className="truncate text-sm font-black">{event.name}</p>
         <p className="mt-2 text-xs text-(--muted)">{details}</p>
       </div>
-      <span className="shrink-0 text-xs font-black text-(--accent-strong)">{isOpen ? 'Scan ↗' : 'Lihat'}</span>
+      <span className="inline-flex shrink-0 items-center gap-1 text-xs font-black text-(--accent-strong)">{isOpen ? <>Scan <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /></> : 'Lihat'}</span>
     </Link>
   )
 }
@@ -85,7 +86,7 @@ function StudentProfile({ email, nim }: { email: string | null | undefined; nim:
       <h2 className="mt-4 text-2xl font-black">{displayNim}</h2>
       <p className="mt-2 break-all text-sm text-white/55">{email}</p>
       <p className="mt-6 text-sm text-white/55">Fakultas Ilmu Komputer</p>
-      <ButtonLink href="/profile" variant="accent" className="mt-7">Lihat profil ↗</ButtonLink>
+      <ButtonLink href="/profile" variant="accent" className="mt-7">Lihat profil <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></ButtonLink>
     </Card>
   )
 }
@@ -98,7 +99,7 @@ function StudentHistory({ attendance }: { attendance: AttendanceItem[] }) {
           <p className="eyebrow text-(--accent-strong)">catatan pribadi</p>
           <h2 className="mt-2 text-xl font-black">Riwayat terbaru</h2>
         </div>
-        <Link to="/attendance/history" className="text-xs font-black uppercase tracking-widest text-(--accent-strong)">Lihat semua ↗</Link>
+        <Link to="/attendance/history" className="text-xs font-black uppercase tracking-widest text-(--accent-strong)">Lihat semua <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /></Link>
       </div>
       {attendance.length > 0 ? (
         <div className="divide-y divide-(--border)">

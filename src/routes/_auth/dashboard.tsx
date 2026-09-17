@@ -1,5 +1,6 @@
 import { Await, createFileRoute, defer, Link, redirect } from '@tanstack/react-router'
 import { Suspense } from 'react'
+import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { getDashboardData } from '~/server/data'
 import { ButtonLink, Card } from '~/components/ui'
 
@@ -27,8 +28,8 @@ function DashboardPage() {
           <p className="mt-5 max-w-lg text-sm leading-6 text-(--muted)">Pantau acara organisasi FILKOM, buka absensi, dan lihat siapa saja yang sudah hadir—semua dalam satu tempat.</p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <ButtonLink href="/events/new" variant="primary">Buat acara ↗</ButtonLink>
-          <ButtonLink href="/scan" variant="accent">Scan untuk hadir <span aria-hidden="true">↗</span></ButtonLink>
+          <ButtonLink href="/events/new" variant="primary">Buat acara <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></ButtonLink>
+          <ButtonLink href="/scan" variant="accent">Scan untuk hadir <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></ButtonLink>
         </div>
       </section>
       <Suspense fallback={<StatsPending />}>
@@ -83,13 +84,13 @@ function EventSummary({ events }: { events: DashboardEvent[] }) {
       <Card className="overflow-hidden">
         <div className="flex items-end justify-between border-b border-(--border) px-6 py-6">
           <div><p className="eyebrow text-(--accent-strong)">agenda organisasi</p><h3 className="mt-2 text-xl font-black">Acara FILKOM</h3></div>
-          <Link to="/events" className="text-xs font-black uppercase tracking-widest text-(--accent-strong)">Lihat semua ↗</Link>
+          <Link to="/events" className="text-xs font-black uppercase tracking-widest text-(--accent-strong)">Lihat semua <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /></Link>
         </div>
         {events.length > 0 ? <div className="divide-y divide-(--border)">
           {events.map((event) => <EventRow key={event.id} event={event} />)}
         </div> : <div className="px-6 py-14 text-center"><p className="font-black">Belum ada acara</p><p className="mt-2 text-sm text-(--muted)">Buat acara pertama untuk mulai mencatat kehadiran mahasiswa.</p></div>}
       </Card>
-      <Card className="paper-grid bg-(--ink) p-7 text-[#f7f4ed]"><p className="eyebrow text-(--accent)">aksi cepat</p><h3 className="display-type mt-5 text-3xl leading-none">Scan QR,<br /><em>langsung hadir.</em></h3><p className="mt-5 text-sm leading-6 text-white/55">Arahkan kamera ke QR acara organisasi yang sedang dibuka panitia.</p><ButtonLink href="/scan" variant="accent" className="mt-8">Buka scanner <span aria-hidden="true">→</span></ButtonLink></Card>
+      <Card className="paper-grid bg-(--ink) p-7 text-[#f7f4ed]"><p className="eyebrow text-(--accent)">aksi cepat</p><h3 className="display-type mt-5 text-3xl leading-none">Scan QR,<br /><em>langsung hadir.</em></h3><p className="mt-5 text-sm leading-6 text-white/55">Arahkan kamera ke QR acara organisasi yang sedang dibuka panitia.</p><ButtonLink href="/scan" variant="accent" className="mt-8">Buka scanner <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0" /></ButtonLink></Card>
     </section>
   )
 }

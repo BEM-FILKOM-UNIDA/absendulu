@@ -1,5 +1,6 @@
 import { Link, createFileRoute, isRedirect, redirect, useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
+import { ArrowUpRight } from 'lucide-react'
 import { createClient } from '~/lib/supabase/client'
 import { isAdminRole } from '~/lib/auth/roles'
 import { getCurrentAuth } from '~/server/auth'
@@ -83,7 +84,7 @@ function LandingPage() {
         </Link>
         <div className="flex items-center gap-3 sm:gap-5">
           <span className="hidden text-xs font-bold uppercase tracking-[.14em] text-(--muted) sm:inline">HADIR DALAM SATU SCAN</span>
-          <Link to="/login" className="border-b-2 border-(--ink) pb-1 text-sm font-black hover:border-(--accent-strong) hover:text-(--accent-strong)">Masuk <span aria-hidden="true">↗</span></Link>
+          <Link to="/login" className="border-b-2 border-(--ink) pb-1 text-sm font-black hover:border-(--accent-strong) hover:text-(--accent-strong)">Masuk <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></Link>
         </div>
       </nav>
 
@@ -93,7 +94,7 @@ function LandingPage() {
           <h1 className="display-type text-5xl leading-[.95] tracking-[-.06em] text-(--ink) sm:text-7xl lg:text-[7.1rem]">Absen <br /><em className="text-(--accent-strong)">Dulu.</em></h1>
           <p className="mt-6 max-w-[32ch] text-[.95rem] leading-6 text-(--muted) sm:mt-8 sm:text-base sm:leading-7">Cukup scan QR di lokasi acara, dan kehadiranmu langsung tercatat. Nggak perlu isi form, nggak perlu antre tanda tangan.</p>
           <div className="mt-7 flex flex-wrap items-center gap-4 sm:mt-9">
-            <Link to="/login" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-sm bg-(--accent) px-5 text-sm font-bold text-(--accent-foreground) shadow-[0_12px_24px_rgba(38,208,207,.22)] hover:-translate-y-0.5 hover:bg-[#55ded4]">Absen sekarang <span aria-hidden="true">↗</span></Link>
+            <Link to="/login" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-sm bg-(--accent) px-5 text-sm font-bold text-(--accent-foreground) shadow-[0_12px_24px_rgba(38,208,207,.22)] hover:-translate-y-0.5 hover:bg-[#55ded4]">Absen sekarang <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></Link>
             <span className="text-xs font-bold uppercase tracking-[.12em] text-(--muted-soft)">KHUSUS FILKOM UNIDA</span>
           </div>
         </div>
@@ -127,7 +128,7 @@ function LandingPage() {
           </div>
         </div>
       </section>
-      <footer className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-5 lg:px-8"><div className="flex flex-col gap-3 text-xs font-semibold text-(--muted) sm:flex-row sm:items-center sm:justify-between"><p>© {year} Absendulu. Hadir tanpa kertas.</p><p>Absensi yang nggak bikin antre.</p></div><div className="flex items-center justify-center gap-3 border-t border-(--border) pt-5"><span className="text-[10px] font-bold uppercase tracking-[.14em] text-(--muted-soft)">Powered by</span><img src="/logo/logo-bem-footer.webp" alt="Logo PSDM BEM FILKOM UNIDA" width="24" height="24" className="h-6 w-6 rounded-full object-contain" /><span className="text-xs font-black">PSDM BEM FILKOM UNIDA</span></div></footer>
+      <footer className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-5 lg:px-8"><div className="flex flex-col gap-3 text-xs font-semibold text-(--muted) sm:flex-row sm:items-center sm:justify-between"><p>© {year} Absendulu.</p><p>Absensi yang nggak bikin antre.</p></div><div className="flex items-center justify-center gap-3 border-t border-(--border) pt-5"><span className="text-[10px] font-bold uppercase tracking-[.14em] text-(--muted-soft)">Powered by</span><img src="/logo/logo-bem-footer.webp" alt="Logo PSDM BEM FILKOM UNIDA" width="24" height="24" className="h-6 w-6 rounded-full object-contain" /><span className="text-xs font-black">PSDM BEM FILKOM UNIDA</span></div></footer>
     </main>
   )
 }

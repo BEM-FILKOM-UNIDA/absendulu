@@ -1,5 +1,6 @@
 import { useRouter } from '@tanstack/react-router'
 import { useRef, useState } from 'react'
+import { ArrowUpRight } from 'lucide-react'
 import { Card } from '~/components/ui'
 
 const initialManualForm = {
@@ -105,7 +106,7 @@ export function MemberImportForm() {
           <form onSubmit={handleImport} className="space-y-3">
             <label htmlFor="member-csv" className="block text-sm font-bold text-(--ink)">Pilih file CSV</label>
             <input ref={fileInputRef} id="member-csv" type="file" accept=".csv,text/csv" onChange={(event) => setFile(event.target.files?.[0] ?? null)} className="block min-h-12 w-full rounded-sm border-2 border-(--border) bg-white px-3 py-2 text-sm text-(--ink) file:mr-3 file:border-0 file:bg-(--accent) file:px-3 file:py-1.5 file:text-xs file:font-bold" />
-            <button type="submit" disabled={loading || !file} className="min-h-11 bg-(--accent) px-5 text-sm font-bold text-(--accent-foreground) disabled:opacity-50">{loading ? 'Mengimpor…' : 'Import data mahasiswa'} ↗</button>
+            <button type="submit" disabled={loading || !file} className="inline-flex min-h-11 items-center justify-center gap-2 bg-(--accent) px-5 text-sm font-bold text-(--accent-foreground) disabled:opacity-50">{loading ? 'Mengimpor…' : 'Import data mahasiswa'} <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></button>
           </form>
           {message ? <p role="status" className="mt-4 border-2 border-(--accent-strong) bg-(--accent-soft) px-3 py-3 text-sm leading-6">{message}</p> : null}
         </div>
@@ -125,7 +126,7 @@ export function MemberImportForm() {
             <label className="space-y-2 sm:col-span-2"><span className="text-sm font-bold">Email Google</span><input type="email" value={manualForm.email} onChange={(event) => updateManualField('email', event.target.value)} placeholder="nama@gmail.com" className="h-12 w-full border border-(--border) bg-(--surface-strong) px-4 text-sm" autoComplete="email" required /></label>
             <label className="space-y-2"><span className="text-sm font-bold">Divisi <span className="font-normal text-(--muted)">(opsional)</span></span><input value={manualForm.division} onChange={(event) => updateManualField('division', event.target.value)} placeholder="Contoh: PSDM" className="h-12 w-full border border-(--border) bg-(--surface-strong) px-4 text-sm" /></label>
             <label className="space-y-2"><span className="text-sm font-bold">Nomor telepon <span className="font-normal text-(--muted)">(opsional)</span></span><input type="tel" value={manualForm.phone} onChange={(event) => updateManualField('phone', event.target.value)} placeholder="08xxxxxxxxxx" className="h-12 w-full border border-(--border) bg-(--surface-strong) px-4 text-sm" autoComplete="tel" /></label>
-            <button type="submit" disabled={manualLoading} className="min-h-11 w-fit bg-(--ink) px-5 text-sm font-bold text-white disabled:opacity-50 sm:col-span-2">{manualLoading ? 'Mendaftarkan…' : 'Daftarkan dan aktifkan'} ↗</button>
+            <button type="submit" disabled={manualLoading} className="inline-flex min-h-11 w-fit items-center justify-center gap-2 bg-(--ink) px-5 text-sm font-bold text-white disabled:opacity-50 sm:col-span-2">{manualLoading ? 'Mendaftarkan…' : 'Daftarkan dan aktifkan'} <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></button>
           </form>
           {manualMessage ? <p role="status" className="mt-4 border border-(--accent-strong) bg-(--accent-soft) px-3 py-3 text-sm leading-6 text-(--accent-strong)">{manualMessage}</p> : null}
         </div>

@@ -21,6 +21,7 @@
     "@tanstack/react-router": "1.170.32",
     "@tanstack/react-start": "1.168.49",
     "html5-qrcode": "2.3.8",
+    "lucide-react": "^1.46.0",
     "qrcode": "1.5.4",
     "react": "19.2.8",
     "react-dom": "19.2.8"

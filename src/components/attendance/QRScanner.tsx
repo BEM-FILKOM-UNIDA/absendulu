@@ -1,6 +1,7 @@
 // ponytail: html5-qrcode kept — native BarcodeDetector covers modern Chrome/Edge but iOS Safari <17 lacks it; switch when baseline supports it
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
+import { ArrowUpRight } from 'lucide-react'
 
 const scannerConfig = {
   verbose: false,
@@ -135,7 +136,7 @@ export default function QRScanner({ onScan }: { onScan: (token: string) => void 
       <div className="relative w-full"><div ref={containerRef} id="qr-reader" className="qr-camera-shell relative aspect-4/3 w-full min-w-0 overflow-hidden bg-(--ink)" /><div aria-hidden="true" className="pointer-events-none absolute inset-0 z-10 grid place-items-center"><div className="qr-scan-guide aspect-square w-[72%] max-w-90" /></div></div>
       <p className="mt-3 w-full text-center text-xs leading-5 text-(--muted)">{hint || 'Pastikan seluruh QR terlihat di dalam kotak, lalu dekatkan HP sampai pola QR tampak tajam.'}</p>
       {error ? <p role="alert" className="mt-4 w-full border border-[#e7b6b6] bg-[#f8dddd] px-4 py-3 text-sm font-semibold text-(--danger)">{error}</p> : null}
-      {!scanning && !readingFile ? <div className="mt-5 flex w-full flex-col gap-3 sm:w-auto sm:flex-row"><button type="button" onClick={startScanning} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-sm bg-(--accent) px-5 text-sm font-bold text-(--accent-foreground) hover:bg-[#55ded4]">Aktifkan kamera <span aria-hidden="true">↗</span></button><label htmlFor="qr-image" className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-sm border border-(--border) bg-(--surface) px-5 text-sm font-bold hover:border-(--accent-strong)">Pilih gambar QR</label><input id="qr-image" type="file" accept="image/*" className="sr-only" onChange={handleImageSelected} /></div> : null}
+      {!scanning && !readingFile ? <div className="mt-5 flex w-full flex-col gap-3 sm:w-auto sm:flex-row"><button type="button" onClick={startScanning} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-sm bg-(--accent) px-5 text-sm font-bold text-(--accent-foreground) hover:bg-[#55ded4]">Aktifkan kamera <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></button><label htmlFor="qr-image" className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-sm border border-(--border) bg-(--surface) px-5 text-sm font-bold hover:border-(--accent-strong)">Pilih gambar QR</label><input id="qr-image" type="file" accept="image/*" className="sr-only" onChange={handleImageSelected} /></div> : null}
       {scanning || readingFile ? <p className="mt-4 text-center text-sm font-bold text-(--muted)">{readingFile ? 'Membaca gambar QR…' : 'Memindai… arahkan kamera ke QR code.'}</p> : null}
     </div>
   )
