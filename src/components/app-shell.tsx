@@ -1,5 +1,6 @@
 import { Link, Outlet, useNavigate, useRouterState } from '@tanstack/react-router'
 import { useState } from 'react'
+import { ArrowUpRight } from 'lucide-react'
 import { createClient } from '~/lib/supabase/client'
 
 const adminNav = [
@@ -108,7 +109,7 @@ export function AppShell({ isAdmin }: { isAdmin: boolean }) {
         <div className="border-t border-white/10 p-4">
           <button type="button" onClick={signOut} disabled={signingOut} className="flex min-h-11 w-full items-center justify-between px-3 text-left text-sm font-bold text-white/55 hover:text-[#ffb5ad]">
             <span>{signingOut ? 'Mengeluarkan…' : 'Keluar'}</span>
-            <span aria-hidden="true">↗</span>
+            <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" />
           </button>
         </div>
       </aside>

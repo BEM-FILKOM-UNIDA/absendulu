@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
+import { ArrowUpRight } from 'lucide-react'
 
 const initialForm = { name: '', description: '', event_date: '', start_time: '', end_time: '', location: '' }
 
@@ -31,7 +32,7 @@ function NewEventPage() {
         <div className="grid gap-4 sm:grid-cols-3"><label className="space-y-2"><span className="eyebrow text-(--muted)">Tanggal</span><input type="date" value={form.event_date} onChange={(event) => update('event_date', event.target.value)} className="h-12 w-full border border-(--border) bg-(--surface-strong) px-3 text-sm" required /></label><label className="space-y-2"><span className="eyebrow text-(--muted)">Mulai</span><input type="time" value={form.start_time} onChange={(event) => update('start_time', event.target.value)} className="h-12 w-full border border-(--border) bg-(--surface-strong) px-3 text-sm" required /></label><label className="space-y-2"><span className="eyebrow text-(--muted)">Selesai</span><input type="time" value={form.end_time} onChange={(event) => update('end_time', event.target.value)} className="h-12 w-full border border-(--border) bg-(--surface-strong) px-3 text-sm" /></label></div>
         <label className="block space-y-2"><span className="eyebrow text-(--muted)">Lokasi</span><input value={form.location} onChange={(event) => update('location', event.target.value)} className="h-12 w-full border border-(--border) bg-(--surface-strong) px-4 text-sm" maxLength={200} /></label>
         {error ? <p role="alert" className="border border-[#e7b6b6] bg-[#f8dddd] px-4 py-3 text-sm font-semibold text-(--danger)">{error}</p> : null}
-        <button type="submit" disabled={loading} className="min-h-11 bg-(--accent) px-5 text-sm font-bold text-(--accent-foreground) disabled:opacity-50">{loading ? 'Menyimpan acara…' : 'Buat acara'} ↗</button>
+        <button type="submit" disabled={loading} className="inline-flex min-h-11 items-center justify-center gap-2 bg-(--accent) px-5 text-sm font-bold text-(--accent-foreground) disabled:opacity-50">{loading ? 'Menyimpan acara…' : 'Buat acara'} <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></button>
       </form>
     </div>
   )

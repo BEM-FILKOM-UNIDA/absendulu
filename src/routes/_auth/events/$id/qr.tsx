@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
+import { ArrowDown, ArrowLeft, ArrowUpRight } from 'lucide-react'
 import { getQrData } from '~/server/data'
 import { Card } from '~/components/ui'
 import { QrRouteError } from '~/components/route-fallbacks'
@@ -69,7 +70,7 @@ function QrPage() {
         <p className="eyebrow text-(--muted-soft)">belum ada QR aktif</p>
         <h1 className="display-type text-4xl leading-none sm:text-5xl">Absensi belum<br /><em>dibuka.</em></h1>
         <p className="text-sm text-(--muted)">Buka absensi dari halaman detail acara terlebih dahulu.</p>
-        <Link to="/events/$id" params={{ id: event.id }} className="eyebrow text-(--accent-strong) hover:underline">← Kembali ke acara</Link>
+        <Link to="/events/$id" params={{ id: event.id }} className="eyebrow inline-flex items-center gap-1 text-(--accent-strong) hover:underline"><ArrowLeft aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />Kembali ke acara</Link>
       </div>
     )
   }
@@ -79,7 +80,7 @@ function QrPage() {
       <div className="mx-auto w-full max-w-6xl">
         <div className="mb-6 flex flex-col justify-between gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-end">
           <div>
-            <Link to="/events/$id" params={{ id: event.id }} className="eyebrow text-(--accent) hover:underline">← {event.name}</Link>
+            <Link to="/events/$id" params={{ id: event.id }} className="eyebrow inline-flex items-center gap-1 text-(--accent) hover:underline"><ArrowLeft aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />{event.name}</Link>
             <p className="mt-3 text-sm leading-6 text-white/45">Tampilkan QR ini agar mahasiswa dapat melakukan absensi.</p>
           </div>
           <span className="text-xs font-black uppercase tracking-widest text-(--lime)">● absensi dibuka</span>
@@ -94,8 +95,8 @@ function QrPage() {
                 {qrDataUrl ? <img src={qrDataUrl} alt={`QR absensi ${event.name}`} className="h-full w-full object-contain [&:fullscreen]:h-full [&:fullscreen]:w-auto" /> : <span className="text-xs font-bold uppercase tracking-[.12em] text-(--muted)">Menyiapkan QR…</span>}
               </div>
               <div className="mx-auto mt-5 flex w-full max-w-110 flex-col gap-3 sm:flex-row">
-                <button type="button" onClick={downloadQr} disabled={!qrDataUrl} className="min-h-11 flex-1 bg-(--ink) px-4 text-sm font-bold text-white disabled:opacity-50">Download QR ↓</button>
-                <button type="button" onClick={toggleFullscreen} className="min-h-11 flex-1 border-2 border-(--ink) px-4 text-sm font-bold text-(--ink)">Fullscreen ↗</button>
+                <button type="button" onClick={downloadQr} disabled={!qrDataUrl} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 bg-(--ink) px-4 text-sm font-bold text-white disabled:opacity-50">Download QR <ArrowDown aria-hidden="true" className="h-4 w-4 shrink-0" /></button>
+                <button type="button" onClick={toggleFullscreen} className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 border-2 border-(--ink) px-4 text-sm font-bold text-(--ink)">Fullscreen <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></button>
               </div>
             </div>
           </Card>

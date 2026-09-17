@@ -1,5 +1,6 @@
 import { Await, createFileRoute, defer, Link } from '@tanstack/react-router'
 import { Suspense } from 'react'
+import { ArrowUpRight } from 'lucide-react'
 import { getEventsData } from '~/server/data'
 import { Badge, Card } from '~/components/ui'
 
@@ -33,7 +34,7 @@ function EventsContent({ events, isAdmin }: { events: EventsData['events']; isAd
           <h1 className="display-type mt-3 text-4xl leading-none tracking-[-.07em] sm:text-5xl">Temukan<br /><em>acaramu.</em></h1>
           <p className="mt-4 max-w-md text-sm leading-6 text-(--muted)">{description}</p>
         </div>
-        {isAdmin ? <Link to="/events/new" className="inline-flex min-h-11 items-center justify-center gap-2 bg-(--accent) px-5 text-sm font-bold text-(--accent-foreground) hover:bg-[#55ded4]">Buat acara ↗</Link> : null}
+        {isAdmin ? <Link to="/events/new" className="inline-flex min-h-11 items-center justify-center gap-2 bg-(--accent) px-5 text-sm font-bold text-(--accent-foreground) hover:bg-[#55ded4]">Buat acara <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></Link> : null}
       </section>
       {events.length > 0 ? <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{events.map((event) => <EventCard key={event.id} event={event} />)}</div> : <div className="border border-dashed border-(--border) bg-(--surface) px-6 py-20 text-center"><p className="eyebrow text-(--accent-strong)">belum ada agenda</p><h2 className="display-type mt-4 text-3xl">Belum ada acara.</h2><p className="mx-auto mt-3 max-w-sm text-sm leading-6 text-(--muted)">Acara yang sudah dipublikasikan akan muncul di sini.</p></div>}
     </div>
@@ -48,7 +49,7 @@ function EventCard({ event }: { event: EventItem }) {
   return (
     <Card className="flex flex-col overflow-hidden">
       <div className="flex items-start justify-between gap-4 border-b border-(--border) p-6"><div><p className="eyebrow text-(--accent-strong)">{event.event_date}</p><h2 className="mt-3 text-xl font-black tracking-[-.04em]">{event.name}</h2></div><Badge variant={variant}>{event.status}</Badge></div>
-      <div className="flex flex-1 flex-col p-6"><p className="text-sm leading-6 text-(--muted)">{eventDescription}</p><div className="mt-6 space-y-2 text-xs font-bold text-(--muted)"><p>Waktu: {time}</p><p>Lokasi: {location}</p></div><Link to="/events/$id" params={{ id: event.id }} className="mt-7 text-xs font-black uppercase tracking-widest text-(--accent-strong) hover:underline">Lihat detail ↗</Link></div>
+      <div className="flex flex-1 flex-col p-6"><p className="text-sm leading-6 text-(--muted)">{eventDescription}</p><div className="mt-6 space-y-2 text-xs font-bold text-(--muted)"><p>Waktu: {time}</p><p>Lokasi: {location}</p></div><Link to="/events/$id" params={{ id: event.id }} className="mt-7 text-xs font-black uppercase tracking-widest text-(--accent-strong) hover:underline">Lihat detail <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /></Link></div>
     </Card>
   )
 }

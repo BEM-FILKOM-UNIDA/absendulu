@@ -1,5 +1,6 @@
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
+import { ArrowUpRight } from 'lucide-react'
 import { createClient } from '~/lib/supabase/client'
 import { getOnboardingData } from '~/server/data'
 import { isValidStaffIdentifier, isValidStudentNim } from '~/lib/auth/identity'
@@ -63,7 +64,7 @@ function CompleteProfilePage() {
             <label className="block space-y-2"><span className="text-sm font-bold">Tipe pengguna</span><input value={userTypeLabels[userType]} readOnly disabled className="h-12 w-full border border-(--border) bg-(--surface-muted) px-4 text-sm" /></label>
             <label className="block space-y-2"><span className="text-sm font-bold">Fakultas</span><input value="Fakultas Ilmu Komputer" readOnly disabled className="h-12 w-full border border-(--border) bg-(--surface-muted) px-4 text-sm" /></label>
             {error ? <p role="alert" className="border border-[#e7b6b6] bg-[#f8dddd] px-3 py-3 text-sm font-semibold text-(--danger)">{error}</p> : null}
-            <button type="submit" disabled={loading} className="min-h-11 w-full bg-(--accent) px-5 text-sm font-bold text-(--accent-foreground) disabled:opacity-50">{loading ? 'Menyimpan…' : 'Simpan profil'} ↗</button>
+            <button type="submit" disabled={loading} className="inline-flex min-h-11 w-full items-center justify-center gap-2 bg-(--accent) px-5 text-sm font-bold text-(--accent-foreground) disabled:opacity-50">{loading ? 'Menyimpan…' : 'Simpan profil'} <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></button>
           </form>
           <button type="button" onClick={signOut} className="mt-5 w-full text-center text-xs font-bold uppercase tracking-widest text-(--muted) hover:text-(--accent-strong)">Keluar</button>
         </div>
