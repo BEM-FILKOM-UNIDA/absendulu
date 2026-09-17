@@ -104,9 +104,19 @@ export const Route = createFileRoute('/api/members/import')({
               userId = result.data.user?.id
               wasExisting = Boolean(result.error)
 
-              // Auth user existed but profile was missing — find the user id via
-              // a narrow listUsers page (page 1, size 1 is not filtered by email,
-              // so we re-check profilesByEmail after upsert instead of a second lookup).
+              // Auth user existed but profile was missing — locate id via paged
+              // listUsers matched on email (bounded; orphan rows are rare).
+              // ponytail: loop capped, admin batch job only — no dep, no cache
+              if (!userId) {
+                let page = 1
+                while (!userId && page <= 20) {
+                  const { data: pageData, error: pageError } = await admin.auth.admin.listUsers({ page, perPage: 1000 })
+                  if (pageError || !pageData) break
+                  userId = pageData.users.find((u) => u.email?.toLowerCase() === row.email)?.id
+                  if (pageData.users.length < 1000) break
+                  page += 1
+                }
+              }
               if (!userId) { failed.push({ email: row.email, error: 'User ID tidak ditemukan.' }); continue }
             }
 
