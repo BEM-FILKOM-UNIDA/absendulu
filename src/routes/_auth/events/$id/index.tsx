@@ -137,7 +137,7 @@ function EventDetailPage() {
               </>
             ) : null}
           </div>
-          <button type="button" onClick={() => setConfirming(true)} disabled={loading} className="text-sm font-bold text-(--danger) disabled:opacity-50">{loading ? 'Memproses…' : 'Hapus acara'} <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></button>
+          <button type="button" onClick={() => setConfirming(true)} disabled={loading} className="inline-flex items-center gap-1 text-sm font-bold text-(--danger) disabled:opacity-50">{loading ? 'Memproses…' : 'Hapus acara'} <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></button>
         </section>
       ) : null}
       {confirming ? (

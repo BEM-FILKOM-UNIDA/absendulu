@@ -84,7 +84,7 @@ function EventSummary({ events }: { events: DashboardEvent[] }) {
       <Card className="overflow-hidden">
         <div className="flex items-end justify-between border-b border-(--border) px-6 py-6">
           <div><p className="eyebrow text-(--accent-strong)">agenda organisasi</p><h3 className="mt-2 text-xl font-black">Acara FILKOM</h3></div>
-          <Link to="/events" className="text-xs font-black uppercase tracking-widest text-(--accent-strong)">Lihat semua <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /></Link>
+          <Link to="/events" className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-widest text-(--accent-strong)">Lihat semua <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /></Link>
         </div>
         {events.length > 0 ? <div className="divide-y divide-(--border)">
           {events.map((event) => <EventRow key={event.id} event={event} />)}
