@@ -128,7 +128,7 @@ function LandingPage() {
           </div>
         </div>
       </section>
-      <footer className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-5 lg:px-8"><div className="flex flex-col gap-3 text-xs font-semibold text-(--muted) sm:flex-row sm:items-center sm:justify-between"><p>© {year} Absendulu.</p><p>Absensi yang nggak bikin antre.</p></div><div className="flex items-center justify-center gap-3 border-t border-(--border) pt-5"><span className="text-[10px] font-bold uppercase tracking-[.14em] text-(--muted-soft)">Powered by</span><img src="/logo/logo-bem-footer.webp" alt="Logo PSDM BEM FILKOM UNIDA" width="24" height="24" className="h-6 w-6 rounded-full object-contain" /><span className="text-xs font-black">PSDM BEM FILKOM UNIDA</span></div></footer>
+      <footer className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-5 lg:px-8"><div className="flex flex-col gap-3 text-xs font-semibold text-(--muted) sm:flex-row sm:items-center sm:justify-between"><p>© {year} Absendulu.</p><p>Absensi yang nggak bikin antre.</p></div><div className="flex items-center justify-center gap-3 border-t border-(--border) pt-5"><span className="text-[10px] font-bold uppercase tracking-[.14em] text-(--muted-soft)">Powered by</span><img src="/logo/logo-bem-footer.webp" alt="Logo KABINET EKAKARSA" width="24" height="24" className="h-6 w-6 rounded-full object-contain" /><span className="text-xs font-black">KABINET EKAKARSA</span></div></footer>
     </main>
   )
 }

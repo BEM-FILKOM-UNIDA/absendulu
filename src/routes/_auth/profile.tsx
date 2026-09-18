@@ -153,7 +153,7 @@ function ProfileContent({ data }: { data: ProfileData }) {
               {saving ? 'Menyimpan…' : 'Simpan perubahan'} <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" />
             </button>
           </form>
-          <button type="button" onClick={signOut} className="mt-5 text-xs font-bold uppercase tracking-widest text-(--muted) hover:text-(--danger)">Keluar <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /></button>
+          <button type="button" onClick={signOut} className="mt-5 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-widest text-(--muted) hover:text-(--danger)">Keluar <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /></button>
         </div>
       </Card>
     </>

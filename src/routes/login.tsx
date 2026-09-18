@@ -65,7 +65,7 @@ function LoginPage() {
             <p className="mt-7 border-t border-(--border) pt-5 text-center text-xs leading-5 text-(--muted)">Baru pertama kali? Masuk dengan Google, lalu isi NIM.</p>
           </div>
         </div>
-        <div className="mt-6 flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-[.14em] text-(--muted-soft)"><span>POWERED BY</span><img src="/logo/logo-bem-footer.webp" alt="Logo BEM FILKOM UNIDA" width="24" height="24" className="h-6 w-6 rounded-full object-contain" /><span>PSDM FILKOM UNIDA</span></div>
+        <div className="mt-6 flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-[.14em] text-(--muted-soft)"><span>POWERED BY</span><img src="/logo/logo-bem-footer.webp" alt="Logo KABINET EKAKARSA" width="24" height="24" className="h-6 w-6 rounded-full object-contain" /><span>KABINET EKAKARSA</span></div>
       </div>
     </main>
   )

@@ -52,7 +52,7 @@ function StudentEvents({ events, openEventIds }: { events: StudentEvent[]; openE
           <p className="eyebrow text-(--accent-strong)">agenda publik</p>
           <h2 className="mt-2 text-xl font-black">Acara FILKOM</h2>
         </div>
-        <Link to="/events" className="text-xs font-black uppercase tracking-widest text-(--accent-strong)">Lihat semua <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /></Link>
+        <Link to="/events" className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-widest text-(--accent-strong)">Lihat semua <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /></Link>
       </div>
       {events.length > 0 ? (
         <div className="divide-y divide-(--border)">
@@ -99,7 +99,7 @@ function StudentHistory({ attendance }: { attendance: AttendanceItem[] }) {
           <p className="eyebrow text-(--accent-strong)">catatan pribadi</p>
           <h2 className="mt-2 text-xl font-black">Riwayat terbaru</h2>
         </div>
-        <Link to="/attendance/history" className="text-xs font-black uppercase tracking-widest text-(--accent-strong)">Lihat semua <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /></Link>
+        <Link to="/attendance/history" className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-widest text-(--accent-strong)">Lihat semua <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /></Link>
       </div>
       {attendance.length > 0 ? (
         <div className="divide-y divide-(--border)">
