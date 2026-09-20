@@ -56,12 +56,12 @@ function LoginPage() {
       <div className="relative w-full max-w-md">
         <Link to="/" className="mx-auto mb-9 flex w-fit flex-col items-center gap-2"><img src="/logo/Absendulu.webp" alt="Absendulu" width="68" height="40" className="h-10 w-auto" /><span className="text-[10px] font-bold uppercase tracking-[.18em] text-(--muted)">FILKOM UNIDA</span></Link>
         <div className="overflow-hidden border border-(--ink) bg-(--surface) shadow-[8px_10px_0_var(--accent)]">
-          <header className="bg-(--ink) p-7 text-[#f7f4ed] sm:p-8"><p className="eyebrow text-(--accent)">FILKOM UNIDA</p><h1 className="display-type pt-3 text-4xl leading-none tracking-[-.06em]">Masuk ke<br /><em>AbsenDulu.</em></h1><p className="pt-4 text-sm text-white/55">Pakai Google biar cepat — untuk 70+ orang serentak, Google tidak kena limit.</p></header>
+          <header className="bg-(--ink) p-7 text-[#f7f4ed] sm:p-8"><p className="eyebrow text-(--accent)">FILKOM UNIDA</p><h1 className="display-type pt-3 text-4xl leading-none tracking-[-.06em]">Masuk ke<br /><em>AbsenDulu.</em></h1><p className="pt-4 text-sm text-white/55">Masuk dengan akun Google untuk melanjutkan.</p></header>
           <div className="p-7 sm:p-8">
             {notice && <p role="status" className="mb-5 border border-(--accent-strong) bg-(--accent-soft) px-3 py-3 text-sm font-semibold text-(--accent-strong)">{notice}</p>}
             <button type="button" disabled={loading} onClick={handleGoogleLogin} className="inline-flex min-h-11 w-full items-center justify-center gap-2 border border-(--border) bg-white px-5 text-sm font-bold hover:bg-(--surface-muted) disabled:opacity-50"><span className="text-base font-black">G</span>{loading ? 'Membuka Google…' : 'Masuk dengan Google'}</button>
             {error && <p role="alert" className="mt-4 border border-[#e7b6b6] bg-[#f8dddd] px-3 py-3 text-sm font-semibold text-(--danger)">{error}</p>}
-            <p className="mt-3 text-center text-xs leading-5 text-(--muted)">Akun baru otomatis dibuat, lalu lengkapi NIM di halaman berikutnya.</p>
+            <p className="mt-3 text-center text-xs leading-5 text-(--muted)">Pengguna baru akan diarahkan untuk melengkapi NIM setelah masuk.</p>
             <p className="mt-7 border-t border-(--border) pt-5 text-center text-xs leading-5 text-(--muted)">Baru pertama kali? Masuk dengan Google, lalu isi NIM.</p>
           </div>
         </div>

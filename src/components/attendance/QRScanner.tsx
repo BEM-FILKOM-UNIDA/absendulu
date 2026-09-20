@@ -72,7 +72,7 @@ export default function QRScanner({ onScan }: { onScan: (token: string) => void 
       void stopAndCleanupScanner(scanner).finally(() => {
         setScanning(false)
         setHint('QR berhasil dibaca. Memeriksa kehadiran…')
-        onScan(token)
+        try { onScan(token) } catch { setError('Gagal memproses QR. Coba lagi.'); processingRef.current = false }
       })
     }
 
