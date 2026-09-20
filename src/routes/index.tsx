@@ -95,7 +95,7 @@ function LandingPage() {
           <p className="mt-6 max-w-[32ch] text-[.95rem] leading-6 text-(--muted) sm:mt-8 sm:text-base sm:leading-7">Cukup scan QR di lokasi acara, dan kehadiranmu langsung tercatat. Nggak perlu isi form, nggak perlu antre tanda tangan.</p>
           <div className="mt-7 flex flex-wrap items-center gap-4 sm:mt-9">
             <Link to="/login" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-sm bg-(--accent) px-5 text-sm font-bold text-(--accent-foreground) shadow-[0_12px_24px_rgba(38,208,207,.22)] hover:-translate-y-0.5 hover:bg-[#55ded4]">Absen sekarang <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></Link>
-            <span className="text-xs font-bold uppercase tracking-[.12em] text-(--muted-soft)">KHUSUS FILKOM UNIDA</span>
+            <span className="text-xs font-bold uppercase tracking-[.12em] text-(--muted-soft)">FILKOM UNIDA</span>
           </div>
         </div>
 

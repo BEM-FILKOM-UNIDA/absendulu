@@ -45,7 +45,8 @@ export async function getEventRow(supabase: SupabaseClient, id: string, isAdmin:
 export const getEventsData = createServerFn({ method: 'GET' }).handler(async () => {
   const auth = await requireActiveAuth()
   const isAdmin = isAdminRole(auth.profile.role)
-  const events = await listEvents(createAdminClient(), isAdmin)
+  const admin = createAdminClient()
+  const events = await listEvents(admin, isAdmin)
   return { isAdmin, events }
 })
 
