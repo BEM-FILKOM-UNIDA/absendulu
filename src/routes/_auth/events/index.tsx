@@ -24,8 +24,8 @@ function EventsPage() {
 }
 
 function EventsContent({ events, isAdmin }: { events: EventsData['events']; isAdmin: boolean }) {
-  const eyebrow = isAdmin ? 'agenda organisasi / FILKOM UNIDA' : 'agenda publik / FILKOM UNIDA'
-  const description = isAdmin ? 'Lihat kegiatan organisasi dan kelola status absensinya.' : 'Lihat acara aktif yang dapat kamu ikuti.'
+  const eyebrow = isAdmin ? 'Acara FILKOM / FILKOM UNIDA' : 'agenda publik / FILKOM UNIDA'
+  const description = isAdmin ? 'Lihat Acara FILKOM dan kelola status absensinya.' : 'Lihat acara aktif yang dapat kamu ikuti.'
   return (
     <div className="space-y-8">
       <section className="flex flex-col gap-4 border-b border-(--border) pb-8 sm:flex-row sm:items-end sm:justify-between">
@@ -42,7 +42,7 @@ function EventsContent({ events, isAdmin }: { events: EventsData['events']; isAd
 }
 
 function EventCard({ event }: { event: EventItem }) {
-  const eventDescription = event.description || 'Acara organisasi FILKOM UNIDA.'
+  const eventDescription = event.description || 'Acara FILKOM UNIDA.'
   const time = `${event.start_time}${event.end_time ? ` — ${event.end_time}` : ''}`
   const location = event.location || 'Belum ditentukan'
   const variant = event.status === 'active' ? 'success' : event.status === 'cancelled' ? 'danger' : 'muted'

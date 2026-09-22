@@ -25,7 +25,7 @@ function NewEventPage() {
   }
   return (
     <div className="max-w-4xl space-y-8">
-      <section className="border-b border-(--border) pb-8"><p className="eyebrow text-(--accent-strong)">buat kegiatan / panitia FILKOM</p><h1 className="display-type mt-3 text-4xl leading-none sm:text-5xl">Siapkan<br /><em>acara baru.</em></h1><p className="mt-4 max-w-md text-sm leading-6 text-(--muted)">Isi detail kegiatan organisasi. Setelah dibuat, panitia dapat membuka QR absensi.</p></section>
+      <section className="border-b border-(--border) pb-8"><p className="eyebrow text-(--accent-strong)">buat acara / panitia FILKOM</p><h1 className="display-type mt-3 text-4xl leading-none sm:text-5xl">Siapkan<br /><em>acara baru.</em></h1><p className="mt-4 max-w-md text-sm leading-6 text-(--muted)">Isi detail Acara FILKOM. Setelah dibuat, panitia dapat membuka QR absensi.</p></section>
       <form onSubmit={submit} className="space-y-6 border border-(--border) bg-(--surface) p-6 sm:p-8">
         <label className="block space-y-2"><span className="eyebrow text-(--muted)">Nama acara</span><input value={form.name} onChange={(event) => update('name', event.target.value)} className="h-12 w-full border border-(--border) bg-(--surface-strong) px-4 text-sm" required maxLength={160} /></label>
         <label className="block space-y-2"><span className="eyebrow text-(--muted)">Deskripsi singkat</span><textarea value={form.description} onChange={(event) => update('description', event.target.value)} className="min-h-28 w-full border border-(--border) bg-(--surface-strong) px-4 py-3 text-sm" maxLength={5000} /></label>
