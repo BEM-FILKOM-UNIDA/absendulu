@@ -12,7 +12,7 @@ export const Route = createRootRoute({
       { title: 'Absendulu — Absensi Acara FILKOM UNIDA' },
       {
         name: 'description',
-        content: 'Absensi digital untuk acara organisasi mahasiswa Fakultas Ilmu Komputer Universitas Djuanda.',
+        content: 'Absensi digital untuk Acara FILKOM UNIDA.',
       },
     ],
     links: [

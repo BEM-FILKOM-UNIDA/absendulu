@@ -25,7 +25,7 @@ function DashboardPage() {
         <div>
           <p className="eyebrow text-(--accent-strong)">Absendulu / FILKOM UNIDA</p>
           <h2 className="display-type mt-3 text-5xl leading-none tracking-[-.07em] sm:text-6xl">Siap hadir<br /><em>di acara.</em></h2>
-          <p className="mt-5 max-w-lg text-sm leading-6 text-(--muted)">Pantau acara organisasi FILKOM, buka absensi, dan lihat siapa saja yang sudah hadir—semua dalam satu tempat.</p>
+          <p className="mt-5 max-w-lg text-sm leading-6 text-(--muted)">Pantau Acara FILKOM, buka absensi, dan lihat siapa saja yang sudah hadir—semua dalam satu tempat.</p>
         </div>
         <div className="flex flex-wrap gap-3">
           <ButtonLink href="/events/new" variant="primary">Buat acara <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></ButtonLink>
@@ -83,14 +83,14 @@ function EventSummary({ events }: { events: DashboardEvent[] }) {
     <section className="grid gap-6 xl:grid-cols-[1.35fr_.65fr]">
       <Card className="overflow-hidden">
         <div className="flex items-end justify-between border-b border-(--border) px-6 py-6">
-          <div><p className="eyebrow text-(--accent-strong)">agenda organisasi</p><h3 className="mt-2 text-xl font-black">Acara FILKOM</h3></div>
+          <div><p className="eyebrow text-(--accent-strong)">Acara FILKOM</p><h3 className="mt-2 text-xl font-black">Acara FILKOM</h3></div>
           <Link to="/events" className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-widest text-(--accent-strong)">Lihat semua <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /></Link>
         </div>
         {events.length > 0 ? <div className="divide-y divide-(--border)">
           {events.map((event) => <EventRow key={event.id} event={event} />)}
         </div> : <div className="px-6 py-14 text-center"><p className="font-black">Belum ada acara</p><p className="mt-2 text-sm text-(--muted)">Buat acara pertama untuk mulai mencatat kehadiran mahasiswa.</p></div>}
       </Card>
-      <Card className="paper-grid bg-(--ink) p-7 text-[#f7f4ed]"><p className="eyebrow text-(--accent)">aksi cepat</p><h3 className="display-type mt-5 text-3xl leading-none">Scan QR,<br /><em>langsung hadir.</em></h3><p className="mt-5 text-sm leading-6 text-white/55">Arahkan kamera ke QR acara organisasi yang sedang dibuka panitia.</p><ButtonLink href="/scan" variant="accent" className="mt-8">Buka scanner <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0" /></ButtonLink></Card>
+      <Card className="paper-grid bg-(--ink) p-7 text-[#f7f4ed]"><p className="eyebrow text-(--accent)">aksi cepat</p><h3 className="display-type mt-5 text-3xl leading-none">Scan QR,<br /><em>langsung hadir.</em></h3><p className="mt-5 text-sm leading-6 text-white/55">Arahkan kamera ke QR Acara FILKOM yang sedang dibuka panitia.</p><ButtonLink href="/scan" variant="accent" className="mt-8">Buka scanner <ArrowRight aria-hidden="true" className="h-4 w-4 shrink-0" /></ButtonLink></Card>
     </section>
   )
 }
