@@ -8,6 +8,12 @@ const directory = path.dirname(fileURLToPath(import.meta.url))
 const rolesPath = path.join(directory, '..', 'src', 'lib', 'auth', 'roles.ts')
 const requestAuthPath = path.join(directory, '..', 'src', 'server', 'request-auth.ts')
 const healthPath = path.join(directory, '..', 'src', 'routes', 'api', 'health.ts')
+const startPath = path.join(directory, '..', 'src', 'start.ts')
+const startSource = fs.readFileSync(startPath, 'utf8')
+
+assert.match(startSource, /createCsrfMiddleware/)
+assert.match(startSource, /filter:\s*\(ctx\)\s*=>\s*ctx\.handlerType\s*===\s*['"]serverFn['"]/)
+assert.match(startSource, /requestMiddleware:\s*\[requestMiddleware,\s*csrfMiddleware\]/)
 
 const source = fs.readFileSync(rolesPath, 'utf8')
 const output = ts.transpileModule(source, {
