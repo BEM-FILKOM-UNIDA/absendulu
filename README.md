@@ -51,7 +51,7 @@ The frontend and server routes run on **TanStack Start + React 19 + Vite**, whil
 | QR             | `qrcode`, `html5-qrcode`                                       |
 | Deployment     | Vercel + Supabase                                              |
 | CI/CD          | GitHub Actions                                                 |
-| Runtime        | Node.js 22+                                                    |
+| Runtime        | Bun (Node.js 22+ compatible)                                                    |
 
 ---
 
@@ -451,8 +451,8 @@ Turnstile can be enabled later if the app becomes public or receives bot traffic
 
 | Tool             | Version                                 |
 | ----------------- | ----------------------------------------- |
-| Node.js          | 22+                                     |
-| npm              | 10+ recommended                         |
+| Bun               | Latest stable                             |
+| Node.js           | 22+ (production compatibility target)     |
 | Git              | Recent version                          |
 | Supabase project | Hosted project with Auth and PostgreSQL |
 | Vercel           | Required only for production deployment |
