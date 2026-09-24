@@ -23,7 +23,7 @@ export default defineConfig({
     }),
     viteReact(),
     nitro({
-      preset: 'bun',
+      preset: process.env.NITRO_PRESET ?? 'bun',
     }),
   ],
 })
