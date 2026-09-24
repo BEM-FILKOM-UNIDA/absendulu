@@ -583,7 +583,7 @@ Metode HTTP yang tidak diizinkan untuk suatu endpoint mengembalikan `405 Method 
 |-----------|-----------|
 | Deployment | Vercel + Supabase |
 | CI/CD | GitHub Actions |
-| Runtime | Node.js 22+ (Bun sebagai package manager dan development runtime) |
+| Runtime | Bun (frontend + backend) |
 
 ### 9.5 Konfigurasi Environment Variables
 
@@ -726,8 +726,7 @@ Setelah deploy, verifikasi:
 
 | Tool | Versi |
 |------|-------|
-| Bun | Latest stable (package manager dan development) |
-| Node.js | 22+ (production server runtime) |
+| Bun | Latest stable |
 | Git | Recent version |
 | Supabase project | Hosted project with Auth dan PostgreSQL |
 | Vercel | Required untuk production deployment |
