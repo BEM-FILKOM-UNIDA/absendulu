@@ -17,10 +17,13 @@ export const Route = createFileRoute('/')({
   loader: async () => {
     try {
       const auth = await getCurrentAuth()
-      if (!auth.user || !auth.profile) return null KeyboardEvent
+      if (!auth.user || !auth.profile) return null
 
+      
 
+      
 
+      
       
       if (auth.profile.account_status === 'disabled' || !auth.profile.is_active) {
         throw redirect({ to: '/account-disabled' })
