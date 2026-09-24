@@ -114,7 +114,7 @@ Field `account_status` mengontrol akses anggota:
 | Status | Makna | Aksi Wajib |
 |--------|-------|------------|
 | `invited` + profile tidak lengkap | Data identitas belum diisi | Redirect ke `/complete-profile` |
-| `invited` + profile lengkap | Menunggu aktivasi panitia | Redirect ke `/waiting-approval` |
+| `invited` + profile lengkap | Menunggu aktivasi panitia | Tidak ada redirect otomatis ke `/waiting-approval`; route `/waiting-approval` dapat diakses manual |
 | `active` | Akun disetujui dan aktif | Akses dashboard atau workspace mahasiswa |
 | `disabled` / `is_active = false` | Akses diblokir | Redirect ke `/account-disabled` |
 

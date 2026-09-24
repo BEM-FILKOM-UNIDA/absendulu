@@ -25,7 +25,7 @@ The frontend and server routes run on **TanStack Start + React 19 + Vite**, whil
 ## Highlights
 
 - **Invite-only access** so users cannot freely create organization accounts from the login page
-- **Passwordless authentication** through Supabase Magic Link and optional Google OAuth
+- **Google OAuth** as the single available login method in the UI
 - **Admin member management** through manual registration or CSV import of up to 500 users
 - **Role-based workspace** for admins and active non-admin users
 - **Event management** with date, time, location, description, and lifecycle status
@@ -44,7 +44,7 @@ The frontend and server routes run on **TanStack Start + React 19 + Vite**, whil
 | Layer          | Stack                                                          |
 | -------------- | -------------------------------------------------------------- |
 | Frontend       | TanStack Start, React 19, TypeScript, Tailwind CSS, Vite       |
-| Authentication | Supabase Auth, Magic Link, Google OAuth                        |
+| Authentication | Supabase Auth, Google OAuth |
 | Database       | Supabase PostgreSQL                                            |
 | Authorization  | Application role checks, account status checks, PostgreSQL RLS |
 | Realtime       | Supabase Realtime for attendance updates                       |
@@ -66,7 +66,7 @@ flowchart TD
     USER[User / Mahasiswa] --> WEB[TanStack Start App]
     ADMIN[Admin Panitia] --> WEB
 
-    WEB --> AUTH[Supabase Auth\nMagic Link / Google OAuth]
+    WEB --> AUTH[Supabase Auth\nGoogle OAuth]
     WEB --> GUARD[Route loaders and server functions\nSession and access checks]
     WEB --> API[TanStack Start server routes]
 
@@ -170,10 +170,7 @@ Member can use the application
 
 ### 2. User logs in
 
-A user can select:
-
-- **Google OAuth**, or
-- **Email Magic Link**.
+A user signs in with Google OAuth.
 
 The login flow does not allow public signup:
 
@@ -189,9 +186,9 @@ sequenceDiagram
     participant Callback as /auth/callback
     participant Profile as profiles
 
-    User->>Web: Enter registered email or choose Google
-    Web->>Auth: Request Magic Link or OAuth session
-    Auth-->>User: Email link or Google authorization
+    User->>Web: Choose registered Google account
+    Web->>Auth: Request OAuth session
+    Auth-->>User: Google authorization
     User->>Callback: Open callback URL
     Callback->>Auth: Exchange code for session
     Callback->>Profile: Read role and account status
@@ -275,8 +272,8 @@ The check-in route verifies:
 
 Attendance status is calculated as:
 
-- `hadir`: check-in is within the first 15 minutes.
-- `terlambat`: check-in is more than 15 minutes after the event starts.
+- `hadir`: check-in occurs within the event schedule (after `start_time` and before `end_time`).
+- `terlambat`: check-in occurs after `end_time`.
 
 ### 7. Admin closes the session
 
@@ -374,7 +371,7 @@ absen/
 
 | Method  | Endpoint         | Description                                     |
 | ------- | ---------------- | ------------------------------------------------ |
-| `GET`   | `/auth/callback` | Exchange Magic Link or OAuth code for a session |
+| `GET`   | `/auth/callback` | Exchange OAuth code for a session |
 | `PATCH` | `/api/profile`   | Update permitted profile fields                 |
 
 ### Attendance
@@ -413,7 +410,7 @@ Absendulu is designed for an internal organization deployment with approximately
 
 ### Authentication
 
-- Supabase Magic Link and optional Google OAuth.
+- Supabase Google OAuth as the single available login method in the UI.
 - `shouldCreateUser: false` prevents unrestricted account creation from the login form.
 - Auth callback validates and exchanges the authorization code server-side.
 - Account status and active flags are checked before protected access is granted.
@@ -432,7 +429,7 @@ Absendulu is designed for an internal organization deployment with approximately
 
 - All cookie-authenticated mutations require a matching `Origin` or `Referer`.
 - Security headers include `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Resource-Policy`, and production HSTS.
-- CSV uploads are limited to 2 MB and 500 rows.
+- CSV uploads are limited to 2 MB of CSV data and 500 rows.
 - User input is validated again on the server.
 - Duplicate check-ins are blocked in application code and at the database level.
 - `SUPABASE_SECRET_KEY` is never used in client code or browser bundles.
@@ -441,9 +438,9 @@ Absendulu is designed for an internal organization deployment with approximately
 
 Cloudflare Turnstile is not required for the current internal deployment by default because:
 
-- Login is passwordless.
+- Login uses Google OAuth.
 - Account creation is invite-only.
-- Supabase Auth already rate-limits Magic Link and OTP requests.
+- Supabase Auth already rate-limits OTP requests.
 - The application is intended for a small, known user group.
 
 Turnstile can be enabled later if the app becomes public or receives bot traffic, email abuse, or repeated automated login attempts. Supabase supports Cloudflare Turnstile and hCaptcha through its Auth bot protection settings.
@@ -489,9 +486,8 @@ SUPABASE_SECRET_KEY=<server-only-secret-key>
 ## Supabase Setup
 
 1. Create or select the Supabase project.
-2. Configure Email/Magic Link under **Authentication → Providers**.
-3. Enable Google OAuth only if the organization needs it.
-4. Set the production Site URL and callback URL in **Authentication → URL Configuration**:
+2. Enable Google OAuth under **Authentication → Providers**.
+3. Set the production Site URL and callback URL in **Authentication → URL Configuration**:
    ```text
    https://<production-domain>/auth/callback
    ```
@@ -509,7 +505,6 @@ SUPABASE_SECRET_KEY=<server-only-secret-key>
    ```
 8. Create the first admin profile by a controlled database/admin procedure. Do not allow users to self-promote through profile fields.
 9. Configure Auth rate limits and monitor Auth logs.
-10. Use custom SMTP for production Magic Link delivery when reliable organizational email delivery is required.
 
 ---
 
@@ -640,7 +635,7 @@ After deployment, verify:
 - Anonymous profile mutation returns `401`.
 - Anonymous attendance check-in returns `401`.
 - Security headers are present.
-- Magic Link and Google callback redirect to the correct workspace.
+- Google callback redirects to the correct workspace.
 - Admin can create an event and open one QR session.
 - An active user can check in once and see the attendance history.
 
@@ -691,7 +686,6 @@ The `v0.1.0` tag is the previous remote release. The current `v0.1.1` tag points
 
 | Problem                                   | What to check                                                                                                   |
 | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Magic Link is not received                | Check Supabase Auth email provider, SMTP, spam folder, Site URL, and rate limits                                |
 | OAuth callback fails                      | Verify the Supabase redirect URL and Google OAuth callback configuration                                        |
 | User is redirected to `/complete-profile` | Check `profiles.full_name`, `profiles.nim`, `user_type`, and `account_status`                                   |
 | User is redirected to `/account-disabled` | Check `profiles.account_status` and `is_active`                                                                 |
