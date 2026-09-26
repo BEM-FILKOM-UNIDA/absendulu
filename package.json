@@ -7,10 +7,10 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build && tsc --noEmit",
-    "start": "node --env-file-if-exists=.env.local .output/server/index.mjs",
+    "start": "bun run .output/server/index.mjs",
     "preview": "vite preview",
-    "test:schedule": "node scripts/test-schedule.mjs",
-    "test:auth": "node scripts/test-auth.mjs",
+    "test:schedule": "bun scripts/test-schedule.mjs",
+    "test:auth": "bun scripts/test-auth.mjs",
     "lint": "eslint src vite.config.ts",
     "typecheck": "tsc --noEmit",
     "check": "bun run test:schedule && bun run test:auth && bun run lint && bun run typecheck && bun run build"

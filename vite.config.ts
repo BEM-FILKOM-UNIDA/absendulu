@@ -22,6 +22,8 @@ export default defineConfig({
       },
     }),
     viteReact(),
-    nitro(),
+    nitro({
+      preset: process.env.NITRO_PRESET ?? 'bun',
+    }),
   ],
 })
