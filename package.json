@@ -11,9 +11,10 @@
     "preview": "vite preview",
     "test:schedule": "bun scripts/test-schedule.mjs",
     "test:auth": "bun scripts/test-auth.mjs",
+    "test:filters": "bun scripts/test-history-filters.mjs",
     "lint": "eslint src vite.config.ts",
     "typecheck": "tsc --noEmit",
-    "check": "bun run test:schedule && bun run test:auth && bun run lint && bun run typecheck && bun run build"
+    "check": "bun run test:schedule && bun run test:auth && bun run test:filters && bun run lint && bun run typecheck && bun run build"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.5",
