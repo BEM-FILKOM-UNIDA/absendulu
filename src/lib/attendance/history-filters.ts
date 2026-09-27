@@ -1,5 +1,5 @@
 export type AttendanceStatus = 'hadir' | 'terlambat' | 'izin' | 'alpha'
-export type HistoryStatusFilter = 'all' | 'hadir' | 'terlambat'
+export type HistoryStatusFilter = 'all' | AttendanceStatus
 
 export type HistoryFilters = {
   query: string
