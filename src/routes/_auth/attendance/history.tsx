@@ -69,7 +69,7 @@ function HistoryContent({ attendances, isAdmin }: { attendances: HistoryItem[]; 
               value={filters.query}
               onChange={(event) => updateQuery(event.target.value)}
               placeholder={isAdmin ? 'Cari acara, peserta, atau NIM/NIP' : 'Cari acara'}
-              className="h-11 w-full border border-(--border) bg-(--surface-strong) pl-10 pr-4 text-sm placeholder:text-(--muted-soft) focus:border-(--accent-strong) focus:outline-none"
+              className="h-11 w-full border border-(--border) bg-(--surface-strong) pl-10 pr-4 text-sm placeholder:text-(--muted-soft) focus:border-(--accent-strong)"
               aria-label={isAdmin ? 'Cari acara atau peserta' : 'Cari acara'}
             />
           </label>
@@ -78,12 +78,14 @@ function HistoryContent({ attendances, isAdmin }: { attendances: HistoryItem[]; 
             <select
               value={filters.status}
               onChange={(event) => updateStatus(event.target.value as typeof filters.status)}
-              className="h-11 w-full border border-(--border) bg-(--surface-strong) px-3 text-sm focus:border-(--accent-strong) focus:outline-none"
+              className="h-11 w-full border border-(--border) bg-(--surface-strong) px-3 text-sm focus:border-(--accent-strong)"
               aria-label="Filter status kehadiran"
             >
               <option value="all">Semua status</option>
               <option value="hadir">Hadir</option>
               <option value="terlambat">Terlambat</option>
+              <option value="izin">Izin</option>
+              <option value="alpha">Alpha</option>
             </select>
           </label>
           <button
