@@ -42,7 +42,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Install Vercel CLI
-        run: bun add --global vercel@41.7.0
+        run: bun add --global vercel@59.26.0
 
       - name: Validate Vercel credentials
         run: |

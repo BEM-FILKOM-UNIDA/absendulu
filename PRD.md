@@ -114,7 +114,7 @@ Field `account_status` mengontrol akses anggota:
 | Status | Makna | Aksi Wajib |
 |--------|-------|------------|
 | `invited` + profile tidak lengkap | Data identitas belum diisi | Redirect ke `/complete-profile` |
-| `invited` + profile lengkap | Menunggu aktivasi panitia | Redirect ke `/waiting-approval` |
+| `invited` + profile lengkap | Menunggu aktivasi panitia | Tidak ada redirect otomatis ke `/waiting-approval`; route `/waiting-approval` dapat diakses manual |
 | `active` | Akun disetujui dan aktif | Akses dashboard atau workspace mahasiswa |
 | `disabled` / `is_active = false` | Akses diblokir | Redirect ke `/account-disabled` |
 
@@ -144,7 +144,7 @@ Panitia membuat member via form manual atau import CSV:
 ### 5.1 Autentikasi & Otorisasi
 
 - **Invite-only access:** Tidak ada public signup dari halaman login (`shouldCreateUser: false`).
-- **Passwordless auth:** Magic Link via email dan Google OAuth.
+- **Google OAuth:** Satu-satunya metode login yang tersedia di UI (`signInWithOAuth({ provider: 'google' })`).
 - **Session management:** Server-side auth snapshot di-cache selama 10 detik.
 - **Route guards:** Semua route under `/_auth` dilindungi oleh `beforeLoad` yang memvalidasi session, account status, dan active flag.
 - **Generic error messaging:** Pesan login error tidak mengunggung informasi email enumeration.
@@ -154,7 +154,7 @@ Panitia membuat member via form manual atau import CSV:
 **Admin dapat:**
 
 - Mendaftarkan member baru secara manual.
-- Mengimpor daftar member via CSV (maks 500 baris, 2 MB).
+- Mengimpor daftar member via CSV (maks 500 baris, 2 MB data CSV, 3 MB total multipart form).
 - Mencari dan memfilter daftar member.
 - Mengaktifkan / menonaktifkan akun member.
 - Melihat detail member (nama, NIM/NIP, email, tipe user, divisi, role, status).
@@ -213,8 +213,8 @@ Check-in diterima hanya jika:
 
 | Status | Kondisi |
 |--------|---------|
-| `hadir` | Check-in dalam 15 menit pertama sejak waktu mulai |
-| `terlambat` | Check-in lebih dari 15 menit sejak waktu mulai tapi masih dalam rentang event |
+| `hadir` | Check-in berada dalam rentang jadwal event (setelah waktu mulai sampai sebelum waktu selesai) |
+| `terlambat` | Check-in dilakukan setelah waktu selesai event |
 | `izin` | Diatur oleh panitia (tidak melalui QR scan) |
 | `alpha` | Tidak hadir (tidak melalui check-in) |
 
@@ -222,6 +222,8 @@ Method absensi:
 
 - `QR_CODE` — melalui pemindaian QR.
 - `MANUAL` — input oleh panitia.
+
+> **Catatan:** Tidak ada threshold 15 menit dalam implementasi saat ini. Status `terlambat` hanya ditetapkan ketika check-in dilakukan setelah `end_time` event. Check-in setelah `start_time` tapi sebelum `end_time` tetap dihitung sebagai `hadir`.
 
 ### 5.5 Realtime & Monitoring
 
@@ -265,7 +267,7 @@ Method absensi:
 ```
 1. Panitia mendaftarkan member (manual / CSV)
    ↓
-2. Member login (Magic Link / Google OAuth)
+2. Member login (Google OAuth)
    ↓
 3. Onboarding / Complete Profile (jika diperlukan)
    ↓
@@ -297,8 +299,8 @@ sequenceDiagram
     participant Profile as profiles
 
     User->>Web: Masukkan email terdaftar atau pilih Google
-    Web->>Auth: Request Magic Link atau OAuth session
-    Auth-->>User: Email link atau Google authorization
+    Web->>Auth: Request OAuth session
+    Auth-->>User: Google authorization
     User->>Callback: Buka callback URL
     Callback->>Auth: Exchange code for session
     Callback->>Profile: Baca role dan account status
@@ -490,7 +492,7 @@ Semua route di bawah ini dilindungi oleh auth guard. Anggota yang tidak terauten
 
 | Method | Endpoint | Deskripsi |
 |--------|----------|-----------|
-| `GET` | `/auth/callback` | Server-only route. Menukar Magic Link atau kode OAuth untuk session. |
+| `GET` | `/auth/callback` | Server-only route. Menukar kode OAuth untuk session. |
 | `PATCH` | `/api/profile` | Update field profile yang diizinkan. |
 
 #### Attendance
@@ -534,9 +536,11 @@ Semua endpoint yang memutasi state memerlukan:
 - Otorisasi role yang sesuai (admin untuk endpoint admin).
 - Validasi same-origin request (`Origin` atau `Referer` cocok).
 - Validasi input ulang di server.
-- Rate limit upload CSV (2 MB, 500 baris).
+- Rate limit upload CSV (2 MB data CSV, 3 MB multipart form, 500 baris).
 
 Metode HTTP yang tidak diizinkan untuk suatu endpoint mengembalikan `405 Method Not Allowed` dengan header `Allow`.
+
+> **Catatan:** Endpoint `GET /api/events` tidak memberlakukan same-origin check (`requireSameOrigin: false`) karena endpoint ini hanya membaca data event untuk operasi admin.
 
 ---
 
@@ -579,7 +583,7 @@ Metode HTTP yang tidak diizinkan untuk suatu endpoint mengembalikan `405 Method 
 |-----------|-----------|
 | Deployment | Vercel + Supabase |
 | CI/CD | GitHub Actions |
-| Runtime | Node.js 22+ |
+| Runtime | Bun (frontend + backend) |
 
 ### 9.5 Konfigurasi Environment Variables
 
@@ -597,7 +601,7 @@ Metode HTTP yang tidak diizinkan untuk suatu endpoint mengembalikan `405 Method 
 
 ### 10.1 Authentication Security
 
-- Supabase Magic Link dan optional Google OAuth.
+- Supabase Google OAuth sebagai satu-satunya metode login di UI.
 - `shouldCreateUser: false` mencegah pembuatan akun bebas dari form login.
 - Auth callback menukar kode secara server-side.
 - Account status dan active flag dicek sebelum akses protected route diberikan.
@@ -628,7 +632,7 @@ Cloudflare Turnstile tidak diperlukan untuk deployment internal default karena:
 
 - Login bersifat passwordless.
 - Pembuatan akun hanya via undangan.
-- Supabase Auth sudah rate-limit Magic Link dan OTP.
+- Supabase Auth rate-limit OTP.
 - Aplikasi ditujukan untuk kelompok kecil pengguna terdaftar.
 
 Turnstile dapat diaktifkan kemudian jika aplikasi menjadi publik atau menerima bot traffic, email abuse, atau percobaan login otomatis berulang.
@@ -695,7 +699,7 @@ Setelah deploy, verifikasi:
 - Anonymous profile mutation mengembalikan `401`.
 - Anonymous attendance check-in mengembalikan `401`.
 - Security headers terlihat.
-- Magic Link dan Google callback mengembalikan redirect ke workspace yang benar.
+- Google callback mengembalikan redirect ke workspace yang benar.
 - Admin dapat membuat event dan membuka satu sesi QR.
 - Active user dapat check-in satu kali dan melihat riwayat absensi.
 
@@ -722,8 +726,7 @@ Setelah deploy, verifikasi:
 
 | Tool | Versi |
 |------|-------|
-| Node.js | 22+ |
-| npm | 10+ |
+| Bun | Latest stable |
 | Git | Recent version |
 | Supabase project | Hosted project with Auth dan PostgreSQL |
 | Vercel | Required untuk production deployment |
