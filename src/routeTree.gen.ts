@@ -36,6 +36,7 @@ import { Route as ApiMembersImportRouteImport } from './routes/api/members/impor
 import { Route as ApiMembersManualRouteImport } from './routes/api/members/manual'
 import { Route as AuthEventsIdIndexRouteImport } from './routes/_auth/events/$id/index'
 import { Route as AuthEventsIdQrRouteImport } from './routes/_auth/events/$id/qr'
+import { Route as ApiEventsIdAttendanceExportRouteImport } from './routes/api/events/$id/attendance-export'
 import { Route as ApiEventsIdSessionRouteImport } from './routes/api/events/$id/session'
 import { Route as ApiEventsIdSessionCloseRouteImport } from './routes/api/events/$id/session/close'
 import { Route as ApiEventsIdSessionOpenRouteImport } from './routes/api/events/$id/session/open'
@@ -174,6 +175,12 @@ const AuthEventsIdQrRoute = AuthEventsIdQrRouteImport.update({
   path: '/qr',
   getParentRoute: () => AuthEventsIdRoute,
 } as any)
+const ApiEventsIdAttendanceExportRoute =
+  ApiEventsIdAttendanceExportRouteImport.update({
+    id: '/attendance-export',
+    path: '/attendance-export',
+    getParentRoute: () => ApiEventsIdRoute,
+  } as any)
 const ApiEventsIdSessionRoute = ApiEventsIdSessionRouteImport.update({
   id: '/session',
   path: '/session',
@@ -216,6 +223,7 @@ export interface FileRoutesByFullPath {
   '/api/members/manual': typeof ApiMembersManualRoute
   '/events/': typeof AuthEventsIndexRoute
   '/events/$id/qr': typeof AuthEventsIdQrRoute
+  '/api/events/$id/attendance-export': typeof ApiEventsIdAttendanceExportRoute
   '/api/events/$id/session': typeof ApiEventsIdSessionRouteWithChildren
   '/events/$id/': typeof AuthEventsIdIndexRoute
   '/api/events/$id/session/close': typeof ApiEventsIdSessionCloseRoute
@@ -245,6 +253,7 @@ export interface FileRoutesByTo {
   '/api/members/manual': typeof ApiMembersManualRoute
   '/events': typeof AuthEventsIndexRoute
   '/events/$id/qr': typeof AuthEventsIdQrRoute
+  '/api/events/$id/attendance-export': typeof ApiEventsIdAttendanceExportRoute
   '/api/events/$id/session': typeof ApiEventsIdSessionRouteWithChildren
   '/events/$id': typeof AuthEventsIdIndexRoute
   '/api/events/$id/session/close': typeof ApiEventsIdSessionCloseRoute
@@ -278,6 +287,7 @@ export interface FileRoutesById {
   '/api/members/manual': typeof ApiMembersManualRoute
   '/_auth/events/': typeof AuthEventsIndexRoute
   '/_auth/events/$id/qr': typeof AuthEventsIdQrRoute
+  '/api/events/$id/attendance-export': typeof ApiEventsIdAttendanceExportRoute
   '/api/events/$id/session': typeof ApiEventsIdSessionRouteWithChildren
   '/_auth/events/$id/': typeof AuthEventsIdIndexRoute
   '/api/events/$id/session/close': typeof ApiEventsIdSessionCloseRoute
@@ -311,6 +321,7 @@ export interface FileRouteTypes {
     | '/api/members/manual'
     | '/events/'
     | '/events/$id/qr'
+    | '/api/events/$id/attendance-export'
     | '/api/events/$id/session'
     | '/events/$id/'
     | '/api/events/$id/session/close'
@@ -340,6 +351,7 @@ export interface FileRouteTypes {
     | '/api/members/manual'
     | '/events'
     | '/events/$id/qr'
+    | '/api/events/$id/attendance-export'
     | '/api/events/$id/session'
     | '/events/$id'
     | '/api/events/$id/session/close'
@@ -372,6 +384,7 @@ export interface FileRouteTypes {
     | '/api/members/manual'
     | '/_auth/events/'
     | '/_auth/events/$id/qr'
+    | '/api/events/$id/attendance-export'
     | '/api/events/$id/session'
     | '/_auth/events/$id/'
     | '/api/events/$id/session/close'
@@ -586,6 +599,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthEventsIdQrRouteImport
       parentRoute: typeof AuthEventsIdRoute
     }
+    '/api/events/$id/attendance-export': {
+      id: '/api/events/$id/attendance-export'
+      path: '/attendance-export'
+      fullPath: '/api/events/$id/attendance-export'
+      preLoaderRoute: typeof ApiEventsIdAttendanceExportRouteImport
+      parentRoute: typeof ApiEventsIdRoute
+    }
     '/api/events/$id/session': {
       id: '/api/events/$id/session'
       path: '/session'
@@ -676,10 +696,12 @@ const ApiEventsIdSessionRouteWithChildren =
   ApiEventsIdSessionRoute._addFileChildren(ApiEventsIdSessionRouteChildren)
 
 interface ApiEventsIdRouteChildren {
+  ApiEventsIdAttendanceExportRoute: typeof ApiEventsIdAttendanceExportRoute
   ApiEventsIdSessionRoute: typeof ApiEventsIdSessionRouteWithChildren
 }
 
 const ApiEventsIdRouteChildren: ApiEventsIdRouteChildren = {
+  ApiEventsIdAttendanceExportRoute: ApiEventsIdAttendanceExportRoute,
   ApiEventsIdSessionRoute: ApiEventsIdSessionRouteWithChildren,
 }
 

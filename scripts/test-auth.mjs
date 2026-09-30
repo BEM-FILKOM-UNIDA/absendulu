@@ -48,13 +48,14 @@ const adminRoutePaths = [
   'members/$id.ts',
   'members/import.ts',
   'members/manual.ts',
+  'events/$id/attendance-export.ts',
 ]
 for (const relativePath of adminRoutePaths) {
   const routeSource = fs.readFileSync(path.join(routesDirectory, relativePath), 'utf8')
   assert.match(routeSource, /withAdminApi\(/, `${relativePath} must use the admin API guard`)
 }
 
-const readOnlyAdminRoutes = ['events.ts', 'events/$id.ts', 'events/$id/session.ts']
+const readOnlyAdminRoutes = ['events.ts', 'events/$id.ts', 'events/$id/session.ts', 'events/$id/attendance-export.ts']
 for (const relativePath of readOnlyAdminRoutes) {
   const routeSource = fs.readFileSync(path.join(routesDirectory, relativePath), 'utf8')
   assert.match(routeSource, /parseBody: false, requireSameOrigin: false/, `${relativePath} must explicitly allow read-only cross-origin requests`)
@@ -69,5 +70,16 @@ assert.doesNotMatch(
 const healthSource = fs.readFileSync(healthPath, 'utf8')
 assert.match(healthSource, /createAdminClient\(\)\.from\('events'\)/)
 assert.doesNotMatch(healthSource, /NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY/)
+
+const exportSource = fs.readFileSync(path.join(routesDirectory, 'events', '$id', 'attendance-export.ts'), 'utf8')
+assert.match(exportSource, /'Acara tidak ditemukan\.'/)
+assert.match(exportSource, /'Gagal memuat data absensi\.'/)
+assert.match(exportSource, /text\/csv;\s*charset=utf-8/)
+assert.match(exportSource, /Content-Disposition/)
+assert.match(exportSource, /attendance-\$\{params\.id\}\.csv/)
+
+const attendanceDataSource = fs.readFileSync(path.join(directory, '..', 'src', 'server', 'data', 'attendance.ts'), 'utf8')
+assert.match(attendanceDataSource, /fetchEventAttendance/)
+assert.match(attendanceDataSource, /from\('attendances'\)[\s\S]*?\.eq\('event_id',\s*eventId\)[\s\S]*?\.limit\(/)
 
 console.log('auth regression: PASS (active admin guard, admin route coverage, origin protection, and server health check)')

@@ -22,6 +22,7 @@ function EventDetailPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [confirming, setConfirming] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const variant = event.status === 'active' ? 'success' : event.status === 'cancelled' ? 'danger' : 'muted'
 
   useEffect(() => {
@@ -85,6 +86,32 @@ function EventDetailPage() {
     }
   }
 
+  async function exportCsv() {
+    setExporting(true)
+    setError('')
+    try {
+      const response = await fetch(`/api/events/${event.id}/attendance-export`, { headers: { Origin: window.location.origin } })
+      if (!response.ok) {
+        const result = await response.json().catch(() => null)
+        setError(result?.error || 'Export gagal. Periksa koneksi lalu coba lagi.')
+        return
+      }
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `attendance-${event.id}.csv`
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+      URL.revokeObjectURL(url)
+    } catch {
+      setError('Export gagal. Periksa koneksi lalu coba lagi.')
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <div className="max-w-5xl space-y-8">
       <Link to="/events" className="eyebrow inline-flex items-center gap-1 text-(--accent-strong) hover:underline"><ArrowLeft aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />kembali ke acara</Link>
@@ -109,6 +136,14 @@ function EventDetailPage() {
             <p className="eyebrow text-(--accent-strong)">absensi sedang dibuka</p>
             <h2 className="mt-2 text-2xl font-black">{attendanceCount} mahasiswa sudah hadir</h2>
             <p className="mt-2 text-sm text-(--muted)">QR aktif—tampilkan kepada peserta.</p>
+            <button
+              type="button"
+              onClick={exportCsv}
+              disabled={exporting}
+              className="mt-4 min-h-9 rounded-sm bg-(--accent-strong) px-4 text-sm font-bold text-white disabled:opacity-50"
+            >
+              {exporting ? 'Menyiapkan…' : 'Export CSV'}
+            </button>
           </div>
           <ButtonLink href={`/events/${event.id}/qr`} variant="primary">Lihat QR <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></ButtonLink>
         </section>
@@ -135,6 +170,11 @@ function EventDetailPage() {
                 <button type="button" onClick={() => updateStatus('completed')} disabled={loading} className="min-h-9 rounded-sm bg-(--ink) px-4 text-sm font-bold text-white disabled:opacity-50">{loading ? 'Memproses…' : 'Tandai selesai'}</button>
                 <button type="button" onClick={() => updateStatus('cancelled')} disabled={loading} className="min-h-9 rounded-sm border border-(--danger) px-4 text-sm font-bold text-(--danger) disabled:opacity-50">{loading ? 'Memproses…' : 'Batalkan acara'}</button>
               </>
+            ) : null}
+            {event.status === 'completed' ? (
+              <button type="button" onClick={exportCsv} disabled={exporting} className="min-h-9 rounded-sm bg-(--accent-strong) px-4 text-sm font-bold text-white disabled:opacity-50">
+                {exporting ? 'Menyiapkan…' : 'Export CSV'}
+              </button>
             ) : null}
           </div>
           <button type="button" onClick={() => setConfirming(true)} disabled={loading} className="inline-flex items-center gap-1 text-sm font-bold text-(--danger) disabled:opacity-50">{loading ? 'Memproses…' : 'Hapus acara'} <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></button>

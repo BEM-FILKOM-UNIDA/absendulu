@@ -27,3 +27,29 @@ export const getHistoryData = createServerFn({ method: 'GET' }).handler(async ()
   const auth = await requireActiveAuth()
   return fetchHistory(createAdminClient(), auth)
 })
+
+export type EventAttendanceRow = {
+  user_id: string
+  status: string | null
+  method: string | null
+  check_in_at: string | null
+  profiles: { full_name: string | null; nim: string | null } | null
+}
+
+export async function fetchEventAttendance(supabase: SupabaseClient, eventId: string): Promise<EventAttendanceRow[]> {
+  const { data: attendances, error } = await supabase
+    .from('attendances')
+    .select('user_id, status, method, check_in_at')
+    .eq('event_id', eventId)
+    .order('check_in_at', { ascending: true })
+    .limit(10_000)
+  if (error) throw new Error(`Gagal memuat data absensi: ${error.message}`)
+  const rows = attendances ?? []
+  const userIds = [...new Set(rows.map((row) => row.user_id))]
+  const { data: profiles, error: profilesError } = userIds.length > 0
+    ? await supabase.from('profiles').select('id, full_name, nim').in('id', userIds)
+    : { data: [], error: null }
+  if (profilesError) throw new Error(`Gagal memuat profil: ${profilesError.message}`)
+  const profilesById = new Map((profiles ?? []).map((profile) => [profile.id, profile]))
+  return rows.map((row) => ({ ...row, profiles: profilesById.get(row.user_id) ?? null }))
+}
