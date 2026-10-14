@@ -38,8 +38,8 @@ function withSecurityHeaders(response: Response, pathname?: string) {
   if (!headers.has('Content-Security-Policy')) {
     headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://*.supabase.co; media-src 'self' blob:; frame-ancestors 'none'")
   }
-  // ponytail: API no-store — pathname dari middleware lebih reliable dari response.url
-  if (pathname?.startsWith('/api/')) headers.set('Cache-Control', 'no-store')
+  // ponytail: no-store untuk /api/ + /_serverFn (prefix default start-plugin-core, belum di-override di vite.config) — serverFn balikin data per-user: NIM, email, role
+  if (pathname?.startsWith('/api/') || pathname?.startsWith('/_serverFn/')) headers.set('Cache-Control', 'no-store')
   // ponytail: body may be null for redirects/204, new Response handles it
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers })
 }

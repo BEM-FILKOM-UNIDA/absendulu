@@ -4,7 +4,10 @@ const BOM = '\uFEFF'
 
 export function csvEscape(value: CsvCell): string {
   if (value === null || value === undefined) return ''
-  const text = String(value)
+  let text = String(value)
+  // ponytail: prefix ' biar Excel/Sheets tidak jalanin isi sel sebagai formula.
+  // full_name & nim bisa diisi user sendiri (self-register / CSV import), jadi ini bukan data tepercaya.
+  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`
   if (!/["\r\n,]/.test(text)) return text
   return `"${text.replaceAll('"', '""')}"`
 }

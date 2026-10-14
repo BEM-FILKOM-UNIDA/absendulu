@@ -31,4 +31,17 @@ assert.equal(toCsv(['a'], []), '\uFEFFa\r\n')
 
 assert.equal(toCsv(['a', 'b'], [[1, true], [null, undefined]]), '\uFEFFa,b\r\n1,true\r\n,\r\n')
 
+// Formula injection: full_name is self-service (profile.ts) or CSV-imported, so a
+// cell must never reach Excel as something it will evaluate.
+assert.equal(
+  toCsv(['full_name'], [['=HYPERLINK("http://evil.test","click")'], ['+1+1'], ['-2+3'], ['@SUM(A1)']]),
+  '\uFEFFfull_name\r\n"\'=HYPERLINK(""http://evil.test"",""click"")"\r\n\'+1+1\r\n\'-2+3\r\n\'@SUM(A1)\r\n',
+)
+
+assert.equal(
+  toCsv(['nim'], [['I.2410036'], ['1987654321']]),
+  '\uFEFFnim\r\nI.2410036\r\n1987654321\r\n',
+  'legitimate identifiers must stay unprefixed',
+)
+
 console.log('csv-export: semua assertion lulus')
