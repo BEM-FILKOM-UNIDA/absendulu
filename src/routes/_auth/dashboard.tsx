@@ -3,6 +3,7 @@ import { Suspense } from 'react'
 import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { getDashboardData } from '~/server/data'
 import { ButtonLink, Card } from '~/components/ui'
+import { eventStatusLabel } from '~/lib/events/labels'
 
 type DashboardEvent = { id: string; name: string; event_date: string; start_time: string; status: string; location: string | null }
 type DashboardStat = { label: string; value: number; note: string }
@@ -25,7 +26,7 @@ function DashboardPage() {
         <div>
           <p className="eyebrow text-(--accent-strong)">Absendulu / FILKOM UNIDA</p>
           <h2 className="display-type mt-3 text-5xl leading-none tracking-[-.07em] sm:text-6xl">Siap hadir<br /><em>di acara.</em></h2>
-          <p className="mt-5 max-w-lg text-sm leading-6 text-(--muted)">Pantau Acara FILKOM, buka absensi, dan lihat siapa saja yang sudah hadir—semua dalam satu tempat.</p>
+          <p className="mt-5 max-w-lg text-sm leading-6 text-(--muted)">Pantau Acara FILKOM, buka absensi, dan lihat siapa saja yang sudah hadir. Semuanya dalam satu halaman.</p>
         </div>
         <div className="flex flex-wrap gap-3">
           <ButtonLink href="/events/new" variant="primary">Buat acara <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></ButtonLink>
@@ -97,5 +98,5 @@ function EventSummary({ events }: { events: DashboardEvent[] }) {
 
 function EventRow({ event }: { event: DashboardEvent }) {
   const details = `${event.event_date} · ${event.start_time}${event.location ? ` · ${event.location}` : ''}`
-  return <Link to="/events/$id" params={{ id: event.id }} className="flex items-center justify-between gap-4 px-6 py-5 hover:bg-(--surface-muted)"><div className="min-w-0"><p className="truncate text-sm font-black">{event.name}</p><p className="mt-2 text-xs text-(--muted)">{details}</p></div><span className="shrink-0 border border-(--border) px-2.5 py-1 text-[10px] font-black uppercase text-(--accent-strong)">{event.status}</span></Link>
+  return <Link to="/events/$id" params={{ id: event.id }} className="flex items-center justify-between gap-4 px-6 py-5 hover:bg-(--surface-muted)"><div className="min-w-0"><p className="truncate text-sm font-black">{event.name}</p><p className="mt-2 text-xs text-(--muted)">{details}</p></div><span className="shrink-0 border border-(--border) px-2.5 py-1 text-[10px] font-black uppercase text-(--accent-strong)">{eventStatusLabel(event.status)}</span></Link>
 }

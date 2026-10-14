@@ -3,6 +3,7 @@ import { Suspense } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import { getEventsData } from '~/server/data'
 import { Badge, Card } from '~/components/ui'
+import { eventStatusLabel } from '~/lib/events/labels'
 
 type EventItem = { id: string; name: string; description: string | null; event_date: string; start_time: string; end_time: string | null; location: string | null; status: string }
 type EventsData = Awaited<ReturnType<typeof getEventsData>>
@@ -43,12 +44,12 @@ function EventsContent({ events, isAdmin }: { events: EventsData['events']; isAd
 
 function EventCard({ event }: { event: EventItem }) {
   const eventDescription = event.description || 'Acara FILKOM UNIDA.'
-  const time = `${event.start_time}${event.end_time ? ` — ${event.end_time}` : ''}`
+  const time = `${event.start_time}${event.end_time ? ` s.d. ${event.end_time}` : ''}`
   const location = event.location || 'Belum ditentukan'
   const variant = event.status === 'active' ? 'success' : event.status === 'cancelled' ? 'danger' : 'muted'
   return (
     <Card className="flex flex-col overflow-hidden">
-      <div className="flex items-start justify-between gap-4 border-b border-(--border) p-6"><div><p className="eyebrow text-(--accent-strong)">{event.event_date}</p><h2 className="mt-3 text-xl font-black tracking-[-.04em]">{event.name}</h2></div><Badge variant={variant}>{event.status}</Badge></div>
+      <div className="flex items-start justify-between gap-4 border-b border-(--border) p-6"><div><p className="eyebrow text-(--accent-strong)">{event.event_date}</p><h2 className="mt-3 text-xl font-black tracking-[-.04em]">{event.name}</h2></div><Badge variant={variant}>{eventStatusLabel(event.status)}</Badge></div>
       <div className="flex flex-1 flex-col p-6"><p className="text-sm leading-6 text-(--muted)">{eventDescription}</p><div className="mt-6 space-y-2 text-xs font-bold text-(--muted)"><p>Waktu: {time}</p><p>Lokasi: {location}</p></div><Link to="/events/$id" params={{ id: event.id }} className="mt-7 inline-flex items-center gap-1 text-xs font-black uppercase tracking-widest text-(--accent-strong) hover:underline">Lihat detail <ArrowUpRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /></Link></div>
     </Card>
   )
