@@ -2,26 +2,13 @@ import { strict as assert } from 'node:assert'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import * as ts from 'typescript'
+import { load } from './harness.mjs'
 
 const directory = path.dirname(fileURLToPath(import.meta.url))
 const requestAuthPath = path.join(directory, '..', 'src', 'server', 'request-auth.ts')
 const healthPath = path.join(directory, '..', 'src', 'routes', 'api', 'health.ts')
 const startPath = path.join(directory, '..', 'src', 'start.ts')
 const startSource = fs.readFileSync(startPath, 'utf8')
-
-function load(relativePath) {
-  const source = fs.readFileSync(path.join(directory, '..', relativePath), 'utf8')
-  const output = ts.transpileModule(source, {
-    compilerOptions: {
-      module: ts.ModuleKind.CommonJS,
-      target: ts.ScriptTarget.ES2019,
-    },
-  }).outputText
-  const module = { exports: {} }
-  new Function('module', 'exports', output)(module, module.exports)
-  return module.exports
-}
 
 assert.match(startSource, /createCsrfMiddleware/)
 assert.match(startSource, /filter:\s*\(ctx\)\s*=>\s*ctx\.handlerType\s*===\s*['"]serverFn['"]/)

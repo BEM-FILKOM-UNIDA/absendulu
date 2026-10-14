@@ -1,21 +1,7 @@
 import { strict as assert } from 'node:assert'
-import fs from 'node:fs'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import * as ts from 'typescript'
+import { load } from './harness.mjs'
 
-const directory = path.dirname(fileURLToPath(import.meta.url))
-const sourcePath = path.join(directory, '..', 'src', 'lib', 'export', 'csv.ts')
-
-const output = ts.transpileModule(fs.readFileSync(sourcePath, 'utf8'), {
-  compilerOptions: {
-    module: ts.ModuleKind.CommonJS,
-    target: ts.ScriptTarget.ES2019,
-  },
-}).outputText
-const module = { exports: {} }
-new Function('module', 'exports', output)(module, module.exports)
-const { toCsv } = module.exports
+const { toCsv } = load('src/lib/export/csv.ts')
 
 assert.equal(
   toCsv(['full_name', 'nim', 'check_in_at', 'status'], [['Budi Santoso', 'I.2410036', '2026-09-28T02:00:00+00:00', 'hadir']]),

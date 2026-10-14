@@ -1,21 +1,7 @@
 import { strict as assert } from 'node:assert'
-import fs from 'node:fs'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import * as ts from 'typescript'
+import { load } from './harness.mjs'
 
-const directory = path.dirname(fileURLToPath(import.meta.url))
-const sourcePath = path.join(directory, '..', 'src', 'lib', 'attendance', 'history-filters.ts')
-
-const output = ts.transpileModule(fs.readFileSync(sourcePath, 'utf8'), {
-  compilerOptions: {
-    module: ts.ModuleKind.CommonJS,
-    target: ts.ScriptTarget.ES2019,
-  },
-}).outputText
-const module = { exports: {} }
-new Function('module', 'exports', output)(module, module.exports)
-const { defaultHistoryFilters, filterHistory } = module.exports
+const { defaultHistoryFilters, filterHistory } = load('src/lib/attendance/history-filters.ts')
 
 const attendances = [
   { id: '1', status: 'hadir', events: { name: 'Rapat Kerja FILKOM' }, profiles: { full_name: 'Budi Santoso', nim: 'I.2410036' } },
