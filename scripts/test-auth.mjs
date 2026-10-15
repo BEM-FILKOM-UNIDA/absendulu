@@ -114,5 +114,8 @@ assert.match(exportSource, /attendance-\$\{params\.id\}\.csv/)
 const attendanceDataSource = fs.readFileSync(path.join(directory, '..', 'src', 'server', 'data', 'attendance.ts'), 'utf8')
 assert.match(attendanceDataSource, /fetchEventAttendance/)
 assert.match(attendanceDataSource, /from\('attendances'\)[\s\S]*?\.eq\('event_id',\s*eventId\)[\s\S]*?\.limit\(/)
+// Mahasiswa hanya boleh melihat absensi sendiri: query dicakup ke user_id dan profil peserta tidak ikut dikirim.
+assert.match(attendanceDataSource, /if \(!isAdmin\) query = query\.eq\('user_id', auth\.user\.id\)/)
+assert.match(attendanceDataSource, /profiles: isAdmin \? profilesById\.get\(a\.user_id\) \?\? null : null/)
 
 console.log('auth regression: PASS (active admin guard, admin route coverage, origin protection, and server health check)')

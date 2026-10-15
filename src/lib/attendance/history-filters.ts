@@ -37,18 +37,16 @@ function getProfile(item: HistoryFilterItem) {
   return profile || null
 }
 
-export function filterHistory<T extends HistoryFilterItem>(items: T[], filters: HistoryFilters, isAdmin: boolean): T[] {
+// ponytail: hanya admin yang memanggil — mahasiswa lihat daftar mentah tanpa filter
+export function filterHistory<T extends HistoryFilterItem>(items: T[], filters: HistoryFilters): T[] {
   const query = filters.query.trim().toLocaleLowerCase('id-ID')
 
   return items.filter((item) => {
     if (filters.status !== 'all' && item.status !== filters.status) return false
     if (!query) return true
 
-    const searchableValues = [getEventName(item)]
-    if (isAdmin) {
-      const profile = getProfile(item)
-      if (profile) searchableValues.push(profile.full_name || '', profile.nim || '')
-    }
+    const profile = getProfile(item)
+    const searchableValues = [getEventName(item), profile?.full_name || '', profile?.nim || '']
 
     return searchableValues.some((value) => value.toLocaleLowerCase('id-ID').includes(query))
   })

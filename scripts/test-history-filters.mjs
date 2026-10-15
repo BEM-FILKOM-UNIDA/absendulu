@@ -10,24 +10,20 @@ const attendances = [
   { id: '4', status: 'alpha', events: { name: 'Rapat Kerja FILKOM' }, profiles: null },
 ]
 
-const ids = (query, status, isAdmin) => filterHistory(attendances, { query, status }, isAdmin).map((item) => item.id)
+const ids = (query, status) => filterHistory(attendances, { query, status }).map((item) => item.id)
 
 assert.deepEqual(defaultHistoryFilters, { query: '', status: 'all' })
-assert.deepEqual(ids('', 'all', false), ['1', '2', '3', '4'])
-assert.deepEqual(ids('', 'hadir', false), ['1'])
-assert.deepEqual(ids('', 'terlambat', false), ['2'])
-assert.deepEqual(ids('', 'izin', false), ['3'])
-assert.deepEqual(ids('', 'alpha', false), ['4'])
-assert.deepEqual(ids('rapat', 'all', false), ['1', '4'])
-assert.deepEqual(ids('  RAPAT  ', 'all', false), ['1', '4'])
-assert.deepEqual(ids('   ', 'all', false), ['1', '2', '3', '4'])
-assert.deepEqual(ids('budi', 'all', true), ['1'])
-assert.deepEqual(ids('I.2410037', 'all', true), ['2'])
-assert.deepEqual(ids('rapat', 'alpha', true), ['4'])
-assert.deepEqual(ids('tidak-ada', 'all', true), [])
-
-// Mahasiswa hanya boleh mencari nama acara, bukan identitas peserta lain.
-assert.deepEqual(ids('budi', 'all', false), [])
-assert.deepEqual(ids('I.2410037', 'all', false), [])
+assert.deepEqual(ids('', 'all'), ['1', '2', '3', '4'])
+assert.deepEqual(ids('', 'hadir'), ['1'])
+assert.deepEqual(ids('', 'terlambat'), ['2'])
+assert.deepEqual(ids('', 'izin'), ['3'])
+assert.deepEqual(ids('', 'alpha'), ['4'])
+assert.deepEqual(ids('rapat', 'all'), ['1', '4'])
+assert.deepEqual(ids('  RAPAT  ', 'all'), ['1', '4'])
+assert.deepEqual(ids('   ', 'all'), ['1', '2', '3', '4'])
+assert.deepEqual(ids('budi', 'all'), ['1'])
+assert.deepEqual(ids('I.2410037', 'all'), ['2'])
+assert.deepEqual(ids('rapat', 'alpha'), ['4'])
+assert.deepEqual(ids('tidak-ada', 'all'), [])
 
 console.log('history-filters: semua assertion lulus')
