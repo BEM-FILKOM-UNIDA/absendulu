@@ -18,11 +18,11 @@ type AdminApiContext = {
 export async function withAdminApi(request: Request, options: WithAdminApiOptions = {}): Promise<Response | AdminApiContext> {
   const cookies: string[] = []
   if (options.requireSameOrigin !== false && !isSameOrigin(request)) {
-    return responseWithCookies({ error: 'Origin request tidak valid.' }, 403, cookies)
+    return responseWithCookies({ error: 'Permintaan ditolak. Muat ulang halaman lalu coba lagi.' }, 403, cookies)
   }
   const admin = await getRequestAdmin(request, cookies)
   if (!admin.isAdmin || !admin.user) {
-    return responseWithCookies({ error: options.forbiddenMessage ?? 'Akses ditolak' }, 403, cookies)
+    return responseWithCookies({ error: options.forbiddenMessage ?? 'Akses ditolak.' }, 403, cookies)
   }
   if (options.parseBody === false) {
     return { isAdmin: true, user: admin.user, body: undefined, cookies }
@@ -31,7 +31,7 @@ export async function withAdminApi(request: Request, options: WithAdminApiOption
   try {
     body = await request.json()
   } catch {
-    return responseWithCookies({ error: options.invalidBodyMessage ?? 'Body request tidak valid.' }, 400, cookies)
+    return responseWithCookies({ error: options.invalidBodyMessage ?? 'Permintaan tidak dapat diproses. Coba lagi.' }, 400, cookies)
   }
   return { isAdmin: true, user: admin.user, body, cookies }
 }

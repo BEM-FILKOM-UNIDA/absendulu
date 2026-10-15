@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { invalidate } from '~/lib/cache'
 import { createAdminClient } from '~/server/supabase-context'
-import { isValidStaffIdentifier, isValidStudentNim } from '~/lib/auth/identity'
+import { exceedsMemberLimits, isValidMemberEmail, isValidMemberIdentifier } from '~/lib/members/validation'
 import { responseWithCookies } from '~/server/request-auth'
 import { withAdminApi } from '~/server/api-middleware'
 
@@ -37,8 +37,9 @@ function normalizeRow(row: Record<string, string>, index: number): ImportRow {
   const email = (row.email || '').trim().toLowerCase()
   const user_type = (row.user_type || row.tipe || row.jenis || '').toLowerCase() as ImportRow['user_type']
   if (!full_name || !nim || !email || !USER_TYPES.has(user_type)) throw new Error(`Baris ${index}: wajib memiliki full_name, nim, email, dan user_type yang valid.`)
-  if (!email.includes('@')) throw new Error(`Baris ${index}: format email tidak valid.`)
-  if ((user_type === 'mahasiswa' && !isValidStudentNim(nim)) || (user_type !== 'mahasiswa' && !isValidStaffIdentifier(nim))) throw new Error(`Baris ${index}: identifier ${user_type === 'mahasiswa' ? 'NIM mahasiswa harus berformat I.#######, contoh I.2410036.' : 'NIP/NIK tidak valid.'}`)
+  if (!isValidMemberEmail(email)) throw new Error(`Baris ${index}: format email tidak valid.`)
+  if (exceedsMemberLimits(full_name, nim, email)) throw new Error(`Baris ${index}: data terlalu panjang.`)
+  if (!isValidMemberIdentifier(user_type, nim)) throw new Error(`Baris ${index}: identifier ${user_type === 'mahasiswa' ? 'NIM mahasiswa harus berformat I.#######, contoh I.2410036.' : 'NIP/NIK tidak valid.'}`)
   return { full_name, nim, email, user_type, division: row.division || row.divisi || null, phone: row.phone || row.telepon || null }
 }
 

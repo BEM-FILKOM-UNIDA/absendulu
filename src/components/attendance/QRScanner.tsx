@@ -260,6 +260,15 @@ export default function QRScanner({ onScan }: { onScan: (token: string) => void 
     }, 100)
   }, [])
 
+  useEffect(() => {
+    if (!isFullScreen) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') void closeFullScreenScanner()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [isFullScreen, closeFullScreenScanner])
+
   // Desktop view
   if (!isFullScreen) {
     return (
@@ -323,7 +332,7 @@ export default function QRScanner({ onScan }: { onScan: (token: string) => void 
 
   // Full-screen mobile view
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-(--ink)">
+    <div className="fixed inset-0 z-50 flex flex-col bg-(--ink)" role="dialog" aria-label="Scan QR">
       {/* Header with close button */}
       <div
         className="flex items-center justify-between border-b border-white/10 px-4 py-3"

@@ -16,7 +16,13 @@ export function Card({ children, className = '' }: { children: ReactNode; classN
   return <div className={`border border-(--border) bg-(--surface) shadow-[0_18px_50px_rgba(16,37,45,.06)] ${className}`}>{children}</div>
 }
 
-export function Badge({ children, variant = 'muted' }: { children: ReactNode; variant?: 'success' | 'danger' | 'muted' }) {
+export function Badge({ children, variant = 'muted', className = '' }: { children: ReactNode; variant?: 'success' | 'danger' | 'muted'; className?: string }) {
   const classes = variant === 'success' ? 'bg-[#e4f1bd] text-[#476b16]' : variant === 'danger' ? 'bg-[#f8dddd] text-(--danger)' : 'bg-(--surface-muted) text-(--muted)'
-  return <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-[.08em] ${classes}`}>{children}</span>
+  return <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-[.08em] ${classes} ${className}`}>{children}</span>
+}
+
+// ponytail: satu pemetaan status → warna + perataan responsif, dipakai dua daftar riwayat
+export function StatusBadge({ status }: { status: string }) {
+  const variant = status === 'hadir' ? 'success' : status === 'alpha' ? 'danger' : 'muted'
+  return <Badge variant={variant} className="self-start sm:self-auto">{status}</Badge>
 }

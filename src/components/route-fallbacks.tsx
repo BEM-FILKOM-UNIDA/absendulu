@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link, type ErrorComponentProps } from '@tanstack/react-router'
 
 export function RouteNotFound() {
   return (
@@ -12,7 +12,7 @@ export function RouteNotFound() {
   )
 }
 
-export function RouteError({ error, reset }: { error: Error; reset: () => void }) {
+export function RouteError({ error, reset }: ErrorComponentProps) {
   return (
     <main className="grid min-h-dvh place-items-center bg-(--paper) px-6 text-(--ink)">
       <div className="max-w-md border border-(--border) bg-(--surface) p-8 text-center shadow-[8px_10px_0_var(--accent)]">
@@ -20,7 +20,7 @@ export function RouteError({ error, reset }: { error: Error; reset: () => void }
         <h1 className="mt-4 text-3xl font-black">Terjadi gangguan.</h1>
         <p className="mt-3 text-sm leading-6 text-(--muted)">Halaman tidak dapat dimuat. Coba ulangi atau kembali ke dashboard.</p>
         <button type="button" onClick={reset} className="mt-7 bg-(--ink) px-5 py-3 text-sm font-bold text-[#f7f4ed]">Coba lagi</button>
-        {import.meta.env.DEV && error.message ? <p className="mt-4 wrap-break-word text-left text-xs text-(--danger)">{error.message}</p> : null}
+        {import.meta.env.DEV && error instanceof Error && error.message ? <p className="mt-4 wrap-break-word text-left text-xs text-(--danger)">{error.message}</p> : null}
       </div>
     </main>
   )
@@ -45,7 +45,7 @@ export function RoutePending() {
   )
 }
 
-export function QrRouteError({ reset }: { error: Error; reset: () => void }) {
+export function QrRouteError({ reset }: ErrorComponentProps) {
   return (
     <div className="mx-auto max-w-xl space-y-6 py-12 text-center">
       <p className="eyebrow text-(--danger)">QR belum bisa ditampilkan</p>

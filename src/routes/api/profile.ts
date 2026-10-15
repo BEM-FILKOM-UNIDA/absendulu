@@ -10,7 +10,7 @@ const NAME_PATTERN = /^.{2,100}$/u
 
 export const Route = createFileRoute('/api/profile')({ server: { handlers: { PATCH: async ({ request }) => {
   const cookies: string[] = []
-  if (!isSameOrigin(request)) return responseWithCookies({ error: 'Origin request tidak valid.' }, 403, cookies)
+  if (!isSameOrigin(request)) return responseWithCookies({ error: 'Permintaan ditolak. Muat ulang halaman lalu coba lagi.' }, 403, cookies)
   const supabase = createRequestSupabase(request, cookies)
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return responseWithCookies({ error: 'Sesi login tidak valid.' }, 401, cookies)
@@ -21,7 +21,7 @@ export const Route = createFileRoute('/api/profile')({ server: { handlers: { PAT
   if (GENERATED_IDENTIFIER_PATTERN.test(profile.nim ?? '') && profile.account_status !== 'invited') return responseWithCookies({ error: 'Akun belum didaftarkan panitia.' }, 403, cookies)
   if (profile.account_status === 'disabled' || !profile.is_active) return responseWithCookies({ error: 'Akun tidak aktif.' }, 403, cookies)
   let body: unknown
-  try { body = await request.json() } catch { return responseWithCookies({ error: 'Body request tidak valid.' }, 400, cookies) }
+  try { body = await request.json() } catch { return responseWithCookies({ error: 'Permintaan tidak dapat diproses. Coba lagi.' }, 400, cookies) }
   const input = body && typeof body === 'object' ? body as Record<string, unknown> : {}
   const fullName = typeof input.full_name === 'string' ? input.full_name.trim() : ''
   const nim = typeof input.nim === 'string' ? input.nim.trim().toUpperCase() : ''

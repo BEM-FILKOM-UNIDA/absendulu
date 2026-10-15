@@ -544,6 +544,10 @@ bun run start
 
 ```bash
 bun run test:schedule
+bun run test:auth
+bun run test:filters
+bun run test:csv
+bun run test:validation
 bun run lint
 bun run typecheck
 bun run build

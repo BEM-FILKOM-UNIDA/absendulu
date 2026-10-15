@@ -39,7 +39,7 @@ export const Route = createFileRoute('/api/attendance/check-in')({
     handlers: {
       POST: async ({ request }) => {
         const responseCookies: string[] = []
-        if (!isSameOrigin(request)) return failure('Origin request tidak valid.', 403, 'ORIGIN_INVALID', responseCookies)
+        if (!isSameOrigin(request)) return failure('Permintaan ditolak. Muat ulang halaman lalu coba lagi.', 403, 'ORIGIN_INVALID', responseCookies)
 
         const supabase = createRequestSupabase(request, responseCookies)
         const { data: { user } } = await supabase.auth.getUser()
@@ -52,9 +52,9 @@ export const Route = createFileRoute('/api/attendance/check-in')({
         if (!access || access.account_status !== 'active' || !access.is_active) return failure('Akun belum aktif atau sudah dinonaktifkan.', 403, 'ACCOUNT_INACTIVE', responseCookies)
 
         let body: unknown
-        try { body = await request.json() } catch { return failure('Body request tidak valid.', 400, 'INVALID_REQUEST_BODY', responseCookies) }
+        try { body = await request.json() } catch { return failure('Permintaan tidak dapat diproses. Coba lagi.', 400, 'INVALID_REQUEST_BODY', responseCookies) }
         const qrToken = body && typeof body === 'object' && 'qrToken' in body && typeof body.qrToken === 'string' ? body.qrToken.trim() : ''
-        if (qrToken.length < 16 || qrToken.length > 128) return failure('QR token tidak valid.', 400, 'INVALID_QR_TOKEN', responseCookies)
+        if (qrToken.length < 16 || qrToken.length > 128) return failure('QR ini bukan QR absensi. Gunakan QR yang tampil di halaman admin.', 400, 'INVALID_QR_TOKEN', responseCookies)
 
         const { data: session, error: sessionError } = await admin.from('attendance_sessions').select('id, event_id, is_open, events!inner(name, event_date, start_time, end_time, status)').eq('qr_token', qrToken).eq('is_open', true).maybeSingle()
         if (sessionError) return failure('Sesi QR gagal diperiksa. Coba lagi.', 500, 'SESSION_LOOKUP_FAILED', responseCookies)
@@ -76,7 +76,7 @@ export const Route = createFileRoute('/api/attendance/check-in')({
         const status = schedule.endMinutes !== null && schedule.nowMinutes > schedule.endMinutes ? 'terlambat' : 'hadir'
         const { error } = await admin.from('attendances').insert({ session_id: session.id, event_id: session.event_id, user_id: user.id, status, method: 'QR_CODE', check_in_at: new Date().toISOString() })
         if (error) {
-          if (error.code === '23505') return failure('Sudah melakukan absensi.', 409, 'ALREADY_CHECKED_IN', responseCookies)
+          if (error.code === '23505') return failure('Sudah melakukan absensi untuk acara ini.', 409, 'ALREADY_CHECKED_IN', responseCookies)
           return failure('Gagal mencatat kehadiran.', 500, 'ATTENDANCE_INSERT_FAILED', responseCookies)
         }
 

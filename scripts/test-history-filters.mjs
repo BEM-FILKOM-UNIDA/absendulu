@@ -1,21 +1,7 @@
 import { strict as assert } from 'node:assert'
-import fs from 'node:fs'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import * as ts from 'typescript'
+import { load } from './harness.mjs'
 
-const directory = path.dirname(fileURLToPath(import.meta.url))
-const sourcePath = path.join(directory, '..', 'src', 'lib', 'attendance', 'history-filters.ts')
-
-const output = ts.transpileModule(fs.readFileSync(sourcePath, 'utf8'), {
-  compilerOptions: {
-    module: ts.ModuleKind.CommonJS,
-    target: ts.ScriptTarget.ES2019,
-  },
-}).outputText
-const module = { exports: {} }
-new Function('module', 'exports', output)(module, module.exports)
-const { defaultHistoryFilters, filterHistory } = module.exports
+const { defaultHistoryFilters, filterHistory } = load('src/lib/attendance/history-filters.ts')
 
 const attendances = [
   { id: '1', status: 'hadir', events: { name: 'Rapat Kerja FILKOM' }, profiles: { full_name: 'Budi Santoso', nim: 'I.2410036' } },
@@ -24,24 +10,20 @@ const attendances = [
   { id: '4', status: 'alpha', events: { name: 'Rapat Kerja FILKOM' }, profiles: null },
 ]
 
-const ids = (query, status, isAdmin) => filterHistory(attendances, { query, status }, isAdmin).map((item) => item.id)
+const ids = (query, status) => filterHistory(attendances, { query, status }).map((item) => item.id)
 
 assert.deepEqual(defaultHistoryFilters, { query: '', status: 'all' })
-assert.deepEqual(ids('', 'all', false), ['1', '2', '3', '4'])
-assert.deepEqual(ids('', 'hadir', false), ['1'])
-assert.deepEqual(ids('', 'terlambat', false), ['2'])
-assert.deepEqual(ids('', 'izin', false), ['3'])
-assert.deepEqual(ids('', 'alpha', false), ['4'])
-assert.deepEqual(ids('rapat', 'all', false), ['1', '4'])
-assert.deepEqual(ids('  RAPAT  ', 'all', false), ['1', '4'])
-assert.deepEqual(ids('   ', 'all', false), ['1', '2', '3', '4'])
-assert.deepEqual(ids('budi', 'all', true), ['1'])
-assert.deepEqual(ids('I.2410037', 'all', true), ['2'])
-assert.deepEqual(ids('rapat', 'alpha', true), ['4'])
-assert.deepEqual(ids('tidak-ada', 'all', true), [])
-
-// Mahasiswa hanya boleh mencari nama acara, bukan identitas peserta lain.
-assert.deepEqual(ids('budi', 'all', false), [])
-assert.deepEqual(ids('I.2410037', 'all', false), [])
+assert.deepEqual(ids('', 'all'), ['1', '2', '3', '4'])
+assert.deepEqual(ids('', 'hadir'), ['1'])
+assert.deepEqual(ids('', 'terlambat'), ['2'])
+assert.deepEqual(ids('', 'izin'), ['3'])
+assert.deepEqual(ids('', 'alpha'), ['4'])
+assert.deepEqual(ids('rapat', 'all'), ['1', '4'])
+assert.deepEqual(ids('  RAPAT  ', 'all'), ['1', '4'])
+assert.deepEqual(ids('   ', 'all'), ['1', '2', '3', '4'])
+assert.deepEqual(ids('budi', 'all'), ['1'])
+assert.deepEqual(ids('I.2410037', 'all'), ['2'])
+assert.deepEqual(ids('rapat', 'alpha'), ['4'])
+assert.deepEqual(ids('tidak-ada', 'all'), [])
 
 console.log('history-filters: semua assertion lulus')

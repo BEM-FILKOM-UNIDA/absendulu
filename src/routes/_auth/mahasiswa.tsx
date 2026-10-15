@@ -2,7 +2,7 @@ import { Await, createFileRoute, defer, Link } from '@tanstack/react-router'
 import { Suspense } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import { getStudentHomeData } from '~/server/data'
-import { Badge, ButtonLink, Card } from '~/components/ui'
+import { ButtonLink, Card, StatusBadge } from '~/components/ui'
 
 type StudentData = Awaited<ReturnType<typeof getStudentHomeData>>
 type StudentEvent = StudentData['events'][number]
@@ -118,11 +118,11 @@ function AttendanceRow({ item }: { item: AttendanceItem }) {
   const checkIn = new Date(item.check_in_at).toLocaleString('id-ID')
   return (
     <div className="flex flex-col justify-between gap-2 px-6 py-4 sm:flex-row sm:items-center">
-      <div>
-        <p className="text-sm font-black">{eventName}</p>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-black">{eventName}</p>
         <p className="mt-1 text-xs text-(--muted)">{checkIn} · {item.method}</p>
       </div>
-      <Badge variant={item.status === 'hadir' ? 'success' : item.status === 'alpha' ? 'danger' : 'muted'}>{item.status}</Badge>
+      <StatusBadge status={item.status} />
     </div>
   )
 }

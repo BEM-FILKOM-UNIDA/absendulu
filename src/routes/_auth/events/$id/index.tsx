@@ -3,13 +3,7 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, ArrowUpRight } from 'lucide-react'
 import { getEventDetailData } from '~/server/data'
 import { Badge, ButtonLink } from '~/components/ui'
-
-const statusLabels: Record<string, string> = {
-  active: 'Berlangsung',
-  draft: 'Draft',
-  completed: 'Selesai',
-  cancelled: 'Dibatalkan',
-}
+import { eventStatusLabel } from '~/lib/events/labels'
 
 export const Route = createFileRoute('/_auth/events/$id/')({
   loader: ({ params }) => getEventDetailData({ data: { id: params.id } }),
@@ -121,12 +115,12 @@ function EventDetailPage() {
           <h1 className="display-type mt-3 max-w-3xl wrap-break-word text-4xl leading-none tracking-[-.07em] sm:text-6xl">{event.name}</h1>
           {event.description ? <p className="mt-5 max-w-xl wrap-break-word text-sm leading-6 text-(--muted)">{event.description}</p> : null}
         </div>
-        <Badge variant={variant}>{statusLabels[event.status] || event.status}</Badge>
+        <Badge variant={variant}>{eventStatusLabel(event.status)}</Badge>
       </section>
 
       <section className="grid gap-px border border-(--border) bg-(--border) sm:grid-cols-3">
         <div className="bg-(--surface) p-5"><p className="eyebrow text-(--muted-soft)">tanggal</p><p className="mt-3 font-black">{event.event_date}</p></div>
-        <div className="bg-(--surface) p-5"><p className="eyebrow text-(--muted-soft)">waktu</p><p className="mt-3 font-black">{event.start_time}{event.end_time ? ` — ${event.end_time}` : ''}</p></div>
+        <div className="bg-(--surface) p-5"><p className="eyebrow text-(--muted-soft)">waktu</p><p className="mt-3 font-black">{event.start_time}{event.end_time ? ` s.d. ${event.end_time}` : ''}</p></div>
         <div className="bg-(--surface) p-5"><p className="eyebrow text-(--muted-soft)">lokasi</p><p className="mt-3 font-black">{event.location || 'Belum ditentukan'}</p></div>
       </section>
 
@@ -135,7 +129,7 @@ function EventDetailPage() {
           <div>
             <p className="eyebrow text-(--accent-strong)">absensi sedang dibuka</p>
             <h2 className="mt-2 text-2xl font-black">{attendanceCount} mahasiswa sudah hadir</h2>
-            <p className="mt-2 text-sm text-(--muted)">QR aktif—tampilkan kepada peserta.</p>
+            <p className="mt-2 text-sm text-(--muted)">QR aktif. Tampilkan kepada peserta.</p>
             <button
               type="button"
               onClick={exportCsv}
@@ -156,7 +150,7 @@ function EventDetailPage() {
           </button>
         </div>
       ) : (
-        <div className="border border-dashed border-(--border) bg-(--surface) p-8 text-center text-sm text-(--muted)">Datang ke lokasi acara dan scan QR saat sesi dibuka admin.</div>
+        <div className="border border-dashed border-(--border) bg-(--surface) p-8 text-center text-sm text-(--muted)">Datang ke lokasi acara dan scan QR saat admin membuka sesi.</div>
       )}
 
       {error ? <p role="alert" className="border border-[#e7b6b6] bg-[#f8dddd] px-4 py-3 text-sm font-semibold text-(--danger)">{error}</p> : null}

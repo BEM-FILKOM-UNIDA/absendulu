@@ -161,27 +161,25 @@ Import procedure:
 
 ### Account provisioning behavior
 
-Admin-created users are provisioned as active members. If a user is created through another Auth path, the database trigger creates a safe invited profile instead of granting immediate operational access. This prevents an unregistered person from becoming an active organization member solely by creating an Auth identity.
+Admin-created users are provisioned as active members. If a user arrives through Google sign-in instead, the database trigger creates a profile in the `invited` state with a placeholder identifier, and the applicant is asked for their name and NIM. Submitting a well-formed NIM activates that account with no committee approval step.
+
+Consequences the committee has to plan for:
+
+- Any Google account can reach the application. It cannot take over an existing member's NIM, because NIM is unique, so it cannot impersonate a registered member.
+- It can however claim any unused NIM that matches the `I.` plus seven digits format, and then appear as an active member in attendance records.
+- The practical control is the committee reviewing **Data Mahasiswa** for unfamiliar entries before an event. Reviewing manually is the intended workflow, not an oversight.
 
 ## 5. Member Login and Approval
 
-### Magic Link login
-
-1. Open the application login page.
-2. Enter the email registered by the committee.
-3. Select **Kirim Link**.
-4. Open the email from Supabase Auth.
-5. Select the login link.
-6. Return to the application.
-
-Magic Links are one-time links and are subject to Supabase Auth expiration and rate limits. If a new link is requested too quickly, wait and request again later.
-
 ### Google OAuth login
 
-1. Select **Masuk dengan Google**.
-2. Choose the Google account that the committee registered.
-3. Approve the OAuth request if prompted.
-4. Return to the application callback.
+Sign-in is Google only. There is no email field and no magic-link button.
+
+1. Open the application login page.
+2. Select **Masuk dengan Google**.
+3. Choose the Google account that the committee registered.
+4. Approve the OAuth request if prompted.
+5. Return to the application callback.
 
 The Google account email must match the provisioned organization account. Using a different Google account can result in an unrecognized or inactive profile.
 
@@ -223,7 +221,7 @@ At the event venue:
 
 1. Open the event detail page as an administrator.
 2. Confirm that the event status is `active`.
-3. Select **Buka absensi** or the QR action.
+3. Select **Buka sesi absensi** or the QR action.
 4. Open the QR display page.
 5. Display the QR code on a projector, monitor, or administrator device.
 6. Keep the QR display visible during the approved attendance period.
@@ -265,8 +263,10 @@ A check-in is accepted only when:
 
 The status is:
 
-- `hadir` when the check-in is within the first 15 minutes after the start time.
-- `terlambat` when the check-in is later than the first 15 minutes but before the end of the attendance window.
+- `hadir` when the check-in happens before the event end time. This includes scanning late, as long as the session is still open.
+- `terlambat` when the check-in happens after the event end time.
+
+There is no grace period. Scanning at minute 59 of a one-hour event records `hadir`, not `terlambat`. The committee decides the end time when creating the event, so set it to the real closing time rather than the scheduled end of the agenda.
 
 A second check-in for the same event is rejected. This is intentional and protects the attendance record from duplicate scans or repeated requests.
 

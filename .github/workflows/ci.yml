@@ -35,5 +35,12 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # ponytail: non-blocking dulu — 7 advisory aktif (brace-expansion, source-map-js)
+      # semuanya di dev toolchain (vite/postcss/tailwind), hilang hanya lewat bump mayor
+      # toolchain. Buncible sekarang; hilangkan continue-on-error setelah bersih.
+      - name: Audit dependencies
+        run: bun audit
+        continue-on-error: true
+
       - name: Run application checks
         run: bun run check

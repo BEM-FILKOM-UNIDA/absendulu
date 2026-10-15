@@ -22,8 +22,10 @@ export const Route = createFileRoute('/api/events/$id/attendance-export')({
         } catch {
           return responseWithCookies({ error: 'Gagal memuat data absensi.' }, 500, cookies)
         }
+        // ponytail: header Bahasa, bukan nama kolom DB — committee buka ini di Excel.
+        // parseCsv menlowercases header, jadi `Nama`/`NIM` tetap cocok kalau di-import balik.
         const csv = toCsv(
-          ['full_name', 'nim', 'check_in_at', 'status'],
+          ['Nama', 'NIM', 'Waktu Absen', 'Status'],
           rows.map((row) => [row.profiles?.full_name ?? '', row.profiles?.nim ?? '', row.check_in_at ?? '', row.status ?? '']),
         )
         const headers = new Headers({

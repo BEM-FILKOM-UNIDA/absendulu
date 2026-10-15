@@ -13,15 +13,16 @@
     "test:auth": "bun scripts/test-auth.mjs",
     "test:filters": "bun scripts/test-history-filters.mjs",
     "test:csv": "bun scripts/test-csv-export.mjs",
+    "test:validation": "bun scripts/test-input-validation.mjs",
     "lint": "eslint src vite.config.ts",
     "typecheck": "tsc --noEmit",
-    "check": "bun run test:schedule && bun run test:auth && bun run test:filters && bun run test:csv && bun run lint && bun run typecheck && bun run build"
+    "check": "bun run test:schedule && bun run test:auth && bun run test:filters && bun run test:csv && bun run test:validation && bun run lint && bun run typecheck && bun run build"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.5",
     "@supabase/supabase-js": "2.112.4",
-    "@tanstack/react-router": "1.170.32",
-    "@tanstack/react-start": "1.168.49",
+    "@tanstack/react-router": "1.170.41",
+    "@tanstack/react-start": "1.168.60",
     "html5-qrcode": "2.3.8",
     "lucide-react": "^1.46.0",
     "qrcode": "1.5.4",

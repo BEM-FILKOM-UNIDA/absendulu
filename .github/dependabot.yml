@@ -1,0 +1,30 @@
+# Keeps the exact-pinned manifest current without waiting for someone to notice a CVE.
+# Grouped so one PR covers the whole toolchain instead of 20 single-dependency PRs.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      tanstack:
+        patterns:
+          - '@tanstack/*'
+      build-toolchain:
+        patterns:
+          - 'vite'
+          - 'nitro'
+          - '@tailwindcss/*'
+      testing:
+        patterns:
+          - 'typescript'
+          - 'eslint'
+          - '@eslint/*'

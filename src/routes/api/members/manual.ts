@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { invalidate } from '~/lib/cache'
 import { createAdminClient } from '~/server/supabase-context'
-import { isValidStaffIdentifier, isValidStudentNim } from '~/lib/auth/identity'
+import { exceedsMemberLimits, isValidMemberEmail, isValidMemberIdentifier } from '~/lib/members/validation'
 import { responseWithCookies } from '~/server/request-auth'
 import { withAdminApi } from '~/server/api-middleware'
 
@@ -30,9 +30,9 @@ export const Route = createFileRoute('/api/members/manual')({
         const division = typeof body.division === 'string' ? body.division.trim() : ''
         const phone = typeof body.phone === 'string' ? body.phone.trim() : ''
         if (!fullName || !nim || !email || !USER_TYPES.has(userType as UserType)) return responseWithCookies({ error: 'Nama, NIM/NIP, email, dan tipe pengguna wajib diisi.' }, 400, cookies)
-        if (!email.includes('@') || email.startsWith('@') || email.endsWith('@')) return responseWithCookies({ error: 'Format email tidak valid.' }, 400, cookies)
-        if (fullName.length > 160 || nim.length > 80 || email.length > 254) return responseWithCookies({ error: 'Data terlalu panjang.' }, 400, cookies)
-        if ((userType === 'mahasiswa' && !isValidStudentNim(nim)) || (userType !== 'mahasiswa' && !isValidStaffIdentifier(nim))) return responseWithCookies({ error: userType === 'mahasiswa' ? 'NIM mahasiswa harus berformat I.#######, contoh I.2410036.' : 'NIP/NIK tidak valid.' }, 400, cookies)
+        if (!isValidMemberEmail(email)) return responseWithCookies({ error: 'Format email tidak valid.' }, 400, cookies)
+        if (exceedsMemberLimits(fullName, nim, email)) return responseWithCookies({ error: 'Data terlalu panjang.' }, 400, cookies)
+        if (!isValidMemberIdentifier(userType, nim)) return responseWithCookies({ error: userType === 'mahasiswa' ? 'NIM mahasiswa harus berformat I.#######, contoh I.2410036.' : 'NIP/NIK tidak valid.' }, 400, cookies)
 
         const admin = createAdminClient()
 
