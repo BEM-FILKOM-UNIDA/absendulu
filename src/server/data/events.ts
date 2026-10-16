@@ -34,12 +34,15 @@ export async function listEvents(supabase: SupabaseClient, isAdmin: boolean) {
   })
 }
 
+// ponytail: cached() — semua endpoint mutasi sudah memanggil invalidate('events'), jadi baris event aman di-cache 5s
 export async function getEventRow(supabase: SupabaseClient, id: string, isAdmin: boolean) {
-  let q = supabase.from('events').select('id, name, description, event_date, start_time, end_time, location, status').eq('id', id)
-  if (!isAdmin) q = q.eq('status', 'active')
-  const { data, error } = await q.maybeSingle()
-  if (error) throw new Error(`Gagal memuat acara: ${error.message}`)
-  return data
+  return cached(`events:row:${id}:${isAdmin ? 'admin' : 'user'}`, TTL.events, async () => {
+    let q = supabase.from('events').select('id, name, description, event_date, start_time, end_time, location, status').eq('id', id)
+    if (!isAdmin) q = q.eq('status', 'active')
+    const { data, error } = await q.maybeSingle()
+    if (error) throw new Error(`Gagal memuat acara: ${error.message}`)
+    return data
+  })
 }
 
 export const getEventsData = createServerFn({ method: 'GET' }).handler(async () => {

@@ -20,25 +20,31 @@ export type AuthSnapshot = {
 async function readAuth(): Promise<AuthSnapshot> {
   try {
     const { supabase, responseCookies } = createServerSupabase(getRequest())
-    const { data: { user } } = await supabase.auth.getUser()
+    // ponytail: getClaims verifies the JWT locally (project signs with ES256, JWKS cached in
+    // process by auth-js) so navigation stops paying an Auth round-trip. Ceiling: a revoked
+    // session renders until the JWT expires — mutations still validate via getUser() in
+    // request-auth.ts, and a disabled account is caught by the profile check below within 10s.
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims()
 
     if (responseCookies.length > 0) {
       setResponseHeader('Set-Cookie', responseCookies)
     }
 
-    if (!user) return { user: null, profile: null }
+    const claims = claimsData?.claims
+    const userId = claimsError || typeof claims?.sub !== 'string' ? null : claims.sub
+    if (!userId) return { user: null, profile: null }
 
     // Use admin client for the profile query — the user client is subject to RLS
     // and can silently return null if the session JWT hasn't propagated to PostgREST
     // yet (e.g. immediately after sign-in) or if there is any policy evaluation edge
     // case. The admin client bypasses RLS and reliably returns the profile row.
-    const profile = await cached(`auth-profile:${user.id}`, 10_000, async () => {
-      const { data } = await createAdminClient().from('profiles').select('role, account_status, is_active, nim').eq('id', user.id).maybeSingle()
+    const profile = await cached(`auth-profile:${userId}`, 10_000, async () => {
+      const { data } = await createAdminClient().from('profiles').select('role, account_status, is_active, nim').eq('id', userId).maybeSingle()
       return data
     })
 
     return {
-      user: { id: user.id, email: user.email ?? null },
+      user: { id: userId, email: typeof claims?.email === 'string' ? claims.email : null },
       profile: normalizeProfileAccess(profile) ? { ...normalizeProfileAccess(profile)!, nim: profile?.nim ?? null } : null,
     }
   } catch (error) {

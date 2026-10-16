@@ -14,9 +14,10 @@
     "test:filters": "bun scripts/test-history-filters.mjs",
     "test:csv": "bun scripts/test-csv-export.mjs",
     "test:validation": "bun scripts/test-input-validation.mjs",
+    "test:nav": "bun scripts/repro-nav-pending.mjs",
     "lint": "eslint src vite.config.ts",
     "typecheck": "tsc --noEmit",
-    "check": "bun run test:schedule && bun run test:auth && bun run test:filters && bun run test:csv && bun run test:validation && bun run lint && bun run typecheck && bun run build"
+    "check": "bun run test:schedule && bun run test:auth && bun run test:filters && bun run test:csv && bun run test:validation && bun run test:nav && bun run lint && bun run typecheck && bun run build"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.5",

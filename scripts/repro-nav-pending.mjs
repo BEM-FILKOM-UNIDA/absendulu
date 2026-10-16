@@ -22,6 +22,8 @@ const shell = read('src/components/app-shell.tsx')
 const authRoutes = [
   'src/routes/_auth/dashboard.tsx',
   'src/routes/_auth/events.tsx',
+  'src/routes/_auth/events/$id/index.tsx',
+  'src/routes/_auth/events/$id/qr.tsx',
   'src/routes/_auth/members.tsx',
   'src/routes/_auth/attendance/history.tsx',
   'src/routes/_auth/mahasiswa.tsx',
@@ -46,10 +48,12 @@ if (!/isLoading|status === ['"]pending['"]|status===['"]pending['"]/.test(shell)
 }
 
 for (const { rel, src } of authRoutes) {
-  const hasDefer = /defer\s*\(/.test(src)
+  const hasLoader = /loader:\s*\(/.test(src)
+  // ponytail: cek defer() DI DALAM loader — memindai seluruh file membuat komentar "// defer()" lolos
+  const hasDeferredLoader = /loader:[\s\S]*?defer\s*\(/.test(src)
   const wrongDeferObject = /defer\s*\(\s*\{\s*data:/.test(src)
   if (wrongDeferObject) failures.push(`${rel}: defer({ data: promise }) is wrong API — defer() wraps a Promise, not an object`)
-  if (!hasDefer && /loader:\s*\(/.test(src)) {
+  if (hasLoader && !hasDeferredLoader) {
     failures.push(`${rel}: blocking loader without defer — tab content waits on network before paint`)
   }
 }
