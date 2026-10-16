@@ -1,18 +1,33 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { Await, createFileRoute, defer, Link, useNavigate } from '@tanstack/react-router'
+import { Suspense, useEffect, useState } from 'react'
 import { ArrowLeft, ArrowUpRight } from 'lucide-react'
 import { getEventDetailData } from '~/server/data'
 import { Badge, ButtonLink } from '~/components/ui'
 import { eventStatusLabel } from '~/lib/events/labels'
+import { RoutePending } from '~/components/route-fallbacks'
 
+type EventDetailData = Awaited<ReturnType<typeof getEventDetailData>>
+
+// ponytail: defer() — detail acara butuh 4 hop berurutan (auth, event, sesi, hitung hadir); shell harus paint dulu
 export const Route = createFileRoute('/_auth/events/$id/')({
-  loader: ({ params }) => getEventDetailData({ data: { id: params.id } }),
+  loader: ({ params }) => ({ data: defer(getEventDetailData({ data: { id: params.id } })) }),
   component: EventDetailPage,
 })
 
 function EventDetailPage() {
+  const { data } = Route.useLoaderData()
+  return (
+    <Suspense fallback={<RoutePending />}>
+      <Await promise={data} fallback={<RoutePending />}>
+        {(resolved: EventDetailData) => <EventDetailContent data={resolved} />}
+      </Await>
+    </Suspense>
+  )
+}
+
+function EventDetailContent({ data }: { data: EventDetailData }) {
   const navigate = useNavigate()
-  const { event, isAdmin, session, attendanceCount } = Route.useLoaderData()
+  const { event, isAdmin, session, attendanceCount } = data
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [confirming, setConfirming] = useState(false)

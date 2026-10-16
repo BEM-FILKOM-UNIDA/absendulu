@@ -1,19 +1,33 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useEffect, useRef, useState } from 'react'
+import { Await, createFileRoute, defer, Link, useNavigate } from '@tanstack/react-router'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { ArrowDown, ArrowLeft, ArrowUpRight } from 'lucide-react'
 import { getQrData } from '~/server/data'
 import { Card } from '~/components/ui'
-import { QrRouteError } from '~/components/route-fallbacks'
+import { QrRouteError, RoutePending } from '~/components/route-fallbacks'
+
+type QrData = Awaited<ReturnType<typeof getQrData>>
 
 export const Route = createFileRoute('/_auth/events/$id/qr')({
-  loader: ({ params }) => getQrData({ data: { id: params.id } }),
+  // ponytail: defer() — 4 hop berurutan, shell paint dulu sebelum QR/token ikut
+  loader: ({ params }) => ({ data: defer(getQrData({ data: { id: params.id } })) }),
   errorComponent: QrRouteError,
   component: QrPage,
 })
 
 function QrPage() {
+  const { data } = Route.useLoaderData()
+  return (
+    <Suspense fallback={<RoutePending />}>
+      <Await promise={data} fallback={<RoutePending />}>
+        {(resolved: QrData) => <QrContent data={resolved} />}
+      </Await>
+    </Suspense>
+  )
+}
+
+function QrContent({ data }: { data: QrData }) {
   const navigate = useNavigate()
-  const { event, session, attendanceCount } = Route.useLoaderData()
+  const { event, session, attendanceCount } = data
   const [qrDataUrl, setQrDataUrl] = useState('')
   const [closing, setClosing] = useState(false)
   const [error, setError] = useState('')
