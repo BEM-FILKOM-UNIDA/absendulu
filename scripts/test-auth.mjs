@@ -118,4 +118,15 @@ assert.match(attendanceDataSource, /from\('attendances'\)[\s\S]*?\.eq\('event_id
 assert.match(attendanceDataSource, /if \(!isAdmin\) query = query\.eq\('user_id', auth\.user\.id\)/)
 assert.match(attendanceDataSource, /profiles: isAdmin \? profilesById\.get\(a\.user_id\) \?\? null : null/)
 
+// readAuth must verify the JWT locally (getClaims) instead of paying an Auth round-trip on
+// every navigation (getUser). Mutations keep getUser() through request-auth.ts.
+const readAuthSource = fs.readFileSync(path.join(directory, '..', 'src', 'server', 'auth.ts'), 'utf8')
+assert.match(readAuthSource, /supabase\.auth\.getClaims\(\)/, 'readAuth must verify the JWT locally')
+assert.doesNotMatch(readAuthSource, /supabase\.auth\.getUser\(\)/, 'readAuth must not call the Auth server per request')
+assert.match(
+  fs.readFileSync(requestAuthPath, 'utf8'),
+  /supabase\.auth\.getUser\(\)/,
+  'mutation path must keep full server-side session validation',
+)
+
 console.log('auth regression: PASS (active admin guard, admin route coverage, origin protection, and server health check)')
