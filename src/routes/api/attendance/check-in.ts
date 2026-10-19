@@ -45,28 +45,34 @@ export const Route = createFileRoute('/api/attendance/check-in')({
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return failure('Sesi login tidak ditemukan. Silakan login ulang.', 401, 'UNAUTHENTICATED', responseCookies)
 
-        const admin = createAdminClient()
-        const { data: profile, error: profileError } = await admin.from('profiles').select('account_status, is_active').eq('id', user.id).maybeSingle()
-        if (profileError) return failure('Profil pengguna gagal diperiksa. Coba lagi.', 500, 'PROFILE_LOOKUP_FAILED', responseCookies)
-        const access = normalizeProfileAccess(profile)
-        if (!access || access.account_status !== 'active' || !access.is_active) return failure('Akun belum aktif atau sudah dinonaktifkan.', 403, 'ACCOUNT_INACTIVE', responseCookies)
-
+        // Validate the body before touching the DB so bad input costs zero queries.
         let body: unknown
         try { body = await request.json() } catch { return failure('Permintaan tidak dapat diproses. Coba lagi.', 400, 'INVALID_REQUEST_BODY', responseCookies) }
         const qrToken = body && typeof body === 'object' && 'qrToken' in body && typeof body.qrToken === 'string' ? body.qrToken.trim() : ''
         if (qrToken.length < 16 || qrToken.length > 128) return failure('QR ini bukan QR absensi. Gunakan QR yang tampil di halaman admin.', 400, 'INVALID_QR_TOKEN', responseCookies)
 
-        const { data: session, error: sessionError } = await admin.from('attendance_sessions').select('id, event_id, is_open, events!inner(name, event_date, start_time, end_time, status)').eq('qr_token', qrToken).eq('is_open', true).maybeSingle()
+        // ponytail: profile and session are independent — one round-trip instead of two.
+        // A 150-person scan burst is the hot path; each saved hop is ~400ms off the wait.
+        const admin = createAdminClient()
+        const [profileResult, sessionResult] = await Promise.all([
+          admin.from('profiles').select('account_status, is_active').eq('id', user.id).maybeSingle(),
+          admin.from('attendance_sessions').select('id, event_id, is_open, events!inner(name, event_date, start_time, end_time, status)').eq('qr_token', qrToken).eq('is_open', true).maybeSingle(),
+        ])
+        const { data: profile, error: profileError } = profileResult
+        if (profileError) return failure('Profil pengguna gagal diperiksa. Coba lagi.', 500, 'PROFILE_LOOKUP_FAILED', responseCookies)
+        const access = normalizeProfileAccess(profile)
+        if (!access || access.account_status !== 'active' || !access.is_active) return failure('Akun belum aktif atau sudah dinonaktifkan.', 403, 'ACCOUNT_INACTIVE', responseCookies)
+
+        const { data: session, error: sessionError } = sessionResult
         if (sessionError) return failure('Sesi QR gagal diperiksa. Coba lagi.', 500, 'SESSION_LOOKUP_FAILED', responseCookies)
         if (!session) return failure('QR Code tidak valid atau sesi sudah ditutup.', 400, 'QR_SESSION_INVALID', responseCookies)
 
         const event = Array.isArray(session.events) ? session.events[0] : session.events
         if (!event || event.status !== 'active') return failure('Acara tidak sedang aktif.', 400, 'EVENT_INACTIVE', responseCookies)
 
-        const { data: existing, error: existingError } = await admin.from('attendances').select('id').eq('event_id', session.event_id).eq('user_id', user.id).limit(1).maybeSingle()
-        if (existingError) return failure('Riwayat absensi gagal diperiksa. Coba lagi.', 500, 'ATTENDANCE_LOOKUP_FAILED', responseCookies)
-        if (existing) return failure('Sudah melakukan absensi untuk acara ini.', 409, 'ALREADY_CHECKED_IN', responseCookies)
-
+        // No pre-check SELECT: the BEFORE INSERT trigger takes an advisory lock and raises
+        // 23505 for a duplicate, which the insert handler below already maps to 409. Dropping
+        // the pre-check removes a round-trip AND the check-then-insert race it could never close.
         const jakartaNow = getJakartaDateTime()
         const schedule = getSchedulePosition(event.event_date, event.start_time, event.end_time, jakartaNow.date, jakartaNow.time)
         if (!schedule || schedule.nowMinutes < schedule.startMinutes) return failure('Absensi belum dibuka. Tunggu sampai waktu acara dimulai.', 400, 'EVENT_NOT_STARTED', responseCookies)
