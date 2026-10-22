@@ -123,7 +123,7 @@ export const Route = createFileRoute('/api/members/import')({
 
             const previous = profilesById.get(userId)
             const { error } = await admin.from('profiles').upsert({ id: userId, full_name: row.full_name, nim: row.nim, email: row.email, user_type: row.user_type, nim_format_legacy: false, division: row.division, phone: row.phone, role: previous?.role ?? 'user', account_status: previous?.account_status === 'disabled' ? 'disabled' : 'active', is_active: previous?.is_active ?? true })
-            if (error) failed.push({ email: row.email, error: error.message }); else if (wasExisting) existing.push(row.email); else imported.push(row.email)
+            if (error) failed.push({ email: row.email, error: error.code === '23505' ? `NIM/NIP ${row.nim} sudah terdaftar dengan email lain.` : error.message }); else if (wasExisting) existing.push(row.email); else imported.push(row.email)
           }
         }
         await Promise.all(Array.from({ length: Math.min(8, rows.length) }, () => worker()))

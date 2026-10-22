@@ -10,7 +10,7 @@ export async function fetchHistory(supabase: SupabaseClient, auth: Awaited<Retur
   const isAdmin = isAdminRole(auth.profile.role)
   const key = `history:${isAdmin ? 'admin' : auth.user.id}`
   return cached(key, 20_000, async () => {
-    let query = supabase.from('attendances').select('id, user_id, status, method, check_in_at, notes, events(name)').order('check_in_at', { ascending: false }).limit(isAdmin ? 100 : 50)
+    let query = supabase.from('attendances').select('id, user_id, status, method, check_in_at, notes, events(name)').order('check_in_at', { ascending: false }).limit(isAdmin ? 1000 : 50)
     if (!isAdmin) query = query.eq('user_id', auth.user.id)
     const { data, error } = await query
     if (error) throw new Error(`Gagal memuat riwayat: ${error.message}`)
