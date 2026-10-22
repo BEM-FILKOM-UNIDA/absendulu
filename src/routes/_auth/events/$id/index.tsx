@@ -145,14 +145,6 @@ function EventDetailContent({ data }: { data: EventDetailData }) {
             <p className="eyebrow text-(--accent-strong)">absensi sedang dibuka</p>
             <h2 className="mt-2 text-2xl font-black">{attendanceCount} mahasiswa sudah hadir</h2>
             <p className="mt-2 text-sm text-(--muted)">QR aktif. Tampilkan kepada peserta.</p>
-            <button
-              type="button"
-              onClick={exportCsv}
-              disabled={exporting}
-              className="mt-4 min-h-9 rounded-sm bg-(--accent-strong) px-4 text-sm font-bold text-white disabled:opacity-50"
-            >
-              {exporting ? 'Menyiapkan…' : 'Export CSV'}
-            </button>
           </div>
           <ButtonLink href={`/events/${event.id}/qr`} variant="primary">Lihat QR <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></ButtonLink>
         </section>
@@ -180,11 +172,9 @@ function EventDetailContent({ data }: { data: EventDetailData }) {
                 <button type="button" onClick={() => updateStatus('cancelled')} disabled={loading} className="min-h-9 rounded-sm border border-(--danger) px-4 text-sm font-bold text-(--danger) disabled:opacity-50">{loading ? 'Memproses…' : 'Batalkan acara'}</button>
               </>
             ) : null}
-            {event.status === 'completed' ? (
-              <button type="button" onClick={exportCsv} disabled={exporting} className="min-h-9 rounded-sm bg-(--accent-strong) px-4 text-sm font-bold text-white disabled:opacity-50">
-                {exporting ? 'Menyiapkan…' : 'Export CSV'}
-              </button>
-            ) : null}
+            <button type="button" onClick={exportCsv} disabled={exporting} className="min-h-9 rounded-sm bg-(--accent-strong) px-4 text-sm font-bold text-white disabled:opacity-50">
+              {exporting ? 'Menyiapkan…' : 'Export CSV'}
+            </button>
           </div>
           <button type="button" onClick={() => setConfirming(true)} disabled={loading} className="inline-flex items-center gap-1 text-sm font-bold text-(--danger) disabled:opacity-50">{loading ? 'Memproses…' : 'Hapus acara'} <ArrowUpRight aria-hidden="true" className="h-4 w-4 shrink-0" /></button>
         </section>
